@@ -1,0 +1,10 @@
+import '@testing-library/jest-dom'
+
+process.env.NEXT_PUBLIC_SUPABASE_URL = 'http://localhost:54321'
+process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'anon'
+process.env.SUPABASE_SERVICE_ROLE_KEY = 'service'
+process.env.STRIPE_SECRET_KEY = 'sk_test'
+process.env.STRIPE_WEBHOOK_SECRET = 'whsec_test'
+process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY = 'pk_test'
+process.env.PLATFORM_FEE_PERCENT = '0'
+process.env.NEXT_PUBLIC_APP_URL = 'http://localhost:3000'
