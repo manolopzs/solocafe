@@ -15,12 +15,12 @@ Rails.application.routes.draw do
       resources :modifier_options, only: [:index, :create, :update, :destroy]
     end
     resources :orders, only: [:index, :create, :show, :update]
-    resources :payments, only: [:create]
     post "/stripe/connect", to: "stripe_connect#create"
     get "/analytics/summary", to: "analytics#summary"
   end
 
   get "/public/shops/:shop_id/menu", to: "public/menus#show"
 
+  post "/payments", to: "payments#create"
   post "/webhooks/stripe", to: "stripe_webhooks#create"
 end

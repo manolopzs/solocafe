@@ -1,6 +1,5 @@
 class PaymentsController < ApplicationController
-  before_action :authenticate_user!
-  before_action :set_order_and_authorize!
+  before_action :set_order!
 
   def create
     if Current.shop.stripe_account_id.blank?
@@ -20,10 +19,7 @@ class PaymentsController < ApplicationController
 
   private
 
-  def set_order_and_authorize!
-    set_current_shop!
-    return if performed?
-
+  def set_order!
     if order_id.blank?
       render json: { error: "order_id is required" }, status: :bad_request
       return
@@ -35,9 +31,7 @@ class PaymentsController < ApplicationController
       return
     end
 
-    unless staff? || order_owner?(@order)
-      render json: { error: "Forbidden" }, status: :forbidden
-    end
+    Current.shop = @order.shop
   end
 
   def order_id
@@ -46,14 +40,6 @@ class PaymentsController < ApplicationController
 
   def payment_params
     params.permit(:order_id)
-  end
-
-  def staff?
-    Current.shop.shop_members.exists?(user_id: Current.user.id)
-  end
-
-  def order_owner?(order)
-    order.customer&.user_id == Current.user.id
   end
 
   def create_or_update_payment_intent
