@@ -44,7 +44,14 @@ export default async function MenuPage({
           <CardDescription>Agrega fotos, precios y disponibilidad.</CardDescription>
         </CardHeader>
         <CardContent>
-          <ItemList shopId={shopId} items={menu.items} categories={menu.categories} currency={shop.currency} />
+          <ItemList
+            shopId={shopId}
+            items={menu.items}
+            categories={menu.categories}
+            modifierGroups={menu.modifierGroups}
+            itemModifierLinks={menu.itemModifierLinks}
+            currency={shop.currency}
+          />
         </CardContent>
       </Card>
 

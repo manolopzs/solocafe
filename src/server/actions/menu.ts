@@ -110,3 +110,17 @@ export async function toggleItem86(shopId: string, id: string, is86ed: boolean) 
   await apiPatch(`/shops/${shopId}/menu_items/${id}`, { menu_item: { is_86ed: is86ed } })
   revalidatePath(`/dashboard/${shopId}/menu`)
 }
+
+export async function linkModifierGroup(shopId: string, itemId: string, groupId: string, isRequired = false) {
+  await apiPost(`/shops/${shopId}/item_modifier_links`, {
+    item_id: itemId,
+    group_id: groupId,
+    is_required: isRequired,
+  })
+  revalidatePath(`/dashboard/${shopId}/menu`)
+}
+
+export async function unlinkModifierGroup(shopId: string, linkId: string) {
+  await apiDelete(`/shops/${shopId}/item_modifier_links/${linkId}`)
+  revalidatePath(`/dashboard/${shopId}/menu`)
+}

@@ -19,6 +19,7 @@ export default async function DashboardLayout({
     { href: `/dashboard/${shopId}`, label: 'Resumen', icon: 'store' },
     { href: `/dashboard/${shopId}/menu`, label: 'Menu', icon: 'receipt' },
     { href: `/dashboard/${shopId}/kds`, label: 'Cocina', icon: 'utensils' },
+    { href: `/dashboard/${shopId}/qr`, label: 'QR', icon: 'qrcode' },
     { href: `/dashboard/${shopId}/settings`, label: 'Ajustes', icon: 'settings' },
   ]
 

@@ -11,6 +11,7 @@ Rails.application.routes.draw do
   scope "/shops/:shop_id", as: :shop do
     resources :menu_categories, only: [:index, :create, :update, :destroy]
     resources :menu_items, only: [:index, :create, :update, :destroy]
+    resources :item_modifier_links, only: [:index, :create, :destroy]
     resources :modifier_groups, only: [:index, :create, :update, :destroy] do
       resources :modifier_options, only: [:index, :create, :update, :destroy]
     end
@@ -19,6 +20,7 @@ Rails.application.routes.draw do
     get "/analytics/summary", to: "analytics#summary"
   end
 
+  get "/public/shops", to: "public/shops#index"
   get "/public/shops/:shop_id/menu", to: "public/menus#show"
   get "/public/orders/:id", to: "orders#show_public"
 

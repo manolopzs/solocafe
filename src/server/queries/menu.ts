@@ -12,28 +12,35 @@ export interface FullMenu {
 }
 
 export async function getFullMenu(shopId: string): Promise<FullMenu> {
-  const data = await apiGet<{
-    categories: MenuCategory[]
-    items: MenuItem[]
-    modifier_groups: ModifierGroup[]
-    modifier_options: ModifierOption[]
-    item_modifier_links: ItemModifierLink[]
-  }>(`/shops/${shopId}/menu_categories`)
-
-  const categories = data.categories ?? []
+  const categoriesResponse = await apiGet<{ categories: MenuCategory[] }>(`/shops/${shopId}/menu_categories`)
   const itemsResponse = await apiGet<{ items: MenuItem[] }>(`/shops/${shopId}/menu_items`)
   const groupsResponse = await apiGet<{ modifier_groups: ModifierGroup[] }>(`/shops/${shopId}/modifier_groups`)
 
+  const categories = categoriesResponse.categories ?? []
+  const items = itemsResponse.items ?? []
   const groups = groupsResponse.modifier_groups ?? []
+
+  const itemIds = items.map((i) => i.id)
   const groupIds = groups.map((g) => g.id)
-  const itemIds = (itemsResponse.items ?? []).map((i) => i.id)
+
+  let itemModifierLinks: ItemModifierLink[] = []
+  if (itemIds.length > 0 && groupIds.length > 0) {
+    try {
+      const linksResponse = await apiGet<{ item_modifier_links: ItemModifierLink[] }>(
+        `/shops/${shopId}/item_modifier_links`
+      )
+      itemModifierLinks = linksResponse.item_modifier_links ?? []
+    } catch {
+      itemModifierLinks = []
+    }
+  }
 
   return {
     categories,
-    items: itemsResponse.items ?? [],
+    items,
     modifierGroups: groups,
     modifierOptions: groups.flatMap((g) => g.options ?? []),
-    itemModifierLinks: [],
+    itemModifierLinks,
   }
 }
 

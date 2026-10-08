@@ -3,20 +3,28 @@
 import { useEffect, useState } from 'react'
 import QRCodeLib from 'qrcode'
 
-export function QrCode({ url }: { url: string }) {
+export function QrCode({ url, size = 256 }: { url: string; size?: number }) {
   const [dataUrl, setDataUrl] = useState<string | null>(null)
 
   useEffect(() => {
-    QRCodeLib.toDataURL(url, { width: 256, margin: 2 }).then(setDataUrl)
-  }, [url])
+    QRCodeLib.toDataURL(url, {
+      width: size,
+      margin: 2,
+      color: {
+        dark: '#2C2420',
+        light: '#FFFFFF',
+      },
+    }).then(setDataUrl)
+  }, [url, size])
 
-  if (!dataUrl) return <div className="h-64 w-64 animate-pulse rounded-lg bg-zinc-100" />
+  if (!dataUrl) return <div className="animate-pulse rounded-lg bg-warm-100" style={{ width: size, height: size }} />
 
   return (
     <img
       src={dataUrl}
       alt="Codigo QR para ordenar"
-      className="h-64 w-64 rounded-lg border border-zinc-200"
+      className="rounded-lg border border-warm-200"
+      style={{ width: size, height: size }}
     />
   )
 }

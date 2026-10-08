@@ -2,24 +2,35 @@
 
 import { useState, useRef } from 'react'
 import Image from 'next/image'
-import { createItem, updateItem, deleteItem, toggleItem86 } from '@/server/actions/menu'
+import {
+  createItem,
+  updateItem,
+  deleteItem,
+  toggleItem86,
+  linkModifierGroup,
+  unlinkModifierGroup,
+} from '@/server/actions/menu'
 import { uploadImageToCloudinary } from '@/lib/cloudinary'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Icon } from '@/components/ui/icon'
-import type { MenuItem, MenuCategory } from '@/types'
+import type { MenuItem, MenuCategory, ModifierGroup, ItemModifierLink } from '@/types'
 
 export function ItemList({
   shopId,
   items,
   categories,
+  modifierGroups,
+  itemModifierLinks,
   currency,
 }: {
   shopId: string
   items: MenuItem[]
   categories: MenuCategory[]
+  modifierGroups: ModifierGroup[]
+  itemModifierLinks: ItemModifierLink[]
   currency: string
 }) {
   const [editing, setEditing] = useState<string | null>(null)
@@ -48,6 +59,8 @@ export function ItemList({
                   shopId={shopId}
                   item={item}
                   categories={categories}
+                  modifierGroups={modifierGroups}
+                  itemModifierLinks={itemModifierLinks}
                   currency={currency}
                   onSaved={() => setEditing(null)}
                 />
@@ -74,12 +87,16 @@ function ItemForm({
   shopId,
   item,
   categories,
+  modifierGroups = [],
+  itemModifierLinks = [],
   currency,
   onSaved,
 }: {
   shopId: string
   item?: MenuItem
   categories: MenuCategory[]
+  modifierGroups?: ModifierGroup[]
+  itemModifierLinks?: ItemModifierLink[]
   currency: string
   onSaved: () => void
 }) {
@@ -239,6 +256,15 @@ function ItemForm({
         />
       </div>
 
+      {item && modifierGroups.length > 0 && (
+        <ModifierLinkSection
+          shopId={shopId}
+          itemId={item.id}
+          modifierGroups={modifierGroups}
+          itemModifierLinks={itemModifierLinks}
+        />
+      )}
+
       <div className="flex gap-2 pt-1">
         <Button type="submit" className={item ? '' : 'w-full sm:w-auto'}>
           {item ? 'Guardar cambios' : 'Agregar producto'}
@@ -250,6 +276,54 @@ function ItemForm({
         )}
       </div>
     </form>
+  )
+}
+
+function ModifierLinkSection({
+  shopId,
+  itemId,
+  modifierGroups,
+  itemModifierLinks,
+}: {
+  shopId: string
+  itemId: string
+  modifierGroups: ModifierGroup[]
+  itemModifierLinks: ItemModifierLink[]
+}) {
+  const links = itemModifierLinks.filter((l) => l.item_id === itemId)
+
+  return (
+    <div className="rounded-xl border border-warm-200 bg-cream p-4">
+      <Label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Modificadores disponibles</Label>
+      <div className="mt-3 space-y-2">
+        {modifierGroups.map((group) => {
+          const link = links.find((l) => l.group_id === group.id)
+          const isLinked = Boolean(link)
+          return (
+            <div key={group.id} className="flex items-center justify-between">
+              <span className="text-sm text-foreground">{group.name}</span>
+              <Button
+                type="button"
+                variant={isLinked ? 'outline' : 'secondary'}
+                size="sm"
+                onClick={async () => {
+                  if (isLinked && link) {
+                    await unlinkModifierGroup(shopId, link.id)
+                  } else {
+                    await linkModifierGroup(shopId, itemId, group.id)
+                  }
+                }}
+              >
+                {isLinked ? 'Quitar' : 'Agregar'}
+              </Button>
+            </div>
+          )
+        })}
+      </div>
+      {modifierGroups.length === 0 && (
+        <p className="text-sm text-muted-foreground">Crea grupos de modificadores primero.</p>
+      )}
+    </div>
   )
 }
 

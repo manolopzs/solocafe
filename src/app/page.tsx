@@ -2,8 +2,10 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { Card, CardContent } from "@/components/ui/card";
+import { isStage2Enabled } from "@/lib/features";
 
 export default function Home() {
+  const stage2 = isStage2Enabled();
   return (
     <main className="flex flex-1 flex-col">
       <nav className="sticky top-0 z-50 border-b border-warm-200 bg-background/80 px-6 py-4 backdrop-blur-md">
@@ -17,6 +19,9 @@ export default function Home() {
             </span>
           </Link>
           <div className="hidden items-center gap-8 text-sm font-medium text-warm-700 md:flex">
+            {stage2 && (
+              <Link href="/explore" className="hover:text-terracotta-600">Explorar</Link>
+            )}
             <Link href="#features" className="hover:text-terracotta-600">Funciones</Link>
             <Link href="#como-funciona" className="hover:text-terracotta-600">Como funciona</Link>
             <Link href="#precios" className="hover:text-terracotta-600">Precios</Link>
@@ -239,6 +244,9 @@ export default function Home() {
             Hecho para cafeterias independientes.
           </p>
           <div className="flex gap-6 text-sm text-muted-foreground">
+            {stage2 && (
+              <Link href="/explore" className="hover:text-foreground">Explorar</Link>
+            )}
             <Link href="/auth/login" className="hover:text-foreground">Entrar</Link>
             <Link href="/auth/signup" className="hover:text-foreground">Crear cuenta</Link>
           </div>

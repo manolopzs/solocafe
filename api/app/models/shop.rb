@@ -5,6 +5,7 @@ class Shop < ApplicationRecord
   has_one :shop_subscription, dependent: :destroy
   has_many :menu_categories, dependent: :destroy
   has_many :menu_items, dependent: :destroy
+  has_many :item_modifier_links, through: :menu_items
   has_many :modifier_groups, dependent: :destroy
   has_many :orders, dependent: :destroy
   has_many :pickup_slots, dependent: :destroy
