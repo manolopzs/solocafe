@@ -53,7 +53,7 @@ class StripeWebhooksController < ApplicationController
     Event.create!(
       shop: order.shop,
       order: order,
-      type: type,
+      event_type: type,
       payload: object.as_json
     )
   end

@@ -1,4 +1,5 @@
 require "test_helper"
+require "ostruct"
 
 class StripeWebhooksControllerTest < ActionDispatch::IntegrationTest
   setup do
@@ -19,8 +20,8 @@ class StripeWebhooksControllerTest < ActionDispatch::IntegrationTest
   test "payment_intent.succeeded updates payment and order" do
     event = build_event("payment_intent.succeeded", "pi_123", "ch_123")
 
-    Stripe::Webhook.stub(:construct_event, event) do
-      post webhooks_stripe_url, params: event.to_json, headers: { "Content-Type" => "application/json" }
+    with_stripe_webhook(event) do
+      post webhooks_stripe_url, params: event.as_json.to_json, headers: { "Content-Type" => "application/json" }
     end
 
     assert_response :success
@@ -30,10 +31,10 @@ class StripeWebhooksControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "ignores irrelevant event types" do
-    event = { "id" => "evt_2", "type" => "invoice.payment_succeeded", "data" => { "object" => {} } }
+    event = to_event({ "id" => "evt_2", "type" => "invoice.payment_succeeded", "data" => { "object" => {} } })
 
-    Stripe::Webhook.stub(:construct_event, event) do
-      post webhooks_stripe_url, params: event.to_json, headers: { "Content-Type" => "application/json" }
+    with_stripe_webhook(event) do
+      post webhooks_stripe_url, params: event.as_json.to_json, headers: { "Content-Type" => "application/json" }
     end
 
     assert_response :success
@@ -44,7 +45,7 @@ class StripeWebhooksControllerTest < ActionDispatch::IntegrationTest
   test "rejects invalid signature" do
     error = Stripe::SignatureVerificationError.new("bad", "sig")
 
-    Stripe::Webhook.stub(:construct_event, ->(*_args) { raise error }) do
+    with_stripe_webhook(->(*_args) { raise error }) do
       post webhooks_stripe_url, params: "{}", headers: { "Content-Type" => "application/json" }
     end
 
@@ -54,7 +55,7 @@ class StripeWebhooksControllerTest < ActionDispatch::IntegrationTest
   private
 
   def build_event(type, payment_intent_id, charge_id)
-    {
+    to_event({
       "id" => "evt_1",
       "type" => type,
       "data" => {
@@ -64,6 +65,20 @@ class StripeWebhooksControllerTest < ActionDispatch::IntegrationTest
           "latest_charge" => charge_id
         }
       }
-    }
+    })
+  end
+
+  def to_event(hash)
+    OpenStruct.new(hash.transform_values { |v| v.is_a?(Hash) ? OpenStruct.new(v.transform_values { |vv| vv.is_a?(Hash) ? OpenStruct.new(vv) : vv }) : v })
+  end
+
+  def with_stripe_webhook(return_value)
+    original = Stripe::Webhook.method(:construct_event)
+    Stripe::Webhook.define_singleton_method(:construct_event) do |*args|
+      return_value.respond_to?(:call) ? return_value.call(*args) : return_value
+    end
+    yield
+  ensure
+    Stripe::Webhook.define_singleton_method(:construct_event, original)
   end
 end

@@ -8,7 +8,7 @@ Rails.application.routes.draw do
   resources :shops, only: [:index, :create, :update]
   get "/shops/:slug", to: "shops#show"
 
-  scope "/shops/:shop_id" do
+  scope "/shops/:shop_id", as: :shop do
     resources :menu_categories, only: [:index, :create, :update, :destroy]
     resources :menu_items, only: [:index, :create, :update, :destroy]
     resources :modifier_groups, only: [:index, :create, :update, :destroy] do
