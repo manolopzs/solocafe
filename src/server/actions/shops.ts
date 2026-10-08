@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { apiGet, apiPost, apiPatch, apiDelete } from '@/lib/api/server'
+import { apiPost } from '@/lib/api/server'
 import { z } from 'zod'
 
 const onboardingSchema = z.object({

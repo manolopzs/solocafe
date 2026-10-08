@@ -1,7 +1,7 @@
 'use server'
 
 import { redirect } from 'next/navigation'
-import { apiGet, apiPost, apiPatch, apiDelete } from '@/lib/api/server'
+import { apiPost } from '@/lib/api/server'
 import { z } from 'zod'
 
 const cartItemSchema = z.object({
