@@ -23,7 +23,9 @@ async function request<T>(
   }
 
   const url = `${env.NEXT_PUBLIC_API_URL}${path}`
-  const response = await fetch(url, { ...options, headers })
+  const response = await fetch(url, { ...options, headers }).catch((err) => {
+    throw new Error(`Fetch failed for ${url}: ${err instanceof Error ? err.message : String(err)}`)
+  })
 
   let body: unknown
   const text = await response.text()
@@ -42,7 +44,7 @@ async function request<T>(
         : typeof body === 'object' && body !== null && 'errors' in body
           ? JSON.stringify((body as { errors: unknown }).errors)
           : response.statusText
-    throw new Error(message)
+    throw new Error(`${url}: ${message}`)
   }
 
   return body as T
