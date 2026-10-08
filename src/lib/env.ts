@@ -4,7 +4,6 @@ const envSchema = z.object({
   NEXT_PUBLIC_API_URL: z.string().url(),
   NEXT_PUBLIC_APP_URL: z.string().url().default('http://localhost:3000'),
   STRIPE_SECRET_KEY: z.string().min(1),
-  STRIPE_WEBHOOK_SECRET: z.string().min(1),
   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().min(1),
   PLATFORM_FEE_PERCENT: z.string().default('0'),
 })
