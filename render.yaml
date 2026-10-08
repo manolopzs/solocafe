@@ -7,12 +7,11 @@ services:
   - type: web
     name: solocafe-api
     plan: free
-    runtime: ruby
+    runtime: docker
     repo: https://github.com/manolopzs/solocafe
     branch: main
     rootDir: api
-    buildCommand: bundle install
-    startCommand: bundle exec rails db:migrate && bundle exec rails server -b 0.0.0.0 -p $PORT
+    dockerfilePath: ./Dockerfile
     envVars:
       - key: RAILS_ENV
         value: production
