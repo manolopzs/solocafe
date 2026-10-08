@@ -1,6 +1,6 @@
-api/
-supabase/
-tests/
+/api/
+/supabase/
+/tests/
 .env.local
 .env
 .DS_Store
