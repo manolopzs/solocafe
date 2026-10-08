@@ -51,7 +51,7 @@ class CreateInitialSchema < ActiveRecord::Migration[8.1]
     add_index :shop_members, [:shop_id, :user_id], unique: true
 
     create_table :shop_subscriptions, id: :uuid do |t|
-      t.references :shop, null: false, foreign_key: true, type: :uuid
+      t.references :shop, null: false, foreign_key: true, type: :uuid, index: { unique: true }
       t.references :tier, null: false, foreign_key: { to_table: :subscription_tiers }, type: :uuid
       t.string :status, null: false, default: "active"
       t.datetime :current_period_start
@@ -59,7 +59,6 @@ class CreateInitialSchema < ActiveRecord::Migration[8.1]
       t.string :stripe_subscription_id
       t.timestamps
     end
-    add_index :shop_subscriptions, :shop_id, unique: true
 
     create_table :customers, id: :uuid do |t|
       t.references :user, null: true, foreign_key: true, type: :uuid
@@ -164,7 +163,7 @@ class CreateInitialSchema < ActiveRecord::Migration[8.1]
     end
 
     create_table :payments, id: :uuid do |t|
-      t.references :order, null: false, foreign_key: true, type: :uuid
+      t.references :order, null: false, foreign_key: true, type: :uuid, index: { unique: true }
       t.string :stripe_payment_intent_id
       t.string :stripe_charge_id
       t.integer :amount_cents, null: false
@@ -173,15 +172,13 @@ class CreateInitialSchema < ActiveRecord::Migration[8.1]
       t.string :status, null: false, default: "pending"
       t.timestamps
     end
-    add_index :payments, :order_id, unique: true
     add_index :payments, :stripe_payment_intent_id
 
     create_table :slot_reservations, id: :uuid do |t|
       t.references :slot, null: false, foreign_key: { to_table: :pickup_slots }, type: :uuid
-      t.references :order, null: false, foreign_key: true, type: :uuid
+      t.references :order, null: false, foreign_key: true, type: :uuid, index: { unique: true }
       t.timestamps
     end
-    add_index :slot_reservations, :order_id, unique: true
 
     create_table :events, id: :uuid do |t|
       t.references :shop, null: false, foreign_key: true, type: :uuid
