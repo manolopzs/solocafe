@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js'
 import { getStripe } from '@/lib/stripe/client'
+import { Button } from '@/components/ui/button'
 
 function PaymentForm({ orderId }: { orderId: string }) {
   const stripe = useStripe()
@@ -39,15 +40,13 @@ function PaymentForm({ orderId }: { orderId: string }) {
 
   return (
     <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-      <PaymentElement />
-      {error && <p className="text-sm text-red-600">{error}</p>}
-      <button
-        type="submit"
-        disabled={!stripe || loading}
-        className="w-full rounded-lg bg-zinc-900 py-3 text-base font-medium text-white disabled:opacity-50"
-      >
+      <div className="rounded-xl border border-warm-200 bg-warm-50/50 p-4">
+        <PaymentElement />
+      </div>
+      {error && <p className="text-sm text-danger">{error}</p>}
+      <Button type="submit" disabled={!stripe || loading} size="lg" className="w-full">
         {loading ? 'Procesando...' : 'Pagar ahora'}
-      </button>
+      </Button>
     </form>
   )
 }

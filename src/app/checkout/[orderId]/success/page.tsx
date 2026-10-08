@@ -1,6 +1,9 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getOrderWithItems } from '@/server/queries/orders'
+import { Button } from '@/components/ui/button'
+import { Icon } from '@/components/ui/icon'
+import { Card, CardContent } from '@/components/ui/card'
 
 export const instant = false
 
@@ -13,24 +16,47 @@ export default async function CheckoutSuccessPage({
   const order = await getOrderWithItems(orderId)
   if (!order) notFound()
 
+  const statusLabels: Record<string, string> = {
+    received: 'Recibido',
+    preparing: 'Preparando',
+    ready: 'Listo',
+    picked_up: 'Entregado',
+    cancelled: 'Cancelado',
+  }
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-zinc-50 px-6 py-12">
-      <div className="w-full max-w-md rounded-2xl bg-white p-6 text-center shadow-sm">
-        <h1 className="text-2xl font-semibold text-zinc-900">Pago confirmado</h1>
-        <p className="mt-2 text-zinc-600">
-          Tu pedido fue recibido. Te avisaremos cuando este listo.
-        </p>
-        <div className="mt-6 rounded-lg bg-zinc-50 p-4 text-left text-sm">
-          <p><span className="font-medium">Numero:</span> {order.id.slice(0, 8)}</p>
-          <p><span className="font-medium">Total:</span> {order.currency} {(order.total_cents / 100).toFixed(2)}</p>
-          <p><span className="font-medium">Estado:</span> {order.status}</p>
+    <main className="flex min-h-screen flex-col items-center justify-center bg-background px-6 py-12">
+      <div className="w-full max-w-md">
+        <div className="text-center">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-success/10 text-success">
+            <Icon name="check" className="h-8 w-8" />
+          </div>
+          <h1 className="mt-5 text-2xl font-bold text-foreground">Pago confirmado</h1>
+          <p className="mt-2 text-muted-foreground">
+            Tu pedido fue recibido. Te avisaremos cuando este listo.
+          </p>
         </div>
-        <Link
-          href="/"
-          className="mt-6 inline-block rounded-lg bg-zinc-900 px-6 py-2 text-sm font-medium text-white"
-        >
-          Volver al inicio
-        </Link>
+
+        <Card variant="outline" className="mt-8">
+          <CardContent className="space-y-3 p-5 text-sm">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Numero</span>
+              <span className="font-medium text-foreground">{order.id.slice(0, 8).toUpperCase()}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Total</span>
+              <span className="font-medium text-foreground">{order.currency} {(order.total_cents / 100).toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Estado</span>
+              <span className="font-medium text-foreground">{statusLabels[order.status] ?? order.status}</span>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Button asChild size="lg" className="mt-6 w-full">
+          <Link href="/">Volver al inicio</Link>
+        </Button>
       </div>
     </main>
   )
