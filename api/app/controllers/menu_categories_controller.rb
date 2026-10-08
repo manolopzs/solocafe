@@ -35,7 +35,7 @@ class MenuCategoriesController < ApplicationController
   private
 
   def category_params
-    params.require(:category).permit(:name, :sort_order, :is_active)
+    params.require(:menu_category).permit(:name, :sort_order, :is_active)
   end
 
   def category_payload(category)

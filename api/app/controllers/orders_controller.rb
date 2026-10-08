@@ -183,7 +183,7 @@ class OrdersController < ApplicationController
   def create_status_event(order, from_status, to_status)
     Current.shop.events.create!(
       order: order,
-      type: "order.status_changed",
+      event_type: "order.status_changed",
       payload: { from: from_status, to: to_status }
     )
   end
@@ -193,7 +193,7 @@ class OrdersController < ApplicationController
 
     Current.shop.notifications.create!(
       order: order,
-      type: "order.ready",
+      notification_type: "order.ready",
       channel: "sms",
       status: "pending"
     )
