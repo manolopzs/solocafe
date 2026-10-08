@@ -3,6 +3,11 @@
 import { useActionState } from 'react'
 import Link from 'next/link'
 import { loginAction } from '@/server/actions/auth'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Icon } from '@/components/ui/icon'
 
 export default function LoginPage() {
   const [state, formAction, pending] = useActionState(loginAction, null)
@@ -10,63 +15,64 @@ export default function LoginPage() {
   return (
     <main className="flex flex-1 flex-col items-center justify-center px-6 py-24">
       <div className="w-full max-w-sm">
-        <h1 className="text-2xl font-semibold text-zinc-900">
-          Entra a tu cuenta
-        </h1>
-        <p className="mt-2 text-sm text-zinc-600">
-          Ingresa tu correo y contraseña para continuar.
-        </p>
-
-        <form action={formAction} className="mt-6 space-y-4">
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-zinc-700">
-              Correo electronico
-            </label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              required
-              className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-zinc-900 focus:outline-none"
-              placeholder="tu@cafeteria.com"
-            />
-          </div>
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-zinc-700">
-              Contrasena
-            </label>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              required
-              minLength={8}
-              className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-zinc-900 focus:outline-none"
-              placeholder="********"
-            />
-          </div>
-
-          {state?.error && (
-            <div className="rounded-lg bg-red-50 p-3 text-sm text-red-800">
-              {state.error}
-            </div>
-          )}
-
-          <button
-            type="submit"
-            disabled={pending}
-            className="w-full rounded-lg bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-50"
+        <div className="mb-6 flex justify-center">
+          <Link
+            href="/"
+            className="flex h-12 w-12 items-center justify-center rounded-2xl bg-espresso-700 text-white shadow-md"
           >
-            {pending ? 'Entrando...' : 'Entrar'}
-          </button>
-        </form>
-
-        <p className="mt-4 text-center text-sm text-zinc-600">
-          ¿No tienes cuenta?{' '}
-          <Link href="/auth/signup" className="font-medium text-zinc-900 underline">
-            Crear cuenta
+            <Icon name="coffee" className="h-6 w-6" />
           </Link>
-        </p>
+        </div>
+        <Card>
+          <CardHeader className="text-center">
+            <CardTitle>Entra a tu cuenta</CardTitle>
+            <CardDescription>Ingresa tu correo y contrasena para continuar.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form action={formAction} className="space-y-4">
+              <div>
+                <Label htmlFor="email">Correo electronico</Label>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  required
+                  placeholder="tu@cafeteria.com"
+                  className="mt-1.5"
+                />
+              </div>
+              <div>
+                <Label htmlFor="password">Contrasena</Label>
+                <Input
+                  id="password"
+                  name="password"
+                  type="password"
+                  required
+                  minLength={8}
+                  placeholder="********"
+                  className="mt-1.5"
+                />
+              </div>
+
+              {state?.error && (
+                <div className="rounded-xl bg-red-50 p-3 text-sm text-red-800">
+                  {state.error}
+                </div>
+              )}
+
+              <Button type="submit" disabled={pending} className="w-full">
+                {pending ? 'Entrando...' : 'Entrar'}
+              </Button>
+            </form>
+
+            <p className="mt-5 text-center text-sm text-muted-foreground">
+              No tienes cuenta?{' '}
+              <Link href="/auth/signup" className="font-medium text-espresso-700 hover:underline">
+                Crear cuenta
+              </Link>
+            </p>
+          </CardContent>
+        </Card>
       </div>
     </main>
   )

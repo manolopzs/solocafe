@@ -1,23 +1,196 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Warm neutral base */
+  --background: #faf8f5;
+  --foreground: #1f1a16;
+  --cream: #fffbf5;
+  --paper: #ffffff;
+  --warm-50: #fbf7f2;
+  --warm-100: #f5efe6;
+  --warm-200: #e9decf;
+  --warm-300: #d7c6b3;
+  --warm-400: #bfa68d;
+  --warm-500: #a08568;
+  --warm-600: #856b52;
+  --warm-700: #6b5440;
+  --warm-800: #554335;
+  --warm-900: #3d2f25;
+
+  /* Espresso browns */
+  --espresso-50: #f5f0eb;
+  --espresso-100: #e6dcd1;
+  --espresso-200: #cdb8a7;
+  --espresso-300: #b3937d;
+  --espresso-400: #9c765d;
+  --espresso-500: #7e5b45;
+  --espresso-600: #654636;
+  --espresso-700: #4e3427;
+  --espresso-800: #3a251b;
+  --espresso-900: #261810;
+
+  /* Amber accent */
+  --amber-50: #fff9eb;
+  --amber-100: #ffefc2;
+  --amber-200: #ffe094;
+  --amber-300: #ffca56;
+  --amber-400: #ffb62a;
+  --amber-500: #f59e0b;
+  --amber-600: #d97706;
+  --amber-700: #b45309;
+  --amber-800: #92400e;
+  --amber-900: #78350f;
+
+  /* Semantic */
+  --primary: var(--espresso-700);
+  --primary-foreground: #ffffff;
+  --secondary: var(--warm-100);
+  --secondary-foreground: var(--warm-900);
+  --accent: var(--amber-500);
+  --accent-foreground: var(--amber-900);
+  --muted: var(--warm-100);
+  --muted-foreground: var(--warm-600);
+  --border: var(--warm-200);
+  --ring: var(--amber-500);
+  --success: #16a34a;
+  --success-foreground: #ffffff;
+  --danger: #dc2626;
+  --danger-foreground: #ffffff;
+  --warning: var(--amber-500);
+  --warning-foreground: var(--amber-900);
+
+  /* Elevation */
+  --shadow-xs: 0 1px 2px rgba(31, 26, 22, 0.04);
+  --shadow-sm: 0 1px 3px rgba(31, 26, 22, 0.06), 0 1px 2px rgba(31, 26, 22, 0.04);
+  --shadow-md: 0 4px 8px rgba(31, 26, 22, 0.06), 0 2px 4px rgba(31, 26, 22, 0.04);
+  --shadow-lg: 0 10px 24px rgba(31, 26, 22, 0.08), 0 4px 8px rgba(31, 26, 22, 0.04);
+  --shadow-xl: 0 20px 40px rgba(31, 26, 22, 0.12), 0 8px 16px rgba(31, 26, 22, 0.06);
+
+  /* Radius */
+  --radius-xs: 0.375rem;
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.25rem;
+  --radius-2xl: 1.5rem;
+  --radius-full: 9999px;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-cream: var(--cream);
+  --color-paper: var(--paper);
+
+  --color-warm-50: var(--warm-50);
+  --color-warm-100: var(--warm-100);
+  --color-warm-200: var(--warm-200);
+  --color-warm-300: var(--warm-300);
+  --color-warm-400: var(--warm-400);
+  --color-warm-500: var(--warm-500);
+  --color-warm-600: var(--warm-600);
+  --color-warm-700: var(--warm-700);
+  --color-warm-800: var(--warm-800);
+  --color-warm-900: var(--warm-900);
+
+  --color-espresso-50: var(--espresso-50);
+  --color-espresso-100: var(--espresso-100);
+  --color-espresso-200: var(--espresso-200);
+  --color-espresso-300: var(--espresso-300);
+  --color-espresso-400: var(--espresso-400);
+  --color-espresso-500: var(--espresso-500);
+  --color-espresso-600: var(--espresso-600);
+  --color-espresso-700: var(--espresso-700);
+  --color-espresso-800: var(--espresso-800);
+  --color-espresso-900: var(--espresso-900);
+
+  --color-amber-50: var(--amber-50);
+  --color-amber-100: var(--amber-100);
+  --color-amber-200: var(--amber-200);
+  --color-amber-300: var(--amber-300);
+  --color-amber-400: var(--amber-400);
+  --color-amber-500: var(--amber-500);
+  --color-amber-600: var(--amber-600);
+  --color-amber-700: var(--amber-700);
+  --color-amber-800: var(--amber-800);
+  --color-amber-900: var(--amber-900);
+
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-ring: var(--ring);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-danger: var(--danger);
+  --color-danger-foreground: var(--danger-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+
+  --shadow-xs: var(--shadow-xs);
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+  --shadow-xl: var(--shadow-xl);
+
+  --radius-xs: var(--radius-xs);
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+  --radius-2xl: var(--radius-2xl);
+  --radius-full: var(--radius-full);
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+}
+
+* {
+  border-color: var(--border);
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-input, select, textarea, button {
+input,
+select,
+textarea,
+button {
   font-family: inherit;
+}
+
+/* Remove default focus outlines in favor of ring utilities */
+input:focus,
+select:focus,
+textarea:focus,
+button:focus-visible {
+  outline: none;
+}
+
+/* Utility helpers used across redesigned components */
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Hide scrollbar but keep functionality for mobile drawers */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }
