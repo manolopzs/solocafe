@@ -1,7 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { createClient } from '@/lib/supabase/server'
+import { apiGet, apiPost, apiPatch, apiDelete } from '@/lib/api/server'
 import { z } from 'zod'
 
 const categorySchema = z.object({
@@ -29,157 +29,83 @@ const modifierOptionSchema = z.object({
   price_cents: z.number().int().min(0).default(0),
 })
 
-async function isMember(shopId: string) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return false
-  const { data } = await supabase
-    .from('shop_members')
-    .select('id')
-    .eq('shop_id', shopId)
-    .eq('user_id', user.id)
-    .maybeSingle()
-  return !!data
-}
-
 export async function createCategory(shopId: string, input: unknown) {
-  if (!(await isMember(shopId))) throw new Error('Unauthorized')
   const parsed = categorySchema.parse(input)
-  const supabase = await createClient()
-  const { error } = await supabase.from('menu_categories').insert({ shop_id: shopId, ...parsed })
-  if (error) throw new Error(error.message)
+  await apiPost(`/shops/${shopId}/menu_categories`, { menu_category: parsed })
   revalidatePath(`/dashboard/${shopId}/menu`)
 }
 
 export async function updateCategory(shopId: string, id: string, input: unknown) {
-  if (!(await isMember(shopId))) throw new Error('Unauthorized')
   const parsed = categorySchema.partial().parse(input)
-  const supabase = await createClient()
-  const { error } = await supabase.from('menu_categories').update(parsed).eq('id', id).eq('shop_id', shopId)
-  if (error) throw new Error(error.message)
+  await apiPatch(`/shops/${shopId}/menu_categories/${id}`, { menu_category: parsed })
   revalidatePath(`/dashboard/${shopId}/menu`)
 }
 
 export async function deleteCategory(shopId: string, id: string) {
-  if (!(await isMember(shopId))) throw new Error('Unauthorized')
-  const supabase = await createClient()
-  const { error } = await supabase.from('menu_categories').delete().eq('id', id).eq('shop_id', shopId)
-  if (error) throw new Error(error.message)
+  await apiDelete(`/shops/${shopId}/menu_categories/${id}`)
   revalidatePath(`/dashboard/${shopId}/menu`)
 }
 
 export async function createItem(shopId: string, input: unknown) {
-  if (!(await isMember(shopId))) throw new Error('Unauthorized')
   const parsed = itemSchema.parse(input)
-  const supabase = await createClient()
-  const { error } = await supabase.from('menu_items').insert({
-    shop_id: shopId,
-    ...parsed,
-    description: parsed.description ?? null,
-    category_id: parsed.category_id ?? null,
-  })
-  if (error) throw new Error(error.message)
+  await apiPost(`/shops/${shopId}/menu_items`, { menu_item: parsed })
   revalidatePath(`/dashboard/${shopId}/menu`)
 }
 
 export async function updateItem(shopId: string, id: string, input: unknown) {
-  if (!(await isMember(shopId))) throw new Error('Unauthorized')
   const parsed = itemSchema.partial().parse(input)
-  const supabase = await createClient()
-  const { error } = await supabase.from('menu_items').update(parsed).eq('id', id).eq('shop_id', shopId)
-  if (error) throw new Error(error.message)
+  await apiPatch(`/shops/${shopId}/menu_items/${id}`, { menu_item: parsed })
   revalidatePath(`/dashboard/${shopId}/menu`)
 }
 
 export async function deleteItem(shopId: string, id: string) {
-  if (!(await isMember(shopId))) throw new Error('Unauthorized')
-  const supabase = await createClient()
-  const { error } = await supabase.from('menu_items').delete().eq('id', id).eq('shop_id', shopId)
-  if (error) throw new Error(error.message)
+  await apiDelete(`/shops/${shopId}/menu_items/${id}`)
   revalidatePath(`/dashboard/${shopId}/menu`)
 }
 
 export async function createModifierGroup(shopId: string, input: unknown) {
-  if (!(await isMember(shopId))) throw new Error('Unauthorized')
   const parsed = modifierGroupSchema.parse(input)
-  const supabase = await createClient()
-  const { data, error } = await supabase
-    .from('modifier_groups')
-    .insert({ shop_id: shopId, ...parsed })
-    .select()
-    .single()
-  if (error || !data) throw new Error(error?.message ?? 'Failed to create modifier group')
+  const data = await apiPost<{ modifier_group: { id: string } }>(
+    `/shops/${shopId}/modifier_groups`,
+    { modifier_group: parsed }
+  )
   revalidatePath(`/dashboard/${shopId}/menu`)
-  return data.id
+  return data.modifier_group.id
 }
 
 export async function updateModifierGroup(shopId: string, id: string, input: unknown) {
-  if (!(await isMember(shopId))) throw new Error('Unauthorized')
   const parsed = modifierGroupSchema.partial().parse(input)
-  const supabase = await createClient()
-  const { error } = await supabase.from('modifier_groups').update(parsed).eq('id', id).eq('shop_id', shopId)
-  if (error) throw new Error(error.message)
+  await apiPatch(`/shops/${shopId}/modifier_groups/${id}`, { modifier_group: parsed })
   revalidatePath(`/dashboard/${shopId}/menu`)
 }
 
 export async function deleteModifierGroup(shopId: string, id: string) {
-  if (!(await isMember(shopId))) throw new Error('Unauthorized')
-  const supabase = await createClient()
-  const { error } = await supabase.from('modifier_groups').delete().eq('id', id).eq('shop_id', shopId)
-  if (error) throw new Error(error.message)
+  await apiDelete(`/shops/${shopId}/modifier_groups/${id}`)
   revalidatePath(`/dashboard/${shopId}/menu`)
 }
 
 export async function createModifierOption(shopId: string, groupId: string, input: unknown) {
-  if (!(await isMember(shopId))) throw new Error('Unauthorized')
   const parsed = modifierOptionSchema.parse(input)
-  const supabase = await createClient()
-  const { error } = await supabase.from('modifier_options').insert({ group_id: groupId, ...parsed })
-  if (error) throw new Error(error.message)
-  revalidatePath(`/dashboard/${shopId}/menu`)
-}
-
-export async function updateModifierOption(shopId: string, id: string, input: unknown) {
-  if (!(await isMember(shopId))) throw new Error('Unauthorized')
-  const parsed = modifierOptionSchema.partial().parse(input)
-  const supabase = await createClient()
-  const { error } = await supabase.from('modifier_options').update(parsed).eq('id', id)
-  if (error) throw new Error(error.message)
-  revalidatePath(`/dashboard/${shopId}/menu`)
-}
-
-export async function deleteModifierOption(shopId: string, id: string) {
-  if (!(await isMember(shopId))) throw new Error('Unauthorized')
-  const supabase = await createClient()
-  const { error } = await supabase.from('modifier_options').delete().eq('id', id)
-  if (error) throw new Error(error.message)
-  revalidatePath(`/dashboard/${shopId}/menu`)
-}
-
-export async function attachModifierGroup(shopId: string, itemId: string, groupId: string, isRequired: boolean) {
-  if (!(await isMember(shopId))) throw new Error('Unauthorized')
-  const supabase = await createClient()
-  const { error } = await supabase.from('item_modifier_links').insert({
-    item_id: itemId,
-    group_id: groupId,
-    is_required: isRequired,
+  await apiPost(`/shops/${shopId}/modifier_groups/${groupId}/modifier_options`, {
+    modifier_option: parsed,
   })
-  if (error) throw new Error(error.message)
   revalidatePath(`/dashboard/${shopId}/menu`)
 }
 
-export async function detachModifierGroup(shopId: string, linkId: string) {
-  if (!(await isMember(shopId))) throw new Error('Unauthorized')
-  const supabase = await createClient()
-  const { error } = await supabase.from('item_modifier_links').delete().eq('id', linkId)
-  if (error) throw new Error(error.message)
+export async function updateModifierOption(shopId: string, groupId: string, id: string, input: unknown) {
+  const parsed = modifierOptionSchema.partial().parse(input)
+  await apiPatch(`/shops/${shopId}/modifier_groups/${groupId}/modifier_options/${id}`, {
+    modifier_option: parsed,
+  })
+  revalidatePath(`/dashboard/${shopId}/menu`)
+}
+
+export async function deleteModifierOption(shopId: string, groupId: string, id: string) {
+  await apiDelete(`/shops/${shopId}/modifier_groups/${groupId}/modifier_options/${id}`)
   revalidatePath(`/dashboard/${shopId}/menu`)
 }
 
 export async function toggleItem86(shopId: string, id: string, is86ed: boolean) {
-  if (!(await isMember(shopId))) throw new Error('Unauthorized')
-  const supabase = await createClient()
-  const { error } = await supabase.from('menu_items').update({ is_86ed: is86ed }).eq('id', id).eq('shop_id', shopId)
-  if (error) throw new Error(error.message)
+  await apiPatch(`/shops/${shopId}/menu_items/${id}`, { menu_item: { is_86ed: is86ed } })
   revalidatePath(`/dashboard/${shopId}/menu`)
 }

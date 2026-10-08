@@ -1,11 +1,11 @@
 'use server'
 
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { apiGet, apiPost, apiPatch, apiDelete } from '@/lib/api/server'
 import { z } from 'zod'
 
 const cartItemSchema = z.object({
-  item_id: z.string().uuid(),
+  menu_item_id: z.string().uuid(),
   quantity: z.number().int().min(1),
   modifier_option_ids: z.array(z.string().uuid()).default([]),
 })
@@ -23,22 +23,25 @@ const createOrderSchema = z.object({
 export type CreateOrderInput = z.infer<typeof createOrderSchema>
 
 export async function createOrder(input: CreateOrderInput) {
-  const supabase = await createClient()
   const parsed = createOrderSchema.parse(input)
 
-  const { data, error } = await supabase.rpc('create_order', {
-    p_shop_id: parsed.shop_id,
-    p_customer_name: parsed.customer_name,
-    p_customer_phone: parsed.customer_phone,
-    p_pickup_type: parsed.pickup_type,
-    p_pickup_slot_id: parsed.pickup_slot_id ?? null,
-    p_special_instructions: parsed.special_instructions ?? null,
-    p_items: JSON.stringify(parsed.items),
-  })
+  const data = await apiPost<{ order: { id: string } }>(
+    `/shops/${parsed.shop_id}/orders`,
+    {
+      order: {
+        customer_name: parsed.customer_name,
+        customer_phone: parsed.customer_phone,
+        pickup_type: parsed.pickup_type,
+        special_instructions: parsed.special_instructions,
+        items: parsed.items.map((item) => ({
+          menu_item_id: item.menu_item_id,
+          quantity: item.quantity,
+          modifier_option_ids: item.modifier_option_ids,
+        })),
+      },
+    },
+    false
+  )
 
-  if (error || !data) {
-    throw new Error(error?.message ?? 'Failed to create order')
-  }
-
-  redirect(`/checkout/${data}`)
+  redirect(`/checkout/${data.order.id}?phone=${encodeURIComponent(parsed.customer_phone)}`)
 }

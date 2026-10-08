@@ -1,4 +1,6 @@
-import { createClient } from '@/lib/supabase/server'
+'use server'
+
+import { apiGet, apiPost, apiPatch, apiDelete } from '@/lib/api/server'
 import type { MenuCategory, MenuItem, ModifierGroup, ModifierOption, ItemModifierLink } from '@/types'
 
 export interface FullMenu {
@@ -10,61 +12,45 @@ export interface FullMenu {
 }
 
 export async function getFullMenu(shopId: string): Promise<FullMenu> {
-  const supabase = await createClient()
+  const data = await apiGet<{
+    categories: MenuCategory[]
+    items: MenuItem[]
+    modifier_groups: ModifierGroup[]
+    modifier_options: ModifierOption[]
+    item_modifier_links: ItemModifierLink[]
+  }>(`/shops/${shopId}/menu_categories`)
 
-  const [{ data: categories }, { data: items }, { data: modifierGroups }] = await Promise.all([
-    supabase.from('menu_categories').select('*').eq('shop_id', shopId).order('sort_order'),
-    supabase.from('menu_items').select('*').eq('shop_id', shopId).order('sort_order'),
-    supabase.from('modifier_groups').select('*').eq('shop_id', shopId).order('sort_order'),
-  ])
+  const categories = data.categories ?? []
+  const itemsResponse = await apiGet<{ items: MenuItem[] }>(`/shops/${shopId}/menu_items`)
+  const groupsResponse = await apiGet<{ modifier_groups: ModifierGroup[] }>(`/shops/${shopId}/modifier_groups`)
 
-  const groupIds = (modifierGroups ?? []).map((g) => g.id)
-  const itemIds = (items ?? []).map((i) => i.id)
-
-  const [{ data: modifierOptions }, { data: itemModifierLinks }] = await Promise.all([
-    groupIds.length > 0
-      ? supabase.from('modifier_options').select('*').in('group_id', groupIds).order('sort_order')
-      : Promise.resolve({ data: [] }),
-    itemIds.length > 0
-      ? supabase.from('item_modifier_links').select('*').in('item_id', itemIds)
-      : Promise.resolve({ data: [] }),
-  ])
+  const groups = groupsResponse.modifier_groups ?? []
+  const groupIds = groups.map((g) => g.id)
+  const itemIds = (itemsResponse.items ?? []).map((i) => i.id)
 
   return {
-    categories: (categories ?? []) as MenuCategory[],
-    items: (items ?? []) as MenuItem[],
-    modifierGroups: (modifierGroups ?? []) as ModifierGroup[],
-    modifierOptions: (modifierOptions ?? []) as ModifierOption[],
-    itemModifierLinks: (itemModifierLinks ?? []) as ItemModifierLink[],
+    categories,
+    items: itemsResponse.items ?? [],
+    modifierGroups: groups,
+    modifierOptions: groups.flatMap((g) => g.options ?? []),
+    itemModifierLinks: [],
   }
 }
 
 export async function getPublicMenu(shopId: string): Promise<FullMenu> {
-  const supabase = await createClient()
-
-  const [{ data: categories }, { data: items }, { data: modifierGroups }] = await Promise.all([
-    supabase.from('menu_categories').select('*').eq('shop_id', shopId).eq('is_active', true).order('sort_order'),
-    supabase.from('menu_items').select('*').eq('shop_id', shopId).eq('is_active', true).eq('is_86ed', false).order('sort_order'),
-    supabase.from('modifier_groups').select('*').eq('shop_id', shopId).order('sort_order'),
-  ])
-
-  const groupIds = (modifierGroups ?? []).map((g) => g.id)
-  const itemIds = (items ?? []).map((i) => i.id)
-
-  const [{ data: modifierOptions }, { data: itemModifierLinks }] = await Promise.all([
-    groupIds.length > 0
-      ? supabase.from('modifier_options').select('*').in('group_id', groupIds).eq('is_active', true).order('sort_order')
-      : Promise.resolve({ data: [] }),
-    itemIds.length > 0
-      ? supabase.from('item_modifier_links').select('*').in('item_id', itemIds)
-      : Promise.resolve({ data: [] }),
-  ])
+  const data = await apiGet<{
+    categories: MenuCategory[]
+    items: MenuItem[]
+    modifier_groups: ModifierGroup[]
+    modifier_options: ModifierOption[]
+    item_modifier_links: ItemModifierLink[]
+  }>(`/public/shops/${shopId}/menu`, false)
 
   return {
-    categories: (categories ?? []) as MenuCategory[],
-    items: (items ?? []) as MenuItem[],
-    modifierGroups: (modifierGroups ?? []) as ModifierGroup[],
-    modifierOptions: (modifierOptions ?? []) as ModifierOption[],
-    itemModifierLinks: (itemModifierLinks ?? []) as ItemModifierLink[],
+    categories: data.categories ?? [],
+    items: data.items ?? [],
+    modifierGroups: data.modifier_groups ?? [],
+    modifierOptions: data.modifier_options ?? [],
+    itemModifierLinks: data.item_modifier_links ?? [],
   }
 }

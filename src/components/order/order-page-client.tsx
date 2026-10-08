@@ -96,7 +96,7 @@ export function OrderPageClient({
         pickup_type: 'asap',
         special_instructions: specialInstructions,
         items: cart.map((line) => ({
-          item_id: line.item.id,
+          menu_item_id: line.item.id,
           quantity: line.quantity,
           modifier_option_ids: line.modifiers.map((m) => m.id),
         })),

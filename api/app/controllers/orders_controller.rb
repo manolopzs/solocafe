@@ -3,6 +3,20 @@ class OrdersController < ApplicationController
   before_action :require_shop_member!, only: [:index, :update]
   before_action :set_public_shop, only: [:create, :show]
 
+  def show_public
+    order = Order.find(params[:id])
+
+    if staff_for_order?(order)
+      render json: { order: order_payload(order) }
+    elsif order.customer_phone.present? && order.customer_phone == params[:customer_phone]
+      render json: { order: order_payload(order) }
+    else
+      render json: { error: "Forbidden" }, status: :forbidden
+    end
+  rescue ActiveRecord::RecordNotFound
+    render json: { error: "Order not found" }, status: :not_found
+  end
+
   def index
     orders = Current.shop.orders.order(created_at: :desc)
     orders = orders.where(status: params[:status]) if params[:status].present?
@@ -82,6 +96,10 @@ class OrdersController < ApplicationController
 
   def staff_for_current_shop?
     current_user.present? && Current.shop.shop_members.exists?(user_id: current_user.id)
+  end
+
+  def staff_for_order?(order)
+    current_user.present? && order.shop.shop_members.exists?(user_id: current_user.id)
   end
 
   def validate_order_items

@@ -5,13 +5,15 @@ import { CheckoutForm } from '@/components/order/checkout-form'
 
 export const instant = false
 
-export default async function CheckoutPage({
-  params,
-}: {
+interface CheckoutPageProps {
   params: Promise<{ orderId: string }>
-}) {
+  searchParams: Promise<{ phone?: string }>
+}
+
+export default async function CheckoutPage({ params, searchParams }: CheckoutPageProps) {
   const { orderId } = await params
-  const order = await getOrderWithItems(orderId)
+  const { phone } = await searchParams
+  const order = await getOrderWithItems(orderId, phone)
   if (!order) notFound()
 
   if (order.payment_status === 'succeeded') {

@@ -77,7 +77,7 @@ class ModifierGroupsController < ApplicationController
       min_select: group.min_select,
       max_select: group.max_select,
       sort_order: group.sort_order,
-      modifier_options: group.modifier_options.map { |o| option_payload(o) }
+      options: group.modifier_options.map { |o| option_payload(o) }
     }
   end
 

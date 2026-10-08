@@ -20,6 +20,7 @@ Rails.application.routes.draw do
   end
 
   get "/public/shops/:shop_id/menu", to: "public/menus#show"
+  get "/public/orders/:id", to: "orders#show_public"
 
   post "/payments", to: "payments#create"
   post "/webhooks/stripe", to: "stripe_webhooks#create"

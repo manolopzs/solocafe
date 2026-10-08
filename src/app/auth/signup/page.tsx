@@ -2,19 +2,19 @@
 
 import { useActionState } from 'react'
 import Link from 'next/link'
-import { loginAction } from '@/server/actions/auth'
+import { signupAction } from '@/server/actions/auth'
 
-export default function LoginPage() {
-  const [state, formAction, pending] = useActionState(loginAction, null)
+export default function SignupPage() {
+  const [state, formAction, pending] = useActionState(signupAction, null)
 
   return (
     <main className="flex flex-1 flex-col items-center justify-center px-6 py-24">
       <div className="w-full max-w-sm">
         <h1 className="text-2xl font-semibold text-zinc-900">
-          Entra a tu cuenta
+          Crea tu cuenta
         </h1>
         <p className="mt-2 text-sm text-zinc-600">
-          Ingresa tu correo y contraseña para continuar.
+          Registrate para comenzar a recibir pedidos.
         </p>
 
         <form action={formAction} className="mt-6 space-y-4">
@@ -57,14 +57,14 @@ export default function LoginPage() {
             disabled={pending}
             className="w-full rounded-lg bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-50"
           >
-            {pending ? 'Entrando...' : 'Entrar'}
+            {pending ? 'Creando cuenta...' : 'Crear cuenta'}
           </button>
         </form>
 
         <p className="mt-4 text-center text-sm text-zinc-600">
-          ¿No tienes cuenta?{' '}
-          <Link href="/auth/signup" className="font-medium text-zinc-900 underline">
-            Crear cuenta
+          ¿Ya tienes cuenta?{' '}
+          <Link href="/auth/login" className="font-medium text-zinc-900 underline">
+            Entrar
           </Link>
         </p>
       </div>

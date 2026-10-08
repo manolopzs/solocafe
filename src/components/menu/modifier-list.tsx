@@ -93,7 +93,7 @@ export function ModifierList({ shopId, groups, options }: { shopId: string; grou
                       <li key={option.id} className="flex items-center justify-between text-sm">
                         <span>{option.name} (+${(option.price_cents / 100).toFixed(2)})</span>
                         <button
-                          onClick={async () => { if (confirm('Eliminar opcion?')) await deleteModifierOption(shopId, option.id) }}
+                          onClick={async () => { if (confirm('Eliminar opcion?')) await deleteModifierOption(shopId, group.id, option.id) }}
                           className="text-xs text-red-600 hover:text-red-800"
                         >
                           Eliminar

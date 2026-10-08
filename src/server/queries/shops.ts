@@ -1,45 +1,31 @@
-import { createClient } from '@/lib/supabase/server'
+'use server'
+
+import { apiGet, apiPost, apiPatch, apiDelete } from '@/lib/api/server'
 import type { Shop } from '@/types'
 
 export async function getUserShops(): Promise<Shop[]> {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return []
-
-  const { data, error } = await supabase
-    .from('shops')
-    .select('*')
-    .or(`owner_id.eq.${user.id},shop_members.user_id.eq.${user.id}`)
-
-  if (error) {
-    console.error('getUserShops error:', error)
+  try {
+    const data = await apiGet<{ shops: Shop[] }>('/shops')
+    return data.shops
+  } catch {
     return []
   }
-
-  return (data ?? []) as Shop[]
 }
 
 export async function getShopBySlug(slug: string): Promise<Shop | null> {
-  const supabase = await createClient()
-  const { data, error } = await supabase
-    .from('shops')
-    .select('*')
-    .eq('slug', slug)
-    .eq('status', 'active')
-    .single()
-
-  if (error) return null
-  return data as Shop
+  try {
+    const data = await apiGet<{ shop: Shop }>(`/shops/${slug}`, false)
+    return data.shop
+  } catch {
+    return null
+  }
 }
 
 export async function getShopById(id: string): Promise<Shop | null> {
-  const supabase = await createClient()
-  const { data, error } = await supabase
-    .from('shops')
-    .select('*')
-    .eq('id', id)
-    .single()
-
-  if (error) return null
-  return data as Shop
+  try {
+    const shops = await getUserShops()
+    return shops.find((shop) => shop.id === id) ?? null
+  } catch {
+    return null
+  }
 }
