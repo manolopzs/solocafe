@@ -27,11 +27,20 @@ function playBeep() {
   }
 }
 
-export function KdsClient({ shopId, initialOrders }: { shopId: string; initialOrders: Order[] }) {
+export function KdsClient({
+  shopId,
+  initialOrders,
+  autoPoll = true,
+}: {
+  shopId: string
+  initialOrders: Order[]
+  autoPoll?: boolean
+}) {
   const [orders, setOrders] = useState<OrderWithItems[]>(initialOrders as OrderWithItems[])
   const [soundEnabled, setSoundEnabled] = useState(false)
 
   useEffect(() => {
+    if (!autoPoll) return
     let previousIds = new Set(orders.map((o) => o.id))
 
     const fetchOrders = async () => {
@@ -57,7 +66,7 @@ export function KdsClient({ shopId, initialOrders }: { shopId: string; initialOr
 
     const interval = setInterval(fetchOrders, 5000)
     return () => clearInterval(interval)
-  }, [shopId, soundEnabled])
+  }, [shopId, soundEnabled, autoPoll])
 
   return (
     <div className="space-y-5">

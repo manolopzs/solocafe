@@ -21,6 +21,7 @@ export function OrderPageClient({
   modifierGroups,
   modifierOptions,
   itemModifierLinks,
+  onCreateOrder,
 }: {
   shop: Shop
   categories: MenuCategory[]
@@ -28,6 +29,14 @@ export function OrderPageClient({
   modifierGroups: ModifierGroup[]
   modifierOptions: ModifierOption[]
   itemModifierLinks: ItemModifierLink[]
+  onCreateOrder?: (input: {
+    shop_id: string
+    customer_name: string
+    customer_phone: string
+    pickup_type: 'asap' | 'scheduled'
+    special_instructions: string
+    items: { menu_item_id: string; quantity: number; modifier_option_ids: string[] }[]
+  }) => Promise<void> | void
 }) {
   const [cart, setCart] = useState<CartLine[]>([])
   const [activeItem, setActiveItem] = useState<MenuItem | null>(null)
@@ -110,18 +119,23 @@ export function OrderPageClient({
     setError(null)
 
     try {
-      await createOrder({
+      const input = {
         shop_id: shop.id,
         customer_name: customerName,
         customer_phone: customerPhone,
-        pickup_type: 'asap',
+        pickup_type: 'asap' as const,
         special_instructions: specialInstructions,
         items: cart.map((line) => ({
           menu_item_id: line.item.id,
           quantity: line.quantity,
           modifier_option_ids: line.modifiers.map((m) => m.id),
         })),
-      })
+      }
+      if (onCreateOrder) {
+        await onCreateOrder(input)
+      } else {
+        await createOrder(input)
+      }
     } catch (err) {
       setLoading(false)
       setError(err instanceof Error ? err.message : 'Error al crear el pedido')

@@ -32,6 +32,7 @@ const nextActions: Record<string, { status: string; label: string; variant: 'pri
 }
 
 function formatElapsed(createdAt: string) {
+  if (typeof window === 'undefined') return ''
   const diff = Math.floor((Date.now() - new Date(createdAt).getTime()) / 60000)
   if (diff < 1) return 'Ahora'
   if (diff < 60) return `${diff} min`
