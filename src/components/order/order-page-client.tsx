@@ -1,7 +1,12 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef, useEffect } from 'react'
+import Image from 'next/image'
 import { createOrder } from '@/server/actions/orders'
+import { Button } from '@/components/ui/button'
+import { Icon } from '@/components/ui/icon'
+import { Sheet } from '@/components/ui/sheet'
+import { Badge } from '@/components/ui/badge'
 import type { Shop, MenuCategory, MenuItem, ModifierGroup, ModifierOption, ItemModifierLink } from '@/types'
 
 interface CartLine {
@@ -33,6 +38,10 @@ export function OrderPageClient({
   const [specialInstructions, setSpecialInstructions] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [cartOpen, setCartOpen] = useState(false)
+  const [activeCategory, setActiveCategory] = useState<string>(categories[0]?.id ?? '')
+
+  const categoryRefs = useRef<Record<string, HTMLDivElement | null>>({})
 
   const groupsForItem = (itemId: string) => {
     const linkIds = itemModifierLinks.filter((l) => l.item_id === itemId).map((l) => l.group_id)
@@ -55,11 +64,14 @@ export function OrderPageClient({
     }
 
     setCart((prev) => {
-      const existing = prev.find((l) => l.item.id === item.id && JSON.stringify(l.modifiers.map(m => m.id).sort()) === JSON.stringify(chosen.map(m => m.id).sort()))
+      const existing = prev.find(
+        (l) =>
+          l.item.id === item.id &&
+          JSON.stringify(l.modifiers.map((m) => m.id).sort()) ===
+            JSON.stringify(chosen.map((m) => m.id).sort())
+      )
       if (existing) {
-        return prev.map((l) =>
-          l === existing ? { ...l, quantity: l.quantity + 1 } : l
-        )
+        return prev.map((l) => (l === existing ? { ...l, quantity: l.quantity + 1 } : l))
       }
       return [...prev, { item, quantity: 1, modifiers: chosen }]
     })
@@ -71,6 +83,14 @@ export function OrderPageClient({
     setCart((prev) => prev.filter((_, i) => i !== index))
   }
 
+  const updateQuantity = (index: number, delta: number) => {
+    setCart((prev) =>
+      prev
+        .map((line, i) => (i === index ? { ...line, quantity: Math.max(0, line.quantity + delta) } : line))
+        .filter((line) => line.quantity > 0)
+    )
+  }
+
   const totalCents = useMemo(
     () =>
       cart.reduce((sum, line) => {
@@ -79,6 +99,8 @@ export function OrderPageClient({
       }, 0),
     [cart]
   )
+
+  const totalItems = useMemo(() => cart.reduce((sum, line) => sum + line.quantity, 0), [cart])
 
   const handleSubmit = async () => {
     if (!customerName) {
@@ -110,69 +132,146 @@ export function OrderPageClient({
   const itemsByCategory = useMemo(() => {
     const map = new Map<string, MenuItem[]>()
     for (const category of categories) {
-      map.set(category.id, items.filter((i) => i.category_id === category.id))
+      map.set(category.id, items.filter((i) => i.category_id === category.id && i.is_active && !i.is_86ed))
     }
-    map.set('uncategorized', items.filter((i) => !i.category_id))
+    map.set(
+      'uncategorized',
+      items.filter((i) => !i.category_id && i.is_active && !i.is_86ed)
+    )
     return map
   }, [categories, items])
 
+  const visibleCategories = useMemo(() => {
+    return categories.filter((c) => (itemsByCategory.get(c.id) ?? []).length > 0)
+  }, [categories, itemsByCategory])
+
+  const uncategorizedItems = itemsByCategory.get('uncategorized') ?? []
+
+  const scrollToCategory = (categoryId: string) => {
+    setActiveCategory(categoryId)
+    const el = categoryRefs.current[categoryId]
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+  }
+
+  useEffect(() => {
+    if (!activeCategory && visibleCategories.length > 0) {
+      setActiveCategory(visibleCategories[0].id)
+    }
+  }, [visibleCategories, activeCategory])
+
+  const formatPrice = (cents: number) => {
+    return `${shop.currency} ${(cents / 100).toFixed(2)}`
+  }
+
   return (
-    <div className="min-h-screen bg-zinc-50 pb-40">
-      <header className="bg-white px-4 py-6 shadow-sm">
-        <h1 className="text-2xl font-bold text-zinc-900">{shop.name}</h1>
-        {shop.address && <p className="mt-1 text-sm text-zinc-600">{shop.address}</p>}
+    <div className="min-h-screen bg-background pb-28">
+      <header className="bg-paper px-5 pt-6 pb-5 shadow-sm">
+        <div className="mx-auto max-w-2xl">
+          <div className="flex items-start gap-4">
+            {shop.logo_url ? (
+              <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-2xl">
+                <Image src={shop.logo_url} alt={shop.name} fill className="object-cover" />
+              </div>
+            ) : (
+              <div
+                className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-white shadow-sm"
+                style={{ backgroundColor: shop.brand_color || '#4e3427' }}
+              >
+                <Icon name="coffee" className="h-7 w-7" />
+              </div>
+            )}
+            <div className="min-w-0 flex-1">
+              <h1 className="text-2xl font-bold tracking-tight text-foreground">{shop.name}</h1>
+              {shop.address && (
+                <p className="mt-0.5 flex items-center gap-1 text-sm text-muted-foreground">
+                  <Icon name="map-pin" className="h-3.5 w-3.5" />
+                  {shop.address}
+                </p>
+              )}
+              <p className="mt-1 flex items-center gap-1 text-sm text-success">
+                <span className="inline-flex h-2 w-2 rounded-full bg-success" />
+                Abierto ahora · Para recoger
+              </p>
+            </div>
+          </div>
+        </div>
       </header>
 
-      <main className="px-4 py-6">
-        {categories.map((category) => {
+      <div className="sticky top-0 z-30 border-b border-warm-200 bg-background/95 backdrop-blur-sm">
+        <div className="mx-auto max-w-2xl">
+          <div className="flex gap-2 overflow-x-auto px-5 py-3 no-scrollbar">
+            {visibleCategories.map((category) => (
+              <button
+                key={category.id}
+                onClick={() => scrollToCategory(category.id)}
+                className={[
+                  'shrink-0 rounded-full px-4 py-2 text-sm font-medium transition-colors',
+                  activeCategory === category.id
+                    ? 'bg-espresso-700 text-white shadow-sm'
+                    : 'bg-paper text-warm-700 hover:bg-warm-100',
+                ].join(' ')}
+              >
+                {category.name}
+              </button>
+            ))}
+            {uncategorizedItems.length > 0 && (
+              <button
+                onClick={() => scrollToCategory('uncategorized')}
+                className={[
+                  'shrink-0 rounded-full px-4 py-2 text-sm font-medium transition-colors',
+                  activeCategory === 'uncategorized'
+                    ? 'bg-espresso-700 text-white shadow-sm'
+                    : 'bg-paper text-warm-700 hover:bg-warm-100',
+                ].join(' ')}
+              >
+                Otros
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <main className="mx-auto max-w-2xl px-5 py-6">
+        {visibleCategories.map((category) => {
           const categoryItems = itemsByCategory.get(category.id) ?? []
           if (categoryItems.length === 0) return null
           return (
-            <section key={category.id} className="mb-8">
-              <h2 className="text-lg font-semibold text-zinc-900">{category.name}</h2>
-              <div className="mt-3 space-y-3">
+            <section
+              key={category.id}
+              ref={(el: HTMLDivElement | null) => { categoryRefs.current[category.id] = el }}
+              className="mb-10"
+            >
+              <h2 className="text-xl font-bold tracking-tight text-foreground">{category.name}</h2>
+              <div className="mt-4 space-y-3">
                 {categoryItems.map((item) => (
-                  <button
+                  <ProductRow
                     key={item.id}
+                    item={item}
                     onClick={() => setActiveItem(item)}
-                    className="w-full rounded-xl bg-white p-4 text-left shadow-sm"
-                  >
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <h3 className="font-medium text-zinc-900">{item.name}</h3>
-                        {item.description && <p className="mt-1 text-sm text-zinc-500">{item.description}</p>}
-                      </div>
-                      <span className="font-medium text-zinc-900">
-                        ${(item.price_cents / 100).toFixed(2)}
-                      </span>
-                    </div>
-                  </button>
+                    formatPrice={formatPrice}
+                  />
                 ))}
               </div>
             </section>
           )
         })}
 
-        {(itemsByCategory.get('uncategorized') ?? []).length > 0 && (
-          <section className="mb-8">
-            <h2 className="text-lg font-semibold text-zinc-900">Otros</h2>
-            <div className="mt-3 space-y-3">
-              {(itemsByCategory.get('uncategorized') ?? []).map((item) => (
-                <button
+        {uncategorizedItems.length > 0 && (
+          <section
+            ref={(el: HTMLDivElement | null) => { categoryRefs.current['uncategorized'] = el }}
+            className="mb-10"
+          >
+            <h2 className="text-xl font-bold tracking-tight text-foreground">Otros</h2>
+            <div className="mt-4 space-y-3">
+              {uncategorizedItems.map((item) => (
+                <ProductRow
                   key={item.id}
+                  item={item}
                   onClick={() => setActiveItem(item)}
-                  className="w-full rounded-xl bg-white p-4 text-left shadow-sm"
-                >
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h3 className="font-medium text-zinc-900">{item.name}</h3>
-                      {item.description && <p className="mt-1 text-sm text-zinc-500">{item.description}</p>}
-                    </div>
-                    <span className="font-medium text-zinc-900">
-                      ${(item.price_cents / 100).toFixed(2)}
-                    </span>
-                  </div>
-                </button>
+                  formatPrice={formatPrice}
+                />
               ))}
             </div>
           </section>
@@ -180,74 +279,190 @@ export function OrderPageClient({
       </main>
 
       {activeItem && (
-        <ModifierModal
+        <ProductSheet
           item={activeItem}
           groups={groupsForItem(activeItem.id)}
           optionsForGroup={optionsForGroup}
           selected={selectedModifiers}
           onChange={setSelectedModifiers}
-          onClose={() => setActiveItem(null)}
+          onClose={() => {
+            setActiveItem(null)
+            setSelectedModifiers({})
+          }}
           onAdd={() => addToCart(activeItem)}
+          formatPrice={formatPrice}
         />
       )}
 
-      <div className="fixed bottom-0 left-0 right-0 border-t border-zinc-200 bg-white p-4 shadow-lg">
-        {cart.length > 0 && (
-          <div className="mb-3 space-y-1">
-            {cart.map((line, idx) => (
-              <div key={idx} className="flex items-center justify-between text-sm">
-                <span>
-                  {line.quantity}x {line.item.name}
-                  {line.modifiers.length > 0 && (
-                    <span className="text-zinc-500"> ({line.modifiers.map((m) => m.name).join(', ')})</span>
-                  )}
-                </span>
-                <button onClick={() => removeLine(idx)} className="text-red-600">Quitar</button>
+      <Sheet open={cartOpen} onClose={() => setCartOpen(false)} title="Tu pedido">
+        <div className="space-y-5">
+          {cart.length === 0 ? (
+            <div className="py-8 text-center text-muted-foreground">
+              <Icon name="cart" className="mx-auto mb-3 h-10 w-10 text-warm-300" />
+              <p>Tu carrito esta vacio</p>
+            </div>
+          ) : (
+            <>
+              <div className="space-y-4">
+                {cart.map((line, idx) => (
+                  <div key={idx} className="flex items-start gap-3">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-warm-100 text-sm font-semibold text-warm-800">
+                      {line.quantity}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium text-foreground">{line.item.name}</p>
+                      {line.modifiers.length > 0 && (
+                        <p className="text-sm text-muted-foreground">
+                          {line.modifiers.map((m) => m.name).join(', ')}
+                        </p>
+                      )}
+                    </div>
+                    <div className="text-right">
+                      <p className="font-medium text-foreground">
+                        {formatPrice((line.item.price_cents + line.modifiers.reduce((s, m) => s + m.price_cents, 0)) * line.quantity)}
+                      </p>
+                      <div className="mt-1 flex items-center justify-end gap-2">
+                        <button
+                          onClick={() => updateQuantity(idx, -1)}
+                          className="flex h-6 w-6 items-center justify-center rounded-full bg-warm-100 text-warm-700 hover:bg-warm-200"
+                        >
+                          <Icon name="minus" className="h-3 w-3" />
+                        </button>
+                        <button
+                          onClick={() => updateQuantity(idx, 1)}
+                          className="flex h-6 w-6 items-center justify-center rounded-full bg-warm-100 text-warm-700 hover:bg-warm-200"
+                        >
+                          <Icon name="plus" className="h-3 w-3" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        )}
 
-        <div className="mb-3 grid grid-cols-2 gap-2">
-          <input
-            type="text"
-            value={customerName}
-            onChange={(e) => setCustomerName(e.target.value)}
-            placeholder="Tu nombre"
-            className="rounded-lg border border-zinc-300 px-3 py-2 text-sm"
-          />
-          <input
-            type="tel"
-            value={customerPhone}
-            onChange={(e) => setCustomerPhone(e.target.value)}
-            placeholder="Telefono"
-            className="rounded-lg border border-zinc-300 px-3 py-2 text-sm"
-          />
+              <div className="border-t border-warm-200 pt-4">
+                <div className="flex items-center justify-between text-lg font-bold text-foreground">
+                  <span>Total</span>
+                  <span>{formatPrice(totalCents)}</span>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <div>
+                  <label htmlFor="customerName" className="block text-sm font-medium text-foreground">
+                    Nombre
+                  </label>
+                  <input
+                    id="customerName"
+                    type="text"
+                    value={customerName}
+                    onChange={(e) => setCustomerName(e.target.value)}
+                    placeholder="Como te llaman?"
+                    className="mt-1.5 block w-full rounded-xl border border-warm-200 bg-paper px-4 py-3 text-sm text-foreground placeholder:text-warm-400 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="customerPhone" className="block text-sm font-medium text-foreground">
+                    Telefono
+                  </label>
+                  <input
+                    id="customerPhone"
+                    type="tel"
+                    value={customerPhone}
+                    onChange={(e) => setCustomerPhone(e.target.value)}
+                    placeholder="Para avisarte cuando este listo"
+                    className="mt-1.5 block w-full rounded-xl border border-warm-200 bg-paper px-4 py-3 text-sm text-foreground placeholder:text-warm-400 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="instructions" className="block text-sm font-medium text-foreground">
+                    Instrucciones especiales
+                  </label>
+                  <textarea
+                    id="instructions"
+                    value={specialInstructions}
+                    onChange={(e) => setSpecialInstructions(e.target.value)}
+                    placeholder="Ej: menos hielo, sin azucar"
+                    rows={2}
+                    className="mt-1.5 block w-full resize-none rounded-xl border border-warm-200 bg-paper px-4 py-3 text-sm text-foreground placeholder:text-warm-400 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+                  />
+                </div>
+              </div>
+
+              {error && <p className="text-sm text-danger">{error}</p>}
+
+              <Button onClick={handleSubmit} disabled={cart.length === 0 || loading} size="lg" className="w-full">
+                {loading ? 'Procesando...' : `Pagar ${formatPrice(totalCents)}`}
+              </Button>
+            </>
+          )}
         </div>
+      </Sheet>
 
-        <textarea
-          value={specialInstructions}
-          onChange={(e) => setSpecialInstructions(e.target.value)}
-          placeholder="Instrucciones especiales"
-          className="mb-3 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm"
-          rows={2}
-        />
-
-        {error && <p className="mb-2 text-sm text-red-600">{error}</p>}
-
-        <button
-          onClick={handleSubmit}
-          disabled={cart.length === 0 || loading}
-          className="w-full rounded-lg bg-zinc-900 py-3 text-base font-medium text-white disabled:opacity-50"
-        >
-          {loading ? 'Procesando...' : `Pagar ${shop.currency} ${(totalCents / 100).toFixed(2)}`}
-        </button>
+      <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-warm-200 bg-paper p-4 shadow-lg">
+        <div className="mx-auto max-w-2xl">
+          <Button
+            onClick={() => setCartOpen(true)}
+            disabled={cart.length === 0}
+            size="lg"
+            className="w-full"
+          >
+            <span className="flex items-center gap-2">
+              <Icon name="cart" className="h-5 w-5" />
+              Ver pedido
+              {totalItems > 0 && (
+                <span className="rounded-full bg-white/20 px-2 py-0.5 text-sm">{totalItems}</span>
+              )}
+            </span>
+            <span className="ml-auto">{formatPrice(totalCents)}</span>
+          </Button>
+        </div>
       </div>
     </div>
   )
 }
 
-function ModifierModal({
+function ProductRow({
+  item,
+  onClick,
+  formatPrice,
+}: {
+  item: MenuItem
+  onClick: () => void
+  formatPrice: (cents: number) => string
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className="flex w-full items-center gap-4 rounded-2xl bg-paper p-3 text-left shadow-sm transition-shadow hover:shadow-md"
+    >
+      <div className="relative flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-warm-100">
+        {item.image_url ? (
+          <Image src={item.image_url} alt={item.name} fill className="object-cover" />
+        ) : (
+          <span className="text-2xl font-bold text-warm-400">{item.name.charAt(0)}</span>
+        )}
+      </div>
+      <div className="min-w-0 flex-1 py-1">
+        <div className="flex items-start justify-between gap-2">
+          <h3 className="font-semibold text-foreground">{item.name}</h3>
+          <span className="shrink-0 font-semibold text-foreground">{formatPrice(item.price_cents)}</span>
+        </div>
+        {item.description && (
+          <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{item.description}</p>
+        )}
+        {item.prep_time_min > 0 && (
+          <p className="mt-2 flex items-center gap-1 text-xs text-muted-foreground">
+            <Icon name="clock" className="h-3.5 w-3.5" />
+            Listo en {item.prep_time_min} min
+          </p>
+        )}
+      </div>
+    </button>
+  )
+}
+
+function ProductSheet({
   item,
   groups,
   optionsForGroup,
@@ -255,6 +470,7 @@ function ModifierModal({
   onChange,
   onClose,
   onAdd,
+  formatPrice,
 }: {
   item: MenuItem
   groups: ModifierGroup[]
@@ -263,6 +479,7 @@ function ModifierModal({
   onChange: (s: Record<string, string[]>) => void
   onClose: () => void
   onAdd: () => void
+  formatPrice: (cents: number) => string
 }) {
   const toggleOption = (groupId: string, optionId: string, maxSelect: number) => {
     const current = selected[groupId] ?? []
@@ -274,30 +491,66 @@ function ModifierModal({
     }
   }
 
+  const itemTotal =
+    item.price_cents +
+    groups.reduce((sum, group) => {
+      const groupOptions = optionsForGroup(group.id)
+      const selectedIds = selected[group.id] ?? []
+      return (
+        sum +
+        selectedIds.reduce((s, id) => {
+          const opt = groupOptions.find((o) => o.id === id)
+          return s + (opt?.price_cents ?? 0)
+        }, 0)
+      )
+    }, 0)
+
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 sm:items-center">
-      <div className="max-h-[80vh] w-full overflow-y-auto rounded-t-2xl bg-white p-4 sm:max-w-md sm:rounded-2xl">
-        <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-lg font-semibold">{item.name}</h3>
-          <button onClick={onClose} className="text-zinc-500">Cerrar</button>
+    <Sheet open onClose={onClose} position="bottom">
+      <div className="space-y-5">
+        <div className="relative flex flex-col items-center">
+          <div className="relative flex h-40 w-40 items-center justify-center overflow-hidden rounded-3xl bg-warm-100 shadow-sm">
+            {item.image_url ? (
+              <Image src={item.image_url} alt={item.name} fill className="object-cover" />
+            ) : (
+              <span className="text-5xl font-bold text-warm-400">{item.name.charAt(0)}</span>
+            )}
+          </div>
+          <h2 className="mt-4 text-center text-2xl font-bold text-foreground">{item.name}</h2>
+          {item.description && <p className="mt-1 text-center text-sm text-muted-foreground">{item.description}</p>}
         </div>
 
         {groups.map((group) => (
-          <div key={group.id} className="mb-4">
-            <h4 className="text-sm font-medium text-zinc-700">{group.name}</h4>
-            <div className="mt-2 space-y-2">
+          <div key={group.id}>
+            <h3 className="text-sm font-semibold text-foreground">{group.name}</h3>
+            <div className="mt-2 grid gap-2">
               {optionsForGroup(group.id).map((option) => {
                 const isSelected = (selected[group.id] ?? []).includes(option.id)
                 return (
                   <button
                     key={option.id}
                     onClick={() => toggleOption(group.id, option.id, group.max_select)}
-                    className={`flex w-full items-center justify-between rounded-lg border px-3 py-2 text-left text-sm ${
-                      isSelected ? 'border-zinc-900 bg-zinc-50' : 'border-zinc-200'
-                    }`}
+                    className={[
+                      'flex items-center justify-between rounded-xl border px-4 py-3 text-left transition-colors',
+                      isSelected
+                        ? 'border-espresso-700 bg-espresso-50 text-foreground'
+                        : 'border-warm-200 bg-paper text-foreground hover:bg-warm-50',
+                    ].join(' ')}
                   >
-                    <span>{option.name}</span>
-                    <span>+${(option.price_cents / 100).toFixed(2)}</span>
+                    <span className="flex items-center gap-3">
+                      <span
+                        className={[
+                          'flex h-5 w-5 items-center justify-center rounded-full border',
+                          isSelected ? 'border-espresso-700 bg-espresso-700 text-white' : 'border-warm-300',
+                        ].join(' ')}
+                      >
+                        {isSelected && <Icon name="check" className="h-3.5 w-3.5" />}
+                      </span>
+                      <span className="font-medium">{option.name}</span>
+                    </span>
+                    {option.price_cents > 0 && (
+                      <span className="text-sm text-muted-foreground">+{formatPrice(option.price_cents)}</span>
+                    )}
                   </button>
                 )
               })}
@@ -305,13 +558,10 @@ function ModifierModal({
           </div>
         ))}
 
-        <button
-          onClick={onAdd}
-          className="w-full rounded-lg bg-zinc-900 py-3 text-base font-medium text-white"
-        >
-          Agregar ${(item.price_cents / 100).toFixed(2)}
-        </button>
+        <Button onClick={onAdd} size="lg" className="w-full">
+          Agregar · {formatPrice(itemTotal)}
+        </Button>
       </div>
-    </div>
+    </Sheet>
   )
 }
