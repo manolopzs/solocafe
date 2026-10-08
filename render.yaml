@@ -1,0 +1,38 @@
+services:
+  - type: postgres
+    name: solocafe-db
+    plan: free
+    ipAllowList: []
+
+  - type: web
+    name: solocafe-api
+    plan: free
+    runtime: ruby
+    repo: https://github.com/manolopzs/solocafe
+    branch: main
+    rootDir: api
+    buildCommand: bundle install
+    startCommand: bundle exec rails db:migrate && bundle exec rails server -b 0.0.0.0 -p $PORT
+    envVars:
+      - key: RAILS_ENV
+        value: production
+      - key: RAILS_LOG_TO_STDOUT
+        value: "true"
+      - key: RAILS_SERVE_STATIC_FILES
+        value: "true"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: solocafe-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+        sync: false
+      - key: PLATFORM_FEE_PERCENT
+        value: "0"
+      - key: CORS_ALLOWED_ORIGINS
+        value: "https://solo-cafe-nine.vercel.app"
