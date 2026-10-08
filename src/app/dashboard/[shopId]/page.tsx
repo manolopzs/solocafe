@@ -37,7 +37,7 @@ export default async function ShopDashboardPage({
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">Resumen</h1>
+        <h1 className="font-serif text-2xl font-semibold tracking-tight text-foreground">Resumen</h1>
         <p className="mt-1 text-muted-foreground">
           Configura tu menu y comparte el codigo QR con tus clientes.
         </p>
@@ -100,12 +100,12 @@ export default async function ShopDashboardPage({
           <div className="flex items-center gap-3">
             {shop.stripe_connect_status === 'active' ? (
               <>
-                <span className="flex h-2.5 w-2.5 rounded-full bg-success" />
+                <span className="flex h-2.5 w-2.5 rounded-full bg-sage-500" />
                 <span className="font-medium text-foreground">Cuenta de Stripe conectada</span>
               </>
             ) : (
               <>
-                <span className="flex h-2.5 w-2.5 rounded-full bg-amber-500" />
+                <span className="flex h-2.5 w-2.5 rounded-full bg-terracotta-400" />
                 <span className="font-medium text-foreground">Cuenta pendiente de conexion</span>
               </>
             )}

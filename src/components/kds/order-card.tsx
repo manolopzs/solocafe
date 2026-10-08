@@ -4,6 +4,7 @@ import { updateOrderStatus } from '@/server/actions/kds'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
+import { Icon } from '@/components/ui/icon'
 import type { Order, OrderItem } from '@/types'
 
 const statusLabels: Record<string, string> = {
@@ -22,10 +23,10 @@ const statusVariants: Record<string, 'default' | 'secondary' | 'warning' | 'succ
   cancelled: 'danger',
 }
 
-const nextActions: Record<string, { status: string; label: string } | null> = {
-  received: { status: 'preparing', label: 'Preparar' },
-  preparing: { status: 'ready', label: 'Listo' },
-  ready: { status: 'picked_up', label: 'Entregado' },
+const nextActions: Record<string, { status: string; label: string; variant: 'primary' | 'outline' } | null> = {
+  received: { status: 'preparing', label: 'Empezar', variant: 'primary' },
+  preparing: { status: 'ready', label: 'Listo', variant: 'primary' },
+  ready: { status: 'picked_up', label: 'Entregado', variant: 'outline' },
   picked_up: null,
   cancelled: null,
 }
@@ -50,26 +51,26 @@ export function OrderCard({
   const action = nextActions[order.status]
 
   return (
-    <Card variant="outline" className="flex flex-col">
+    <Card variant="outline" className="flex flex-col overflow-hidden">
+      <div className="flex items-center justify-between border-b border-warm-100 bg-cream px-5 py-3">
+        <div className="flex items-center gap-2">
+          <span className="font-serif text-lg font-semibold text-foreground">
+            #{order.id.slice(0, 8).toUpperCase()}
+          </span>
+          <span className="text-xs font-medium text-muted-foreground">{formatElapsed(order.created_at)}</span>
+        </div>
+        <Badge variant={statusVariants[order.status] ?? 'secondary'}>{statusLabels[order.status]}</Badge>
+      </div>
+
       <CardContent className="flex-1 p-5">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              Pedido #{order.id.slice(0, 8).toUpperCase()}
-            </p>
-            <p className="mt-1 text-lg font-bold text-foreground">{order.customer_name || 'Cliente'}</p>
-            {order.customer_phone && <p className="text-sm text-muted-foreground">{order.customer_phone}</p>}
-          </div>
-          <Badge variant={statusVariants[order.status] ?? 'secondary'}>{statusLabels[order.status]}</Badge>
+        <div className="mb-4">
+          <p className="text-lg font-bold text-foreground">{order.customer_name || 'Cliente'}</p>
+          {order.customer_phone && <p className="text-sm text-muted-foreground">{order.customer_phone}</p>}
         </div>
 
-        <p className="mt-3 text-xs font-medium text-amber-700">
-          {formatElapsed(order.created_at)}
-        </p>
-
-        <ul className="mt-4 space-y-2 text-sm">
+        <ul className="space-y-2 text-sm">
           {items.map((item) => (
-            <li key={item.id} className="rounded-lg bg-warm-50 px-3 py-2">
+            <li key={item.id} className="rounded-xl border border-warm-100 bg-cream px-3 py-2.5">
               <span className="font-semibold text-foreground">
                 {item.quantity}x {item.item_name_snapshot}
               </span>
@@ -83,9 +84,10 @@ export function OrderCard({
         </ul>
 
         {order.special_instructions && (
-          <p className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900">
-            Nota: {order.special_instructions}
-          </p>
+          <div className="mt-3 flex gap-2 rounded-xl bg-terracotta-50 px-3 py-2.5 text-sm text-terracotta-900">
+            <Icon name="message-circle" className="mt-0.5 h-4 w-4 shrink-0 text-terracotta-600" />
+            {order.special_instructions}
+          </div>
         )}
 
         <p className="mt-4 text-base font-bold text-foreground">
@@ -93,7 +95,7 @@ export function OrderCard({
         </p>
       </CardContent>
 
-      <CardFooter className="flex gap-2 border-t border-warm-100 p-4 pt-4">
+      <CardFooter className="flex gap-2 border-t border-warm-100 bg-cream p-4">
         {(order.status === 'received' || order.status === 'preparing') && (
           <Button
             variant="outline"
@@ -104,7 +106,11 @@ export function OrderCard({
           </Button>
         )}
         {action && (
-          <Button className="flex-1" onClick={() => updateOrderStatus(shopId, order.id, action.status as any)}>
+          <Button
+            variant={action.variant}
+            className="flex-1"
+            onClick={() => updateOrderStatus(shopId, order.id, action.status as any)}
+          >
             {action.label}
           </Button>
         )}

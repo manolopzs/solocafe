@@ -27,14 +27,14 @@ export default async function SettingsPage({
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">Ajustes</h1>
+        <h1 className="font-serif text-2xl font-semibold tracking-tight text-foreground">Ajustes</h1>
         <p className="mt-1 text-muted-foreground">
           Configura pagos y datos de tu cafeteria.
         </p>
       </div>
 
       {stripeParam === 'connected' && (
-        <div className="rounded-xl bg-success/10 px-4 py-3 text-sm text-success">
+        <div className="rounded-xl bg-sage-100 px-4 py-3 text-sm text-sage-800">
           Conexion con Stripe completada. El estado se actualizara en unos segundos.
         </div>
       )}
@@ -48,12 +48,12 @@ export default async function SettingsPage({
           <div className="flex items-center gap-3">
             {isActive ? (
               <>
-                <span className="flex h-2.5 w-2.5 rounded-full bg-success" />
+                <span className="flex h-2.5 w-2.5 rounded-full bg-sage-500" />
                 <span className="font-medium text-foreground">Cuenta de Stripe conectada</span>
               </>
             ) : (
               <>
-                <span className="flex h-2.5 w-2.5 rounded-full bg-amber-500" />
+                <span className="flex h-2.5 w-2.5 rounded-full bg-terracotta-400" />
                 <span className="font-medium text-foreground">Cuenta pendiente de conexion</span>
               </>
             )}

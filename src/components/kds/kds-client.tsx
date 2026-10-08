@@ -60,25 +60,33 @@ export function KdsClient({ shopId, initialOrders }: { shopId: string; initialOr
   }, [shopId, soundEnabled])
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-muted-foreground">Actualizacion en tiempo real cada 5 segundos.</p>
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <span className="relative flex h-2.5 w-2.5">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-sage-400 opacity-75"></span>
+            <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-sage-500"></span>
+          </span>
+          Actualizacion en tiempo real cada 5 segundos
+        </div>
         <Button
           variant={soundEnabled ? 'primary' : 'outline'}
           size="sm"
           onClick={() => setSoundEnabled(!soundEnabled)}
           className="w-full sm:w-auto"
         >
-          <Icon name={soundEnabled ? 'check' : 'x'} className="mr-2 h-4 w-4" />
+          <Icon name={soundEnabled ? 'volume-2' : 'volume-x'} className="mr-2 h-4 w-4" />
           Sonido {soundEnabled ? 'activado' : 'apagado'}
         </Button>
       </div>
 
       {orders.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-warm-300 bg-paper py-16 text-center">
-          <Icon name="utensils" className="h-12 w-12 text-warm-300" />
-          <p className="mt-4 text-lg font-medium text-foreground">No hay pedidos activos</p>
-          <p className="text-sm text-muted-foreground">Los nuevos pedidos apareceran aqui.</p>
+        <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-warm-300 bg-paper py-20 text-center">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-warm-100 text-warm-400">
+            <Icon name="utensils" className="h-8 w-8" />
+          </div>
+          <p className="mt-5 font-serif text-xl font-semibold text-foreground">No hay pedidos activos</p>
+          <p className="mt-1 text-sm text-muted-foreground">Los nuevos pedidos apareceran aqui automaticamente.</p>
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

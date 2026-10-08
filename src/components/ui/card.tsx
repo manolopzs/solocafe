@@ -8,7 +8,7 @@ export interface CardProps extends HTMLAttributes<HTMLDivElement> {
 const variantStyles: Record<Required<CardProps>['variant'], string> = {
   default: 'bg-paper shadow-sm',
   outline: 'bg-paper border border-warm-200',
-  flat: 'bg-warm-50',
+  flat: 'bg-warm-100',
 }
 
 export function Card({ children, variant = 'default', className = '', ...props }: CardProps) {
@@ -27,7 +27,7 @@ export function Card({ children, variant = 'default', className = '', ...props }
 }
 
 export function CardHeader({ children, className = '' }: { children: ReactNode; className?: string }) {
-  return <div className={['p-5 pb-0', className].join(' ')}>{children}</div>
+  return <div className={['p-6 pb-0', className].join(' ')}>{children}</div>
 }
 
 export function CardTitle({ children, className = '' }: { children: ReactNode; className?: string }) {
@@ -35,13 +35,13 @@ export function CardTitle({ children, className = '' }: { children: ReactNode; c
 }
 
 export function CardDescription({ children, className = '' }: { children: ReactNode; className?: string }) {
-  return <p className={['text-sm text-muted-foreground', className].join(' ')}>{children}</p>
+  return <p className={['mt-1 text-sm text-muted-foreground', className].join(' ')}>{children}</p>
 }
 
 export function CardContent({ children, className = '' }: { children: ReactNode; className?: string }) {
-  return <div className={['p-5', className].join(' ')}>{children}</div>
+  return <div className={['p-6', className].join(' ')}>{children}</div>
 }
 
 export function CardFooter({ children, className = '' }: { children: ReactNode; className?: string }) {
-  return <div className={['flex items-center gap-3 p-5 pt-0', className].join(' ')}>{children}</div>
+  return <div className={['flex items-center gap-3 p-6 pt-0', className].join(' ')}>{children}</div>
 }

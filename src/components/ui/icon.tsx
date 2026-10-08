@@ -5,24 +5,31 @@ export type IconName =
   | 'arrow-right'
   | 'cart'
   | 'check'
+  | 'chevron-down'
   | 'chevron-right'
   | 'clock'
   | 'coffee'
   | 'copy'
   | 'credit-card'
   | 'external-link'
+  | 'folder-open'
   | 'map-pin'
   | 'menu'
+  | 'message-circle'
   | 'minus'
   | 'plus'
   | 'qrcode'
   | 'receipt'
   | 'search'
   | 'settings'
+  | 'sliders-horizontal'
   | 'store'
+  | 'tag'
   | 'trash'
   | 'user'
   | 'utensils'
+  | 'volume-2'
+  | 'volume-x'
   | 'x'
 
 export interface IconProps extends Omit<SVGProps<SVGSVGElement>, 'name'> {
@@ -77,6 +84,12 @@ export function Icon({ name, className = 'h-5 w-5', ...props }: IconProps) {
           <path d="m9 18 6-6-6-6" />
         </svg>
       )
+    case 'chevron-down':
+      return (
+        <svg {...svgProps}>
+          <path d="m6 9 6 6 6-6" />
+        </svg>
+      )
     case 'clock':
       return (
         <svg {...svgProps}>
@@ -116,6 +129,13 @@ export function Icon({ name, className = 'h-5 w-5', ...props }: IconProps) {
           <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
         </svg>
       )
+    case 'folder-open':
+      return (
+        <svg {...svgProps}>
+          <path d="m6 14 1.5-2.5A2 2 0 0 1 9.23 10H20a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2H6.5a1 1 0 0 1-1-1l1-3Z" />
+          <path d="M6 10 3.87 5.27A2 2 0 0 1 5.77 2H14a2 2 0 0 1 1.75 1.03l1.4 2.5H20a2 2 0 0 1 2 2v2" />
+        </svg>
+      )
     case 'map-pin':
       return (
         <svg {...svgProps}>
@@ -129,6 +149,12 @@ export function Icon({ name, className = 'h-5 w-5', ...props }: IconProps) {
           <line x1="4" x2="20" y1="12" y2="12" />
           <line x1="4" x2="20" y1="6" y2="6" />
           <line x1="4" x2="20" y1="18" y2="18" />
+        </svg>
+      )
+    case 'message-circle':
+      return (
+        <svg {...svgProps}>
+          <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" />
         </svg>
       )
     case 'minus':
@@ -177,11 +203,32 @@ export function Icon({ name, className = 'h-5 w-5', ...props }: IconProps) {
           <circle cx="12" cy="12" r="3" />
         </svg>
       )
+    case 'sliders-horizontal':
+      return (
+        <svg {...svgProps}>
+          <line x1="21" x2="14" y1="4" y2="4" />
+          <line x1="10" x2="3" y1="4" y2="4" />
+          <line x1="21" x2="12" y1="12" y2="12" />
+          <line x1="8" x2="3" y1="12" y2="12" />
+          <line x1="21" x2="16" y1="20" y2="20" />
+          <line x1="12" x2="3" y1="20" y2="20" />
+          <line x1="14" x2="14" y1="2" y2="6" />
+          <line x1="8" x2="8" y1="10" y2="14" />
+          <line x1="16" x2="16" y1="18" y2="22" />
+        </svg>
+      )
     case 'store':
       return (
         <svg {...svgProps}>
           <path d="M2 7.5a2.5 2.5 0 0 1 2.5-2.5h15A2.5 2.5 0 0 1 22 7.5c0 1.25-.5 2-1.5 2.5a4 4 0 0 1-4.5 0 4 4 0 0 1-4.5 0 4 4 0 0 1-4.5 0c-1-.5-1.5-1.25-1.5-2.5Z" />
           <path d="M4 10v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
+        </svg>
+      )
+    case 'tag':
+      return (
+        <svg {...svgProps}>
+          <path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42Z" />
+          <circle cx="7.5" cy="7.5" r="0.5" fill="currentColor" stroke="none" />
         </svg>
       )
     case 'trash':
@@ -199,6 +246,22 @@ export function Icon({ name, className = 'h-5 w-5', ...props }: IconProps) {
         <svg {...svgProps}>
           <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
           <circle cx="12" cy="7" r="4" />
+        </svg>
+      )
+    case 'volume-2':
+      return (
+        <svg {...svgProps}>
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+          <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+          <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+        </svg>
+      )
+    case 'volume-x':
+      return (
+        <svg {...svgProps}>
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+          <line x1="23" x2="17" y1="9" y2="15" />
+          <line x1="17" x2="23" y1="9" y2="15" />
         </svg>
       )
     case 'utensils':

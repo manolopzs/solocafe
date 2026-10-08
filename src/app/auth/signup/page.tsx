@@ -18,14 +18,14 @@ export default function SignupPage() {
         <div className="mb-6 flex justify-center">
           <Link
             href="/"
-            className="flex h-12 w-12 items-center justify-center rounded-2xl bg-espresso-700 text-white shadow-md"
+            className="flex h-12 w-12 items-center justify-center rounded-full bg-terracotta-500 text-white shadow-md"
           >
             <Icon name="coffee" className="h-6 w-6" />
           </Link>
         </div>
-        <Card>
+        <Card variant="outline">
           <CardHeader className="text-center">
-            <CardTitle>Crea tu cuenta</CardTitle>
+            <CardTitle className="font-serif">Crea tu cuenta</CardTitle>
             <CardDescription>Registrate para comenzar a recibir pedidos.</CardDescription>
           </CardHeader>
           <CardContent>
@@ -67,7 +67,7 @@ export default function SignupPage() {
 
             <p className="mt-5 text-center text-sm text-muted-foreground">
               Ya tienes cuenta?{' '}
-              <Link href="/auth/login" className="font-medium text-espresso-700 hover:underline">
+              <Link href="/auth/login" className="font-medium text-terracotta-600 hover:underline">
                 Entrar
               </Link>
             </p>

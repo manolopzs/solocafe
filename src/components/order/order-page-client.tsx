@@ -6,7 +6,6 @@ import { createOrder } from '@/server/actions/orders'
 import { Button } from '@/components/ui/button'
 import { Icon } from '@/components/ui/icon'
 import { Sheet } from '@/components/ui/sheet'
-import { Badge } from '@/components/ui/badge'
 import type { Shop, MenuCategory, MenuItem, ModifierGroup, ModifierOption, ItemModifierLink } from '@/types'
 
 interface CartLine {
@@ -166,34 +165,36 @@ export function OrderPageClient({
   }
 
   return (
-    <div className="min-h-screen bg-background pb-28">
-      <header className="bg-paper px-5 pt-6 pb-5 shadow-sm">
-        <div className="mx-auto max-w-2xl">
+    <div className="min-h-screen bg-background pb-32">
+      <header className="relative overflow-hidden bg-paper px-5 pt-8 pb-6 shadow-sm">
+        <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-terracotta-100/50 to-transparent" />
+        <div className="relative mx-auto max-w-2xl">
           <div className="flex items-start gap-4">
             {shop.logo_url ? (
-              <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-2xl">
+              <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-2xl shadow-sm">
                 <Image src={shop.logo_url} alt={shop.name} fill className="object-cover" />
               </div>
             ) : (
               <div
-                className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-white shadow-sm"
-                style={{ backgroundColor: shop.brand_color || '#4e3427' }}
+                className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl text-white shadow-sm"
+                style={{ backgroundColor: shop.brand_color || '#c45d3a' }}
               >
-                <Icon name="coffee" className="h-7 w-7" />
+                <Icon name="coffee" className="h-8 w-8" />
               </div>
             )}
             <div className="min-w-0 flex-1">
-              <h1 className="text-2xl font-bold tracking-tight text-foreground">{shop.name}</h1>
+              <p className="text-sm font-medium text-muted-foreground">Buen dia, bienvenido a</p>
+              <h1 className="font-serif text-3xl font-semibold tracking-tight text-foreground">{shop.name}</h1>
               {shop.address && (
-                <p className="mt-0.5 flex items-center gap-1 text-sm text-muted-foreground">
+                <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
                   <Icon name="map-pin" className="h-3.5 w-3.5" />
                   {shop.address}
                 </p>
               )}
-              <p className="mt-1 flex items-center gap-1 text-sm text-success">
-                <span className="inline-flex h-2 w-2 rounded-full bg-success" />
-                Abierto ahora · Para recoger
-              </p>
+              <div className="mt-3 inline-flex items-center gap-2 rounded-full bg-sage-100 px-3 py-1 text-sm font-medium text-sage-800">
+                <span className="inline-flex h-2 w-2 rounded-full bg-sage-500" />
+                Abierto · Para recoger
+              </div>
             </div>
           </div>
         </div>
@@ -207,10 +208,10 @@ export function OrderPageClient({
                 key={category.id}
                 onClick={() => scrollToCategory(category.id)}
                 className={[
-                  'shrink-0 rounded-full px-4 py-2 text-sm font-medium transition-colors',
+                  'shrink-0 rounded-full px-4 py-2 text-sm font-medium transition-all',
                   activeCategory === category.id
-                    ? 'bg-espresso-700 text-white shadow-sm'
-                    : 'bg-paper text-warm-700 hover:bg-warm-100',
+                    ? 'bg-terracotta-500 text-white shadow-sm'
+                    : 'bg-paper text-warm-700 shadow-xs hover:bg-warm-100',
                 ].join(' ')}
               >
                 {category.name}
@@ -220,10 +221,10 @@ export function OrderPageClient({
               <button
                 onClick={() => scrollToCategory('uncategorized')}
                 className={[
-                  'shrink-0 rounded-full px-4 py-2 text-sm font-medium transition-colors',
+                  'shrink-0 rounded-full px-4 py-2 text-sm font-medium transition-all',
                   activeCategory === 'uncategorized'
-                    ? 'bg-espresso-700 text-white shadow-sm'
-                    : 'bg-paper text-warm-700 hover:bg-warm-100',
+                    ? 'bg-terracotta-500 text-white shadow-sm'
+                    : 'bg-paper text-warm-700 shadow-xs hover:bg-warm-100',
                 ].join(' ')}
               >
                 Otros
@@ -243,10 +244,10 @@ export function OrderPageClient({
               ref={(el: HTMLDivElement | null) => { categoryRefs.current[category.id] = el }}
               className="mb-10"
             >
-              <h2 className="text-xl font-bold tracking-tight text-foreground">{category.name}</h2>
-              <div className="mt-4 space-y-3">
+              <h2 className="font-serif text-xl font-semibold text-foreground">{category.name}</h2>
+              <div className="mt-4 grid grid-cols-2 gap-4">
                 {categoryItems.map((item) => (
-                  <ProductRow
+                  <ProductCard
                     key={item.id}
                     item={item}
                     onClick={() => setActiveItem(item)}
@@ -263,10 +264,10 @@ export function OrderPageClient({
             ref={(el: HTMLDivElement | null) => { categoryRefs.current['uncategorized'] = el }}
             className="mb-10"
           >
-            <h2 className="text-xl font-bold tracking-tight text-foreground">Otros</h2>
-            <div className="mt-4 space-y-3">
+            <h2 className="font-serif text-xl font-semibold text-foreground">Otros</h2>
+            <div className="mt-4 grid grid-cols-2 gap-4">
               {uncategorizedItems.map((item) => (
-                <ProductRow
+                <ProductCard
                   key={item.id}
                   item={item}
                   onClick={() => setActiveItem(item)}
@@ -358,7 +359,7 @@ export function OrderPageClient({
                     value={customerName}
                     onChange={(e) => setCustomerName(e.target.value)}
                     placeholder="Como te llaman?"
-                    className="mt-1.5 block w-full rounded-xl border border-warm-200 bg-paper px-4 py-3 text-sm text-foreground placeholder:text-warm-400 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+                    className="mt-1.5 block w-full rounded-xl border border-warm-200 bg-paper px-4 py-3 text-sm text-foreground placeholder:text-warm-400 focus:border-terracotta-400 focus:outline-none focus:ring-2 focus:ring-terracotta-400/20"
                   />
                 </div>
                 <div>
@@ -371,7 +372,7 @@ export function OrderPageClient({
                     value={customerPhone}
                     onChange={(e) => setCustomerPhone(e.target.value)}
                     placeholder="Para avisarte cuando este listo"
-                    className="mt-1.5 block w-full rounded-xl border border-warm-200 bg-paper px-4 py-3 text-sm text-foreground placeholder:text-warm-400 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+                    className="mt-1.5 block w-full rounded-xl border border-warm-200 bg-paper px-4 py-3 text-sm text-foreground placeholder:text-warm-400 focus:border-terracotta-400 focus:outline-none focus:ring-2 focus:ring-terracotta-400/20"
                   />
                 </div>
                 <div>
@@ -384,7 +385,7 @@ export function OrderPageClient({
                     onChange={(e) => setSpecialInstructions(e.target.value)}
                     placeholder="Ej: menos hielo, sin azucar"
                     rows={2}
-                    className="mt-1.5 block w-full resize-none rounded-xl border border-warm-200 bg-paper px-4 py-3 text-sm text-foreground placeholder:text-warm-400 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+                    className="mt-1.5 block w-full resize-none rounded-xl border border-warm-200 bg-paper px-4 py-3 text-sm text-foreground placeholder:text-warm-400 focus:border-terracotta-400 focus:outline-none focus:ring-2 focus:ring-terracotta-400/20"
                   />
                 </div>
               </div>
@@ -399,7 +400,7 @@ export function OrderPageClient({
         </div>
       </Sheet>
 
-      <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-warm-200 bg-paper p-4 shadow-lg">
+      <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-warm-200 bg-paper/95 p-4 shadow-lg backdrop-blur-sm">
         <div className="mx-auto max-w-2xl">
           <Button
             onClick={() => setCartOpen(true)}
@@ -422,7 +423,7 @@ export function OrderPageClient({
   )
 }
 
-function ProductRow({
+function ProductCard({
   item,
   onClick,
   formatPrice,
@@ -434,29 +435,23 @@ function ProductRow({
   return (
     <button
       onClick={onClick}
-      className="flex w-full items-center gap-4 rounded-2xl bg-paper p-3 text-left shadow-sm transition-shadow hover:shadow-md"
+      className="group flex flex-col overflow-hidden rounded-2xl bg-paper text-left shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
     >
-      <div className="relative flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-warm-100">
+      <div className="relative aspect-square w-full overflow-hidden bg-warm-100">
         {item.image_url ? (
-          <Image src={item.image_url} alt={item.name} fill className="object-cover" />
+          <Image src={item.image_url} alt={item.name} fill className="object-cover transition-transform duration-300 group-hover:scale-105" />
         ) : (
-          <span className="text-2xl font-bold text-warm-400">{item.name.charAt(0)}</span>
+          <div className="flex h-full w-full flex-col items-center justify-center gap-2 bg-gradient-to-br from-warm-100 to-warm-200">
+            <Icon name="coffee" className="h-10 w-10 text-warm-400" />
+          </div>
         )}
       </div>
-      <div className="min-w-0 flex-1 py-1">
-        <div className="flex items-start justify-between gap-2">
-          <h3 className="font-semibold text-foreground">{item.name}</h3>
-          <span className="shrink-0 font-semibold text-foreground">{formatPrice(item.price_cents)}</span>
-        </div>
+      <div className="flex flex-1 flex-col p-4">
+        <h3 className="font-serif text-base font-semibold leading-tight text-foreground">{item.name}</h3>
         {item.description && (
-          <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{item.description}</p>
+          <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{item.description}</p>
         )}
-        {item.prep_time_min > 0 && (
-          <p className="mt-2 flex items-center gap-1 text-xs text-muted-foreground">
-            <Icon name="clock" className="h-3.5 w-3.5" />
-            Listo en {item.prep_time_min} min
-          </p>
-        )}
+        <p className="mt-auto pt-2 text-sm font-semibold text-terracotta-600">{formatPrice(item.price_cents)}</p>
       </div>
     </button>
   )
@@ -509,14 +504,16 @@ function ProductSheet({
     <Sheet open onClose={onClose} position="bottom">
       <div className="space-y-5">
         <div className="relative flex flex-col items-center">
-          <div className="relative flex h-40 w-40 items-center justify-center overflow-hidden rounded-3xl bg-warm-100 shadow-sm">
+          <div className="relative flex h-48 w-48 items-center justify-center overflow-hidden rounded-3xl bg-warm-100 shadow-sm">
             {item.image_url ? (
               <Image src={item.image_url} alt={item.name} fill className="object-cover" />
             ) : (
-              <span className="text-5xl font-bold text-warm-400">{item.name.charAt(0)}</span>
+              <div className="flex h-full w-full flex-col items-center justify-center bg-gradient-to-br from-warm-100 to-warm-200">
+                <Icon name="coffee" className="h-16 w-16 text-warm-400" />
+              </div>
             )}
           </div>
-          <h2 className="mt-4 text-center text-2xl font-bold text-foreground">{item.name}</h2>
+          <h2 className="mt-5 text-center font-serif text-2xl font-semibold text-foreground">{item.name}</h2>
           {item.description && <p className="mt-1 text-center text-sm text-muted-foreground">{item.description}</p>}
         </div>
 
@@ -531,17 +528,17 @@ function ProductSheet({
                     key={option.id}
                     onClick={() => toggleOption(group.id, option.id, group.max_select)}
                     className={[
-                      'flex items-center justify-between rounded-xl border px-4 py-3 text-left transition-colors',
+                      'flex items-center justify-between rounded-xl border px-4 py-3 text-left transition-all',
                       isSelected
-                        ? 'border-espresso-700 bg-espresso-50 text-foreground'
+                        ? 'border-terracotta-500 bg-terracotta-50 text-foreground'
                         : 'border-warm-200 bg-paper text-foreground hover:bg-warm-50',
                     ].join(' ')}
                   >
                     <span className="flex items-center gap-3">
                       <span
                         className={[
-                          'flex h-5 w-5 items-center justify-center rounded-full border',
-                          isSelected ? 'border-espresso-700 bg-espresso-700 text-white' : 'border-warm-300',
+                          'flex h-5 w-5 items-center justify-center rounded-full border transition-colors',
+                          isSelected ? 'border-terracotta-500 bg-terracotta-500 text-white' : 'border-warm-300',
                         ].join(' ')}
                       >
                         {isSelected && <Icon name="check" className="h-3.5 w-3.5" />}
@@ -559,7 +556,7 @@ function ProductSheet({
         ))}
 
         <Button onClick={onAdd} size="lg" className="w-full">
-          Agregar · {formatPrice(itemTotal)}
+          Agregar a tu pedido · {formatPrice(itemTotal)}
         </Button>
       </div>
     </Sheet>

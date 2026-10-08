@@ -18,14 +18,14 @@ export default function LoginPage() {
         <div className="mb-6 flex justify-center">
           <Link
             href="/"
-            className="flex h-12 w-12 items-center justify-center rounded-2xl bg-espresso-700 text-white shadow-md"
+            className="flex h-12 w-12 items-center justify-center rounded-full bg-terracotta-500 text-white shadow-md"
           >
             <Icon name="coffee" className="h-6 w-6" />
           </Link>
         </div>
-        <Card>
+        <Card variant="outline">
           <CardHeader className="text-center">
-            <CardTitle>Entra a tu cuenta</CardTitle>
+            <CardTitle className="font-serif">Entra a tu cuenta</CardTitle>
             <CardDescription>Ingresa tu correo y contrasena para continuar.</CardDescription>
           </CardHeader>
           <CardContent>
@@ -67,7 +67,7 @@ export default function LoginPage() {
 
             <p className="mt-5 text-center text-sm text-muted-foreground">
               No tienes cuenta?{' '}
-              <Link href="/auth/signup" className="font-medium text-espresso-700 hover:underline">
+              <Link href="/auth/signup" className="font-medium text-terracotta-600 hover:underline">
                 Crear cuenta
               </Link>
             </p>

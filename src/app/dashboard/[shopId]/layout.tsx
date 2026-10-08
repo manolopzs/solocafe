@@ -28,10 +28,10 @@ export default async function DashboardLayout({
         <div className="mx-auto flex max-w-6xl items-center justify-between">
           <div className="flex items-center gap-3">
             <Link href="/" className="flex items-center gap-2">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-espresso-700 text-white shadow-sm">
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-terracotta-500 text-white shadow-sm">
                 <Icon name="coffee" className="h-5 w-5" />
               </div>
-              <span className="text-lg font-bold tracking-tight text-foreground">Solo Cafe</span>
+              <span className="font-serif text-lg font-semibold tracking-tight text-foreground">Solo Cafe</span>
             </Link>
             <span className="hidden text-sm text-muted-foreground sm:inline">/</span>
             <span className="hidden max-w-[200px] truncate text-sm font-medium text-foreground sm:inline">

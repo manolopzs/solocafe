@@ -9,7 +9,7 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantStyles: Record<Required<ButtonProps>['variant'], string> = {
   primary:
-    'bg-espresso-700 text-white shadow-sm hover:bg-espresso-800 active:bg-espresso-900 disabled:bg-warm-300 disabled:text-warm-500',
+    'bg-terracotta-500 text-white shadow-sm hover:bg-terracotta-600 active:bg-terracotta-700 disabled:bg-warm-300 disabled:text-warm-500',
   secondary:
     'bg-warm-100 text-warm-900 hover:bg-warm-200 active:bg-warm-300 disabled:bg-warm-50 disabled:text-warm-400',
   outline:
@@ -21,10 +21,10 @@ const variantStyles: Record<Required<ButtonProps>['variant'], string> = {
 }
 
 const sizeStyles: Record<Required<ButtonProps>['size'], string> = {
-  sm: 'h-9 px-3 text-sm rounded-lg gap-1.5',
-  md: 'h-11 px-4 text-sm rounded-xl gap-2',
-  lg: 'h-12 px-5 text-base rounded-xl gap-2',
-  xl: 'h-14 px-6 text-base rounded-2xl gap-2',
+  sm: 'h-9 px-3 text-sm rounded-full gap-1.5',
+  md: 'h-11 px-5 text-sm rounded-full gap-2',
+  lg: 'h-12 px-6 text-base rounded-full gap-2',
+  xl: 'h-14 px-7 text-base rounded-full gap-2',
 }
 
 export function Button({
@@ -36,8 +36,8 @@ export function Button({
   ...props
 }: ButtonProps) {
   const classes = [
-    'inline-flex items-center justify-center font-medium transition-colors',
-    'focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+    'inline-flex items-center justify-center font-medium transition-all duration-200',
+    'focus-visible:ring-2 focus-visible:ring-terracotta-400 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
     'disabled:cursor-not-allowed',
     variantStyles[variant],
     sizeStyles[size],

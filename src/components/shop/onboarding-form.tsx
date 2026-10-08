@@ -35,10 +35,10 @@ export function OnboardingForm() {
     <main className="flex flex-1 flex-col items-center justify-center px-5 py-12">
       <Card variant="outline" className="w-full max-w-lg">
         <CardHeader className="text-center">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-espresso-700 text-white shadow-md">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-terracotta-500 text-white shadow-md">
             <Icon name="coffee" className="h-6 w-6" />
           </div>
-          <CardTitle className="mt-4">Crea tu cafeteria</CardTitle>
+          <CardTitle className="font-serif mt-4">Crea tu cafeteria</CardTitle>
           <CardDescription>Configura los datos basicos. Puedes completar el resto despues.</CardDescription>
         </CardHeader>
         <CardContent>
@@ -61,7 +61,7 @@ export function OnboardingForm() {
                   required
                   pattern="[a-z0-9-]+"
                   placeholder="mi-cafeteria"
-                  className="block w-full rounded-r-xl bg-transparent px-4 py-3 text-sm text-foreground placeholder:text-warm-400 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+                  className="block w-full rounded-r-xl bg-transparent px-4 py-3 text-sm text-foreground placeholder:text-warm-400 focus:border-terracotta-400 focus:outline-none focus:ring-2 focus:ring-terracotta-400/20"
                 />
               </div>
             </div>
@@ -73,7 +73,7 @@ export function OnboardingForm() {
                   id="currency"
                   name="currency"
                   defaultValue="MXN"
-                  className="mt-1.5 block w-full rounded-xl border border-warm-200 bg-paper px-4 py-3 text-sm text-foreground focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+                  className="mt-1.5 block w-full rounded-xl border border-warm-200 bg-paper px-4 py-3 text-sm text-foreground focus:border-terracotta-400 focus:outline-none focus:ring-2 focus:ring-terracotta-400/20"
                 >
                   <option value="MXN">MXN</option>
                   <option value="EUR">EUR</option>
@@ -85,7 +85,7 @@ export function OnboardingForm() {
                   id="locale"
                   name="locale"
                   defaultValue="es"
-                  className="mt-1.5 block w-full rounded-xl border border-warm-200 bg-paper px-4 py-3 text-sm text-foreground focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+                  className="mt-1.5 block w-full rounded-xl border border-warm-200 bg-paper px-4 py-3 text-sm text-foreground focus:border-terracotta-400 focus:outline-none focus:ring-2 focus:ring-terracotta-400/20"
                 >
                   <option value="es">Espanol</option>
                   <option value="en">English</option>
@@ -99,7 +99,7 @@ export function OnboardingForm() {
                 id="timezone"
                 name="timezone"
                 defaultValue="America/Mexico_City"
-                className="mt-1.5 block w-full rounded-xl border border-warm-200 bg-paper px-4 py-3 text-sm text-foreground focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+                className="mt-1.5 block w-full rounded-xl border border-warm-200 bg-paper px-4 py-3 text-sm text-foreground focus:border-terracotta-400 focus:outline-none focus:ring-2 focus:ring-terracotta-400/20"
               >
                 <option value="America/Mexico_City">Ciudad de Mexico</option>
                 <option value="America/New_York">Nueva York</option>
@@ -114,7 +114,7 @@ export function OnboardingForm() {
                 id="address"
                 name="address"
                 rows={2}
-                className="mt-1.5 block w-full resize-none rounded-xl border border-warm-200 bg-paper px-4 py-3 text-sm text-foreground placeholder:text-warm-400 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+                className="mt-1.5 block w-full resize-none rounded-xl border border-warm-200 bg-paper px-4 py-3 text-sm text-foreground placeholder:text-warm-400 focus:border-terracotta-400 focus:outline-none focus:ring-2 focus:ring-terracotta-400/20"
               />
             </div>
 

@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js'
 import { getStripe } from '@/lib/stripe/client'
 import { Button } from '@/components/ui/button'
+import { Icon } from '@/components/ui/icon'
 
 function PaymentForm({ orderId }: { orderId: string }) {
   const stripe = useStripe()
@@ -39,14 +40,22 @@ function PaymentForm({ orderId }: { orderId: string }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-      <div className="rounded-xl border border-warm-200 bg-warm-50/50 p-4">
+    <form onSubmit={handleSubmit} className="space-y-5">
+      <div className="rounded-xl border border-warm-200 bg-cream/50 p-4">
         <PaymentElement />
       </div>
-      {error && <p className="text-sm text-danger">{error}</p>}
+      {error && (
+        <div className="flex items-start gap-2 rounded-xl bg-red-50 p-3 text-sm text-red-800">
+          <Icon name="x" className="mt-0.5 h-4 w-4 shrink-0" />
+          {error}
+        </div>
+      )}
       <Button type="submit" disabled={!stripe || loading} size="lg" className="w-full">
         {loading ? 'Procesando...' : 'Pagar ahora'}
       </Button>
+      <p className="text-center text-xs text-muted-foreground">
+        Pago seguro procesado por Stripe.
+      </p>
     </form>
   )
 }

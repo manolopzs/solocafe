@@ -19,7 +19,7 @@ export default async function KdsPage({
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">Cocina</h1>
+        <h1 className="font-serif text-2xl font-semibold tracking-tight text-foreground">Cocina</h1>
         <p className="mt-1 text-muted-foreground">
           Pantalla de preparacion para la barra.
         </p>

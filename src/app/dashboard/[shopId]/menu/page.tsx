@@ -22,7 +22,7 @@ export default async function MenuPage({
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">Menu</h1>
+        <h1 className="font-serif text-2xl font-semibold tracking-tight text-foreground">Menu</h1>
         <p className="mt-1 text-muted-foreground">
           Administra categorias, productos y modificadores.
         </p>
