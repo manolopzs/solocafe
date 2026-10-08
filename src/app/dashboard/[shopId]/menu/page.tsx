@@ -4,6 +4,7 @@ import { getFullMenu } from '@/server/queries/menu'
 import { CategoryList } from '@/components/menu/category-list'
 import { ItemList } from '@/components/menu/item-list'
 import { ModifierList } from '@/components/menu/modifier-list'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
 export const instant = false
 
@@ -21,32 +22,41 @@ export default async function MenuPage({
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-semibold text-zinc-900">Menu</h1>
-        <p className="mt-1 text-sm text-zinc-600">
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">Menu</h1>
+        <p className="mt-1 text-muted-foreground">
           Administra categorias, productos y modificadores.
         </p>
       </div>
 
-      <section>
-        <h2 className="text-lg font-medium text-zinc-900">Categorias</h2>
-        <div className="mt-3">
+      <Card variant="outline">
+        <CardHeader>
+          <CardTitle>Categorias</CardTitle>
+          <CardDescription>Agrupa tus productos para que los clientes los encuentren facil.</CardDescription>
+        </CardHeader>
+        <CardContent>
           <CategoryList shopId={shopId} categories={menu.categories} />
-        </div>
-      </section>
+        </CardContent>
+      </Card>
 
-      <section>
-        <h2 className="text-lg font-medium text-zinc-900">Productos</h2>
-        <div className="mt-3">
-          <ItemList shopId={shopId} items={menu.items} categories={menu.categories} />
-        </div>
-      </section>
+      <Card variant="outline">
+        <CardHeader>
+          <CardTitle>Productos</CardTitle>
+          <CardDescription>Agrega fotos, precios y disponibilidad.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ItemList shopId={shopId} items={menu.items} categories={menu.categories} currency={shop.currency} />
+        </CardContent>
+      </Card>
 
-      <section>
-        <h2 className="text-lg font-medium text-zinc-900">Modificadores</h2>
-        <div className="mt-3">
+      <Card variant="outline">
+        <CardHeader>
+          <CardTitle>Modificadores</CardTitle>
+          <CardDescription>Opciones como tamano, leche o extras.</CardDescription>
+        </CardHeader>
+        <CardContent>
           <ModifierList shopId={shopId} groups={menu.modifierGroups} options={menu.modifierOptions} />
-        </div>
-      </section>
+        </CardContent>
+      </Card>
     </div>
   )
 }

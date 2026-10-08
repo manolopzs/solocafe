@@ -1,16 +1,14 @@
 'use client'
 
 import { logoutAction } from '@/server/actions/auth'
+import { Button } from '@/components/ui/button'
 
 export function LogoutButton() {
   return (
     <form action={logoutAction}>
-      <button
-        type="submit"
-        className="text-sm text-zinc-600 hover:text-zinc-900"
-      >
+      <Button type="submit" variant="ghost" size="sm">
         Cerrar sesion
-      </button>
+      </Button>
     </form>
   )
 }

@@ -17,10 +17,12 @@ export default async function KdsPage({
   const orders = await getShopOrders(shopId)
 
   return (
-    <div className="h-full space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-zinc-900">Cocina</h1>
-        <p className="text-sm text-zinc-600">Actualizacion en tiempo real</p>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">Cocina</h1>
+        <p className="mt-1 text-muted-foreground">
+          Pantalla de preparacion para la barra.
+        </p>
       </div>
       <KdsClient shopId={shopId} initialOrders={orders} />
     </div>

@@ -14,6 +14,7 @@ const itemSchema = z.object({
   description: z.string().max(500).optional(),
   price_cents: z.number().int().min(0),
   category_id: z.string().uuid().optional(),
+  image_url: z.string().url().max(1000).optional().or(z.literal('')),
   prep_time_min: z.number().int().min(1).default(5),
   sort_order: z.number().int().default(0),
 })
