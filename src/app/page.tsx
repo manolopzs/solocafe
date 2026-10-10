@@ -39,13 +39,13 @@ export default function Home() {
         <div className="relative mx-auto max-w-5xl text-center">
           <Badge variant="outline" className="mb-6 gap-2 px-4 py-1.5 text-sm">
             <span className="inline-flex h-2 w-2 rounded-full bg-success" />
-            Sistema de pedidos para recoger · Sin comisiones de marketplace
+            El canal de ventas que tu cafetería controla
           </Badge>
           <h1 className="mx-auto max-w-4xl font-sans text-4xl font-semibold tracking-tight text-foreground sm:text-6xl sm:leading-[1.1]">
-            Deja de regalar el 30% de cada venta a los marketplaces. Vende directo a tus clientes.
+            Tu propio sistema de pedidos para recoger. Sin comisiones de marketplace.
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground sm:text-xl">
-            Crea tu menú digital con tu marca, recibe pagos directo en tu cuenta y organiza la cocina desde una tablet. Lista para vender en 30 minutos.
+            Los apps de delivery se quedan con hasta el 30% de tu venta y con tus clientes. Con Solo Cafe vendes directo: tu menú, tu marca y tu dinero.
           </p>
           <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Button asChild size="lg" className="w-full sm:w-auto">
@@ -62,10 +62,10 @@ export default function Home() {
         <div className="mx-auto max-w-6xl">
           <div className="mb-14 text-center">
             <h2 className="font-sans text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
-              Tu cafetería, tu sistema y tus clientes conectados
+              Tu cafetería, la plataforma y tus clientes conectados
             </h2>
             <p className="mx-auto mt-3 max-w-2xl text-muted-foreground">
-              Solo Cafe se coloca en el centro: recibes pedidos, organizas la cocina y tus clientes pagan sin intermediarios.
+              Solo Cafe une tu cocina con el celular de tus clientes. Tú recibes el pedido, ellos pagan y recogen.
             </p>
           </div>
 
@@ -115,10 +115,10 @@ export default function Home() {
       <section className="px-6 py-20 sm:py-28">
         <div className="mx-auto max-w-4xl text-center">
           <h2 className="font-sans text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-            Vender café en línea no debería costarte la mitad de tu margen
+            Vender en línea no debería costarte la mitad de tu margen
           </h2>
           <p className="mx-auto mt-5 max-w-2xl text-lg text-muted-foreground">
-            Los marketplaces te cobran hasta el 30%, te ocultan quién es tu cliente y te exponen a la competencia. Con Solo Cafe vendes directo: tu menú, tu marca, tu dinero.
+            Cada venta por un marketplace les regalas entre el 20% y el 30%. Peor aún: no sabes quién compró, no puedes contactarlos y competes contra cientos de opciones. Con Solo Cafe el pedido llega directo a tu cocina y el dinero a tu cuenta.
           </p>
         </div>
       </section>
@@ -127,27 +127,27 @@ export default function Home() {
         <div className="mx-auto max-w-6xl">
           <div className="mx-auto max-w-2xl text-center">
             <h2 className="font-sans text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-              En tres pasos empiezas a vender
+              Empiezas a vender en 30 minutos
             </h2>
             <p className="mt-4 text-muted-foreground">
-              Sin integraciones complejas ni configuraciones técnicas.
+              Sin integraciones técnicas, sin contratos y sin tarjeta.
             </p>
           </div>
           <div className="mt-14 grid gap-8 md:grid-cols-3">
             <StepCard
               number="1"
-              title="Crea tu cafetería"
-              description="Regístrate, elige tu URL y configura tu moneda. Sin contratos ni tarjeta."
+              title="Crea tu cuenta"
+              description="Regístrate, nombra tu cafetería y elige tu URL. Sin papeleos."
             />
             <StepCard
               number="2"
               title="Sube tu menú"
-              description="Agrega productos, modificadores y fotos. Previsualiza cómo lo ve el cliente."
+              description="Agrega productos, precios, fotos y modificadores. Tú lo controlas todo."
             />
             <StepCard
               number="3"
               title="Comparte tu QR"
-              description="Imprímelo o envía el enlace. Los clientes pagan y tú recibes el pedido en la cocina."
+              description="Imprímelo o envía el enlace. Tus clientes ordenan desde su celular."
             />
           </div>
         </div>
@@ -157,22 +157,22 @@ export default function Home() {
         <div className="mx-auto max-w-6xl">
           <div className="mx-auto max-w-2xl text-center">
             <h2 className="font-sans text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-              Todo lo que necesitas para vender en línea
+              Todo lo que necesitas para vender directo
             </h2>
             <p className="mt-4 text-muted-foreground">
-              Deja de perder margen con marketplaces. Con Solo Cafe controlas la experiencia, los datos y los pagos.
+              Una sola plataforma para recibir pedidos, cobrar y organizar tu cocina.
             </p>
           </div>
           <div className="mt-14 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             <FeatureCard
               icon={<Icon name="store" className="h-6 w-6" />}
               title="Tu propia página de pedidos"
-              description="Una página con la identidad de tu cafetería. Compártela por QR, redes o WhatsApp. Los clientes compran sin instalar nada."
+              description="Una página con la identidad de tu cafetería. Compártela por QR, redes o WhatsApp. Tus clientes no necesitan instalar nada."
             />
             <FeatureCard
               icon={<Icon name="receipt" className="h-6 w-6" />}
               title="Menú que administras en minutos"
-              description="Categorías, productos, modificadores y fotos. Activa o desactiva items en tiempo real desde tu teléfono."
+              description="Categorías, productos, modificadores y fotos. Activa o desactiva productos en tiempo real desde tu teléfono."
             />
             <FeatureCard
               icon={<Icon name="credit-card" className="h-6 w-6" />}
@@ -202,10 +202,10 @@ export default function Home() {
         <div className="mx-auto max-w-5xl">
           <div className="text-center">
             <h2 className="font-sans text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-              Precio que crece contigo
+              Un precio que crece contigo
             </h2>
             <p className="mt-4 text-muted-foreground">
-              Sin suscripción mensual. Solo pagas una comisión pequeña según cuánto vendes.
+              Sin renta mensual. Pagas una comisión pequeña solo cuando vendes.
             </p>
           </div>
           <div className="mt-14 grid gap-6 sm:grid-cols-3">
@@ -230,7 +230,7 @@ export default function Home() {
             />
           </div>
           <p className="mt-6 text-center text-sm text-muted-foreground">
-            Comisión de plataforma. No incluye costos de Stripe. Sin contrato, cancelas cuando quieras.
+            Comisión de plataforma. No incluye costos de procesamiento de Stripe. Sin contrato.
           </p>
         </div>
       </section>
@@ -266,10 +266,10 @@ export default function Home() {
       <section className="bg-foreground px-6 py-20 sm:py-28">
         <div className="mx-auto max-w-3xl text-center">
           <h2 className="font-sans text-3xl font-semibold tracking-tight text-primary-foreground sm:text-4xl">
-            Abre tu canal de ventas directo hoy
+            Deja de regalar tu margen hoy
           </h2>
           <p className="mt-4 text-primary-foreground/70">
-            Crea tu cuenta, configura tu menú y comparte tu QR. En 30 minutos recibes tu primer pedido.
+            Crea tu cuenta gratis y empieza a recibir pedidos en menos de 30 minutos.
           </p>
           <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Button asChild size="lg" variant="secondary" className="w-full sm:w-auto">

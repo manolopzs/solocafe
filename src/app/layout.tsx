@@ -9,7 +9,7 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: "Solo Cafe - Vende directo a tus clientes",
-  description: "Sistema de pedidos para recoger sin comisiones de marketplace. Tu menu, tus pagos, tu marca.",
+  description: "Sistema de pedidos para recoger sin comisiones de marketplace. Tu menú, tus pagos, tu marca.",
 };
 
 export default function RootLayout({
