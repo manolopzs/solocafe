@@ -8,7 +8,7 @@ export function Label({ children, className = '', ...props }: LabelProps) {
   return (
     <label
       className={[
-        'block text-sm font-medium text-warm-800',
+        'block text-sm font-medium text-foreground',
         className,
       ].join(' ')}
       {...props}

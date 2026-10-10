@@ -1,55 +1,51 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
-import { Card, CardContent } from "@/components/ui/card";
-import { isStage2Enabled } from "@/lib/features";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 export default function Home() {
-  const stage2 = isStage2Enabled();
   return (
     <main className="flex flex-1 flex-col">
-      <nav className="sticky top-0 z-50 border-b border-warm-200 bg-background/80 px-6 py-4 backdrop-blur-md">
+      <nav className="sticky top-0 z-50 border-b border-border bg-background/80 px-6 py-4 backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-terracotta-500 text-white shadow-sm">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm">
               <Icon name="coffee" className="h-5 w-5" />
             </div>
-            <span className="font-serif text-xl font-semibold tracking-tight text-foreground">
+            <span className="font-sans text-xl font-semibold tracking-tight text-foreground">
               Solo Cafe
             </span>
           </Link>
-          <div className="hidden items-center gap-8 text-sm font-medium text-warm-700 md:flex">
-            {stage2 && (
-              <Link href="/explore" className="hover:text-terracotta-600">Explorar</Link>
-            )}
-            <Link href="#features" className="hover:text-terracotta-600">Funciones</Link>
-            <Link href="#como-funciona" className="hover:text-terracotta-600">Como funciona</Link>
-            <Link href="#precios" className="hover:text-terracotta-600">Precios</Link>
-            <Link href="#preguntas" className="hover:text-terracotta-600">Preguntas</Link>
+          <div className="hidden items-center gap-8 text-sm font-medium text-muted-foreground md:flex">
+            <Link href="#funciones" className="hover:text-foreground">Funciones</Link>
+            <Link href="#como-funciona" className="hover:text-foreground">Cómo funciona</Link>
+            <Link href="#precios" className="hover:text-foreground">Precios</Link>
+            <Link href="#preguntas" className="hover:text-foreground">Preguntas</Link>
           </div>
           <div className="flex items-center gap-3">
             <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
               <Link href="/auth/login">Entrar</Link>
             </Button>
             <Button asChild size="sm">
-              <Link href="/auth/signup">Crear cuenta gratis</Link>
+              <Link href="/auth/signup">Empezar gratis</Link>
             </Button>
           </div>
         </div>
       </nav>
 
       <section className="relative overflow-hidden px-6 pt-16 pb-20 sm:pt-24 sm:pb-28">
-        <div className="absolute inset-x-0 top-0 h-[32rem] bg-gradient-to-b from-terracotta-100/50 to-transparent" />
+        <div className="absolute inset-x-0 top-0 h-[32rem] bg-gradient-to-b from-accent/5 to-transparent" />
         <div className="relative mx-auto max-w-5xl text-center">
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-warm-200 bg-paper px-4 py-1.5 text-sm text-muted-foreground shadow-xs">
-            <span className="inline-flex h-2 w-2 rounded-full bg-sage-500" />
-            Plataforma en vivo para cafeterias independientes
-          </div>
-          <h1 className="mx-auto max-w-4xl font-serif text-4xl font-semibold tracking-tight text-foreground sm:text-6xl sm:leading-[1.1]">
-            Vende para recoger sin depender de nadie
+          <Badge variant="outline" className="mb-6 gap-2 px-4 py-1.5 text-sm">
+            <span className="inline-flex h-2 w-2 rounded-full bg-success" />
+            Sistema de pedidos para recoger · Sin comisiones de marketplace
+          </Badge>
+          <h1 className="mx-auto max-w-4xl font-sans text-4xl font-semibold tracking-tight text-foreground sm:text-6xl sm:leading-[1.1]">
+            Deja de regalar el 30% de cada venta a los marketplaces. Vende directo a tus clientes.
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground sm:text-xl">
-            Tu propia pagina de pedidos, tu menu, tus pagos y tu cocina organizada. Sin comisiones abusivas, sin apps de terceros, sin perder tu marca.
+            Crea tu menú digital con tu marca, recibe pagos directo en tu cuenta y organiza la cocina desde una tablet. Lista para vender en 30 minutos.
           </p>
           <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Button asChild size="lg" className="w-full sm:w-auto">
@@ -59,25 +55,118 @@ export default function Home() {
               <Link href="/demo">Ver demo</Link>
             </Button>
           </div>
-          <p className="mt-4 text-sm text-muted-foreground">
-            Configura tu cafeteria en menos de 30 minutos. No requiere tarjeta.
+        </div>
+      </section>
+
+      <section className="border-y border-border bg-surface px-6 py-16 sm:py-20">
+        <div className="mx-auto max-w-6xl">
+          <div className="mb-12 text-center">
+            <h2 className="font-sans text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+              Tu cafetería, tu sistema y tus clientes conectados
+            </h2>
+            <p className="mx-auto mt-3 max-w-2xl text-muted-foreground">
+              Solo Cafe se coloca en el centro: recibes pedidos, organizas la cocina y tus clientes pagan sin intermediarios.
+            </p>
+          </div>
+
+          <div className="hidden items-stretch gap-4 md:flex">
+            <DiagramCard
+              icon={<Icon name="store" className="h-8 w-8" />}
+              title="La cafetería"
+              description="Dashboard, KDS y QR en un solo lugar."
+              mockup={<DashboardMockup />}
+            />
+            <div className="flex flex-1 items-center">
+              <div className="flex-1 border-t-2 border-dashed border-border" />
+            </div>
+            <div className="flex flex-col items-center justify-center text-center">
+              <div className="flex h-24 w-24 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-md">
+                <Icon name="coffee" className="h-12 w-12" />
+              </div>
+              <h3 className="mt-4 font-sans text-lg font-semibold text-foreground">Solo Cafe</h3>
+              <p className="mt-1 max-w-[12rem] text-sm text-muted-foreground">
+                Conecta tu menú con tus clientes.
+              </p>
+            </div>
+            <div className="flex flex-1 items-center">
+              <div className="flex-1 border-t-2 border-dashed border-border" />
+            </div>
+            <DiagramCard
+              icon={<Icon name="user" className="h-8 w-8" />}
+              title="Los clientes"
+              description="Ordenan, pagan y recogen sin filas."
+              mockup={<PhoneMockup />}
+            />
+          </div>
+
+          <div className="grid gap-6 md:hidden">
+            <DiagramCard
+              icon={<Icon name="store" className="h-8 w-8" />}
+              title="La cafetería"
+              description="Dashboard, KDS y QR en un solo lugar."
+              mockup={<DashboardMockup />}
+            />
+            <div className="flex items-center justify-center">
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-md">
+                <Icon name="coffee" className="h-8 w-8" />
+              </div>
+            </div>
+            <DiagramCard
+              icon={<Icon name="user" className="h-8 w-8" />}
+              title="Los clientes"
+              description="Ordenan, pagan y recogen sin filas."
+              mockup={<PhoneMockup />}
+            />
+          </div>
+        </div>
+      </section>
+
+      <section className="px-6 py-20 sm:py-28">
+        <div className="mx-auto max-w-4xl text-center">
+          <h2 className="font-sans text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+            Vender café en línea no debería costarte la mitad de tu margen
+          </h2>
+          <p className="mx-auto mt-5 max-w-2xl text-lg text-muted-foreground">
+            Los marketplaces te cobran hasta el 30%, te ocultan quién es tu cliente y te exponen a la competencia. Con Solo Cafe vendes directo: tu menú, tu marca, tu dinero.
           </p>
         </div>
       </section>
 
-      <section className="border-y border-warm-200 bg-paper px-6 py-10">
-        <div className="mx-auto max-w-6xl text-center">
-          <p className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
-            Hecho para cafeterias independientes como la tuya
-          </p>
-        </div>
-      </section>
-
-      <section id="features" className="px-6 py-20 sm:py-28">
+      <section id="como-funciona" className="border-y border-border bg-surface px-6 py-20 sm:py-28">
         <div className="mx-auto max-w-6xl">
           <div className="mx-auto max-w-2xl text-center">
-            <h2 className="font-serif text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-              Todo lo que necesitas para vender en linea
+            <h2 className="font-sans text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+              En tres pasos empiezas a vender
+            </h2>
+            <p className="mt-4 text-muted-foreground">
+              Sin integraciones complejas ni configuraciones técnicas.
+            </p>
+          </div>
+          <div className="mt-14 grid gap-8 md:grid-cols-3">
+            <StepCard
+              number="1"
+              title="Crea tu cafetería"
+              description="Regístrate, elige tu URL y configura tu moneda. Sin contratos ni tarjeta."
+            />
+            <StepCard
+              number="2"
+              title="Sube tu menú"
+              description="Agrega productos, modificadores y fotos. Previsualiza cómo lo ve el cliente."
+            />
+            <StepCard
+              number="3"
+              title="Comparte tu QR"
+              description="Imprímelo o envía el enlace. Los clientes pagan y tú recibes el pedido en la cocina."
+            />
+          </div>
+        </div>
+      </section>
+
+      <section id="funciones" className="px-6 py-20 sm:py-28">
+        <div className="mx-auto max-w-6xl">
+          <div className="mx-auto max-w-2xl text-center">
+            <h2 className="font-sans text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+              Todo lo que necesitas para vender en línea
             </h2>
             <p className="mt-4 text-muted-foreground">
               Deja de perder margen con marketplaces. Con Solo Cafe controlas la experiencia, los datos y los pagos.
@@ -86,63 +175,33 @@ export default function Home() {
           <div className="mt-14 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             <FeatureCard
               icon={<Icon name="store" className="h-6 w-6" />}
-              title="Tu propia pagina de pedidos"
-              description="Una pagina con la identidad de tu cafeteria. Compartela por QR, redes o WhatsApp. Los clientes compran sin instalar nada."
+              title="Tu propia página de pedidos"
+              description="Una página con la identidad de tu cafetería. Compártela por QR, redes o WhatsApp. Los clientes compran sin instalar nada."
             />
             <FeatureCard
               icon={<Icon name="receipt" className="h-6 w-6" />}
-              title="Menu que administras en minutos"
-              description="Categorias, productos, modificadores y fotos. Activa o desactiva items en tiempo real desde tu telefono."
+              title="Menú que administras en minutos"
+              description="Categorías, productos, modificadores y fotos. Activa o desactiva items en tiempo real desde tu teléfono."
             />
             <FeatureCard
               icon={<Icon name="credit-card" className="h-6 w-6" />}
               title="Pagos directos a tu cuenta"
-              description="Conecta Stripe Connect y recibe el dinero directamente. Tu decides si hay comision de plataforma."
+              description="Conecta Stripe Connect y recibe el dinero directamente. Tú decides cuándo y cómo cobrar."
             />
             <FeatureCard
               icon={<Icon name="utensils" className="h-6 w-6" />}
               title="Cocina organizada en tiempo real"
-              description="Visualiza pedidos en una tablet, actualiza estados y avisa a los clientes cuando su orden esta lista."
+              description="Visualiza pedidos en una tablet, actualiza estados y avisa a los clientes cuando su orden está lista."
             />
             <FeatureCard
               icon={<Icon name="clock" className="h-6 w-6" />}
-              title="Horarios sin saturacion"
-              description="Tus clientes eligen ASAP o un horario de recogida. Limites de capacidad para que la barra no se colapse."
+              title="Horarios sin saturación"
+              description="Tus clientes eligen lo antes posible o un horario de recogida. Límites de capacidad para que la barra no se colapse."
             />
             <FeatureCard
               icon={<Icon name="qrcode" className="h-6 w-6" />}
               title="QR listo para imprimir"
-              description="Genera un codigo QR unico para tu cafeteria. Colocalo en mesas, ventanas o en la entrada."
-            />
-          </div>
-        </div>
-      </section>
-
-      <section id="como-funciona" className="bg-warm-100 px-6 py-20 sm:py-28">
-        <div className="mx-auto max-w-6xl">
-          <div className="mx-auto max-w-2xl text-center">
-            <h2 className="font-serif text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-              En 30 minutos estas vendiendo
-            </h2>
-            <p className="mt-4 text-muted-foreground">
-              Sin integraciones complejas ni configuraciones tecnicas.
-            </p>
-          </div>
-          <div className="mt-14 grid gap-8 md:grid-cols-3">
-            <StepCard
-              number="1"
-              title="Crea tu cafeteria"
-              description="Registrate, configura tu nombre, moneda, zona horaria y conecta tu cuenta de Stripe."
-            />
-            <StepCard
-              number="2"
-              title="Sube tu menu"
-              description="Agrega categorias, productos, modificadores y fotos. Previsualiza como lo vera el cliente."
-            />
-            <StepCard
-              number="3"
-              title="Comparte tu QR"
-              description="Imprime o comparte el enlace. Los clientes ordenan, pagan y tu recibes el pedido en la cocina."
+              description="Genera un código QR único para tu cafetería. Colócalo en mesas, ventanas o en la entrada."
             />
           </div>
         </div>
@@ -151,108 +210,178 @@ export default function Home() {
       <section id="precios" className="px-6 py-20 sm:py-28">
         <div className="mx-auto max-w-5xl">
           <div className="text-center">
-            <h2 className="font-serif text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-              Precio justo por volumen
+            <h2 className="font-sans text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+              Precio que crece contigo
             </h2>
             <p className="mt-4 text-muted-foreground">
-              Sin costos ocultos. Solo pagas una comision pequena segun cuanto vendes.
+              Sin suscripción mensual. Solo pagas una comisión pequeña según cuánto vendes.
             </p>
           </div>
           <div className="mt-14 grid gap-6 sm:grid-cols-3">
             <PricingCard
               name="Inicio"
-              description="Para cafeterias que empiezan"
+              description="Para cafeterías que empiezan"
               fee="0%"
-              volume="Hasta $20,000 MXN/mes"
+              volume="Hasta $20,000 MXN"
             />
             <PricingCard
               name="Crecimiento"
-              description="Para cafeterias con ritmo"
+              description="Para cafeterías con ritmo"
               fee="2.5%"
-              volume="$20,000 - $100,000 MXN/mes"
+              volume="$20,000 - $100,000 MXN"
               highlighted
             />
             <PricingCard
               name="Escala"
-              description="Para multiples ubicaciones"
+              description="Para múltiples ubicaciones"
               fee="1.5%"
-              volume="Mas de $100,000 MXN/mes"
+              volume="Más de $100,000 MXN"
             />
           </div>
           <p className="mt-6 text-center text-sm text-muted-foreground">
-            Comision de la plataforma, sin incluir costos de Stripe. Hablamos para ajustar tu plan.
+            Comisión de plataforma. No incluye costos de Stripe. Sin contrato, cancelas cuando quieras.
           </p>
         </div>
       </section>
 
-      <section id="preguntas" className="bg-warm-100 px-6 py-20 sm:py-28">
+      <section id="preguntas" className="border-y border-border bg-surface px-6 py-20 sm:py-28">
         <div className="mx-auto max-w-3xl">
           <div className="text-center">
-            <h2 className="font-serif text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+            <h2 className="font-sans text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
               Preguntas frecuentes
             </h2>
           </div>
           <div className="mt-12 space-y-4">
             <FaqItem
-              question="Necesito tarjeta de credito para empezar?"
-              answer="No. Puedes crear tu cuenta y configurar tu menu gratis. Solo conectas Stripe cuando quieras recibir pagos."
+              question="¿Necesito tarjeta de crédito para empezar?"
+              answer="No. Puedes crear tu cuenta y configurar tu menú gratis. Solo conectas Stripe cuando quieras recibir pagos."
             />
             <FaqItem
-              question="Cuanto tarda en estar lista mi pagina?"
-              answer="La mayor parte de las cafeterias estan vendiendo en menos de 30 minutos: crear cuenta, subir el menu y compartir el QR."
+              question="¿Cuánto tarda en estar lista mi página?"
+              answer="La mayoría de las cafeterías están vendiendo en menos de 30 minutos: crear cuenta, subir el menú y compartir el QR."
             />
             <FaqItem
-              question="Puedo cobrar en efectivo?"
-              answer="Si. Aunque la plataforma esta optimizada para pagos con tarjeta, puedes registrar pedidos pagados en efectivo desde el dashboard."
+              question="¿Puedo cobrar en efectivo?"
+              answer="Sí. Aunque la plataforma está optimizada para pagos con tarjeta, puedes registrar pedidos pagados en efectivo desde el dashboard."
             />
             <FaqItem
-              question="Que pasa si se me acaba un producto?"
-              answer="Desde tu telefono o tablet puedes marcar cualquier producto como agotado en segundos. Desaparece de la pagina del cliente automaticamente."
+              question="¿Qué pasa si se me acaba un producto?"
+              answer="Desde tu teléfono o tablet puedes marcar cualquier producto como agotado en segundos. Desaparece de la página del cliente automáticamente."
             />
           </div>
         </div>
       </section>
 
-      <section className="bg-espresso-900 px-6 py-20 text-espresso-50 sm:py-28">
+      <section className="bg-foreground px-6 py-20 sm:py-28">
         <div className="mx-auto max-w-3xl text-center">
-          <h2 className="font-serif text-3xl font-semibold tracking-tight sm:text-4xl">
-            Lista tu cafeteria hoy
+          <h2 className="font-sans text-3xl font-semibold tracking-tight text-primary-foreground sm:text-4xl">
+            Abre tu canal de ventas directo hoy
           </h2>
-          <p className="mt-4 text-espresso-200">
-            Crea tu cuenta, configura tu menu y comparte tu QR. En 30 minutos recibes tu primer pedido.
+          <p className="mt-4 text-primary-foreground/70">
+            Crea tu cuenta, configura tu menú y comparte tu QR. En 30 minutos recibes tu primer pedido.
           </p>
           <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Button asChild size="lg" variant="secondary" className="w-full sm:w-auto">
               <Link href="/auth/signup">Crear cuenta gratis</Link>
             </Button>
-            <Button asChild variant="outline" size="lg" className="w-full border-espresso-700 bg-transparent text-white hover:bg-espresso-800 sm:w-auto">
-              <Link href="/demo">Ver la demo</Link>
+            <Button asChild variant="outline" size="lg" className="w-full border-primary-foreground/20 bg-transparent text-primary-foreground hover:bg-primary-foreground/10 sm:w-auto">
+              <Link href="/demo">Ver demo</Link>
             </Button>
           </div>
         </div>
       </section>
 
-      <footer className="border-t border-warm-200 px-6 py-12">
+      <footer className="border-t border-border px-6 py-12">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-6 sm:flex-row">
           <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-terracotta-500 text-white">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground">
               <Icon name="coffee" className="h-4 w-4" />
             </div>
-            <span className="font-serif font-semibold text-foreground">Solo Cafe</span>
+            <span className="font-sans font-semibold text-foreground">Solo Cafe</span>
           </div>
           <p className="text-sm text-muted-foreground">
-            Hecho para cafeterias independientes.
+            Hecho para cafeterías independientes.
           </p>
           <div className="flex gap-6 text-sm text-muted-foreground">
-            {stage2 && (
-              <Link href="/explore" className="hover:text-foreground">Explorar</Link>
-            )}
             <Link href="/auth/login" className="hover:text-foreground">Entrar</Link>
             <Link href="/auth/signup" className="hover:text-foreground">Crear cuenta</Link>
+            <Link href="/demo" className="hover:text-foreground">Demo</Link>
           </div>
         </div>
       </footer>
     </main>
+  );
+}
+
+function DashboardMockup() {
+  return (
+    <div className="w-full max-w-[14rem] space-y-3 rounded-xl border border-border bg-background p-3 shadow-sm">
+      <div className="flex items-center justify-between">
+        <div className="h-2.5 w-16 rounded bg-border" />
+        <Icon name="qrcode" className="h-4 w-4 text-muted-foreground" />
+      </div>
+      <div className="space-y-2">
+        <div className="flex items-center gap-2 rounded-lg bg-surface p-2">
+          <Icon name="receipt" className="h-4 w-4 text-accent" />
+          <div className="h-2 w-20 rounded bg-border" />
+        </div>
+        <div className="flex items-center gap-2 rounded-lg bg-surface p-2">
+          <Icon name="utensils" className="h-4 w-4 text-muted-foreground" />
+          <div className="h-2 w-24 rounded bg-border" />
+        </div>
+        <div className="flex items-center gap-2 rounded-lg bg-surface p-2">
+          <Icon name="credit-card" className="h-4 w-4 text-muted-foreground" />
+          <div className="h-2 w-14 rounded bg-border" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PhoneMockup() {
+  return (
+    <div className="w-full max-w-[10rem] space-y-3 rounded-2xl border-4 border-border bg-background p-3 shadow-sm">
+      <div className="h-1.5 w-10 rounded-full bg-border" />
+      <div className="space-y-2">
+        <div className="h-16 rounded-lg bg-surface" />
+        <div className="flex items-center gap-2 rounded-lg bg-surface p-2">
+          <Icon name="coffee" className="h-4 w-4 text-accent" />
+          <div className="h-2 w-full rounded bg-border" />
+        </div>
+        <div className="flex items-center gap-2 rounded-lg bg-surface p-2">
+          <Icon name="receipt" className="h-4 w-4 text-muted-foreground" />
+          <div className="h-2 w-full rounded bg-border" />
+        </div>
+      </div>
+      <div className="rounded-lg bg-primary py-1.5 text-center text-xs font-medium text-primary-foreground">
+        Ordenar
+      </div>
+    </div>
+  );
+}
+
+function DiagramCard({
+  icon,
+  title,
+  description,
+  mockup,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  mockup: React.ReactNode;
+}) {
+  return (
+    <Card className="flex flex-1 flex-col items-center p-6 text-center">
+      <div className="mb-4 flex h-40 w-full items-center justify-center rounded-lg bg-surface">
+        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-accent/10 text-accent">
+          {icon}
+        </div>
+      </div>
+      {mockup}
+      <h3 className="mt-4 font-sans text-lg font-semibold text-foreground">{title}</h3>
+      <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+    </Card>
   );
 }
 
@@ -266,11 +395,11 @@ function FeatureCard({
   description: string;
 }) {
   return (
-    <Card variant="outline" className="p-6 transition-shadow hover:shadow-md">
-      <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-full bg-terracotta-100 text-terracotta-700">
+    <Card className="p-6 transition-shadow hover:shadow-md">
+      <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-full bg-accent/10 text-accent">
         {icon}
       </div>
-      <h3 className="font-serif text-lg font-semibold text-foreground">{title}</h3>
+      <h3 className="font-sans text-lg font-semibold text-foreground">{title}</h3>
       <p className="mt-2 text-muted-foreground">{description}</p>
     </Card>
   );
@@ -286,13 +415,13 @@ function StepCard({
   description: string;
 }) {
   return (
-    <div className="relative rounded-2xl bg-paper p-8 shadow-sm">
-      <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-full bg-espresso-700 text-lg font-bold text-white">
+    <Card className="relative p-8">
+      <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-full bg-foreground text-lg font-bold text-primary-foreground">
         {number}
       </div>
-      <h3 className="font-serif text-xl font-semibold text-foreground">{title}</h3>
+      <h3 className="font-sans text-xl font-semibold text-foreground">{title}</h3>
       <p className="mt-2 text-muted-foreground">{description}</p>
-    </div>
+    </Card>
   );
 }
 
@@ -311,22 +440,25 @@ function PricingCard({
 }) {
   return (
     <Card
-      variant="outline"
-      className={`relative p-6 transition-shadow hover:shadow-md ${highlighted ? "border-terracotta-400 bg-terracotta-50/30 ring-1 ring-terracotta-400" : ""}`}
+      className={`relative p-6 transition-shadow hover:shadow-md ${
+        highlighted
+          ? "border-accent bg-accent/5 ring-1 ring-accent"
+          : "border-border"
+      }`}
     >
       {highlighted && (
-        <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-terracotta-500 px-3 py-0.5 text-xs font-medium text-white">
-          Mas popular
+        <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-accent px-3 py-0.5 text-xs font-medium text-accent-foreground">
+          Más popular
         </span>
       )}
-      <h3 className="font-serif text-lg font-semibold text-foreground">{name}</h3>
+      <h3 className="font-sans text-lg font-semibold text-foreground">{name}</h3>
       <p className="text-sm text-muted-foreground">{description}</p>
       <div className="mt-4">
         <span className="text-3xl font-bold text-foreground">{fee}</span>
         <span className="text-muted-foreground"> / por pedido</span>
       </div>
       <p className="mt-2 text-sm text-muted-foreground">{volume}</p>
-      <Button asChild className="mt-6 w-full" variant={highlighted ? 'primary' : 'outline'}>
+      <Button asChild className="mt-6 w-full" variant={highlighted ? "primary" : "outline"}>
         <Link href="/auth/signup">Elegir plan</Link>
       </Button>
     </Card>
@@ -335,9 +467,9 @@ function PricingCard({
 
 function FaqItem({ question, answer }: { question: string; answer: string }) {
   return (
-    <div className="rounded-2xl border border-warm-200 bg-paper p-6">
-      <h3 className="font-serif text-lg font-semibold text-foreground">{question}</h3>
+    <Card className="p-6">
+      <h3 className="font-sans text-lg font-semibold text-foreground">{question}</h3>
       <p className="mt-2 text-muted-foreground">{answer}</p>
-    </div>
+    </Card>
   );
 }

@@ -41,19 +41,27 @@ function PaymentForm({ orderId }: { orderId: string }) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
-      <div className="rounded-xl border border-warm-200 bg-cream/50 p-4">
+      <div className="rounded-lg border border-border bg-surface p-4">
         <PaymentElement />
       </div>
       {error && (
-        <div className="flex items-start gap-2 rounded-xl bg-red-50 p-3 text-sm text-red-800">
+        <div className="flex items-start gap-2 rounded-lg bg-danger/10 p-3 text-sm text-danger">
           <Icon name="x" className="mt-0.5 h-4 w-4 shrink-0" />
           {error}
         </div>
       )}
       <Button type="submit" disabled={!stripe || loading} size="lg" className="w-full">
-        {loading ? 'Procesando...' : 'Pagar ahora'}
+        {loading ? (
+          <span className="flex items-center gap-2">
+            <span className="inline-flex h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+            Procesando...
+          </span>
+        ) : (
+          'Pagar ahora'
+        )}
       </Button>
-      <p className="text-center text-xs text-muted-foreground">
+      <p className="flex items-center justify-center gap-1.5 text-center text-xs text-muted-foreground">
+        <Icon name="credit-card" className="h-3.5 w-3.5" />
         Pago seguro procesado por Stripe.
       </p>
     </form>

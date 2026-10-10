@@ -8,10 +8,10 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
       <textarea
         ref={ref}
         className={[
-          'block w-full rounded-xl border border-warm-200 bg-paper px-3.5 py-2.5 text-sm text-foreground',
-          'placeholder:text-warm-400',
-          'focus:border-amber-400 focus:ring-4 focus:ring-amber-400/10',
-          'disabled:cursor-not-allowed disabled:bg-warm-50 disabled:text-warm-500',
+          'block w-full rounded-lg border border-border bg-background px-4 py-2.5 text-sm text-foreground',
+          'placeholder:text-muted-foreground',
+          'focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/10',
+          'disabled:cursor-not-allowed disabled:bg-surface disabled:text-muted-foreground',
           'transition-shadow',
           className,
         ].join(' ')}

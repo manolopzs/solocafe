@@ -6,6 +6,9 @@ import { createOrder } from '@/server/actions/orders'
 import { Button } from '@/components/ui/button'
 import { Icon } from '@/components/ui/icon'
 import { Sheet } from '@/components/ui/sheet'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Badge } from '@/components/ui/badge'
 import type { Shop, MenuCategory, MenuItem, ModifierGroup, ModifierOption, ItemModifierLink } from '@/types'
 
 interface CartLine {
@@ -44,6 +47,7 @@ export function OrderPageClient({
   const [customerName, setCustomerName] = useState('')
   const [customerPhone, setCustomerPhone] = useState('')
   const [specialInstructions, setSpecialInstructions] = useState('')
+  const [pickupType, setPickupType] = useState<'asap' | 'scheduled'>('asap')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [cartOpen, setCartOpen] = useState(false)
@@ -60,7 +64,7 @@ export function OrderPageClient({
     return modifierOptions.filter((o) => o.group_id === groupId)
   }
 
-  const addToCart = (item: MenuItem) => {
+  const addToCart = (item: MenuItem, quantity: number) => {
     const groupIds = groupsForItem(item.id).map((g) => g.id)
     const chosen: ModifierOption[] = []
     for (const gid of groupIds) {
@@ -79,9 +83,9 @@ export function OrderPageClient({
             JSON.stringify(chosen.map((m) => m.id).sort())
       )
       if (existing) {
-        return prev.map((l) => (l === existing ? { ...l, quantity: l.quantity + 1 } : l))
+        return prev.map((l) => (l === existing ? { ...l, quantity: l.quantity + quantity } : l))
       }
-      return [...prev, { item, quantity: 1, modifiers: chosen }]
+      return [...prev, { item, quantity, modifiers: chosen }]
     })
     setActiveItem(null)
     setSelectedModifiers({})
@@ -115,6 +119,10 @@ export function OrderPageClient({
       setError('Ingresa tu nombre')
       return
     }
+    if (pickupType === 'scheduled') {
+      setError('Los horarios programados no estan disponibles todavia')
+      return
+    }
     setLoading(true)
     setError(null)
 
@@ -123,7 +131,7 @@ export function OrderPageClient({
         shop_id: shop.id,
         customer_name: customerName,
         customer_phone: customerPhone,
-        pickup_type: 'asap' as const,
+        pickup_type: pickupType,
         special_instructions: specialInstructions,
         items: cart.map((line) => ({
           menu_item_id: line.item.id,
@@ -178,77 +186,71 @@ export function OrderPageClient({
     return `${shop.currency} ${(cents / 100).toFixed(2)}`
   }
 
+  const navItems = useMemo(
+    () => [
+      ...visibleCategories,
+      ...(uncategorizedItems.length > 0 ? [{ id: 'uncategorized', name: 'Otros' } as MenuCategory] : []),
+    ],
+    [visibleCategories, uncategorizedItems.length]
+  )
+
   return (
     <div className="min-h-screen bg-background pb-32">
-      <header className="relative overflow-hidden bg-paper px-5 pt-8 pb-6 shadow-sm">
-        <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-terracotta-100/50 to-transparent" />
-        <div className="relative mx-auto max-w-2xl">
+      <header className="border-b border-border bg-surface">
+        <div className="mx-auto max-w-3xl px-5 py-6">
           <div className="flex items-start gap-4">
             {shop.logo_url ? (
-              <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-2xl shadow-sm">
+              <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-border bg-background shadow-sm">
                 <Image src={shop.logo_url} alt={shop.name} fill className="object-cover" />
               </div>
             ) : (
-              <div
-                className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl text-white shadow-sm"
-                style={{ backgroundColor: shop.brand_color || '#c45d3a' }}
-              >
-                <Icon name="coffee" className="h-8 w-8" />
+              <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl border border-border bg-background shadow-sm">
+                <Icon name="store" className="h-8 w-8 text-muted-foreground" />
               </div>
             )}
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-medium text-muted-foreground">Buen dia, bienvenido a</p>
-              <h1 className="font-serif text-3xl font-semibold tracking-tight text-foreground">{shop.name}</h1>
+              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Bienvenido a</p>
+              <h1 className="text-2xl font-semibold tracking-tight text-foreground">{shop.name}</h1>
               {shop.address && (
-                <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
+                <p className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
                   <Icon name="map-pin" className="h-3.5 w-3.5" />
                   {shop.address}
                 </p>
               )}
-              <div className="mt-3 inline-flex items-center gap-2 rounded-full bg-sage-100 px-3 py-1 text-sm font-medium text-sage-800">
-                <span className="inline-flex h-2 w-2 rounded-full bg-sage-500" />
-                Abierto · Para recoger
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <Badge variant="success">
+                  <span className="mr-1.5 inline-flex h-1.5 w-1.5 rounded-full bg-success" />
+                  Abierto
+                </Badge>
+                <Badge variant="secondary">Para recoger</Badge>
               </div>
             </div>
           </div>
         </div>
       </header>
 
-      <div className="sticky top-0 z-30 border-b border-warm-200 bg-background/95 backdrop-blur-sm">
-        <div className="mx-auto max-w-2xl">
+      <div className="sticky top-0 z-30 border-b border-border bg-background/95 backdrop-blur-sm">
+        <div className="mx-auto max-w-3xl">
           <div className="flex gap-2 overflow-x-auto px-5 py-3 no-scrollbar">
-            {visibleCategories.map((category) => (
+            {navItems.map((category) => (
               <button
                 key={category.id}
                 onClick={() => scrollToCategory(category.id)}
                 className={[
                   'shrink-0 rounded-full px-4 py-2 text-sm font-medium transition-all',
                   activeCategory === category.id
-                    ? 'bg-terracotta-500 text-white shadow-sm'
-                    : 'bg-paper text-warm-700 shadow-xs hover:bg-warm-100',
+                    ? 'bg-foreground text-primary-foreground shadow-sm'
+                    : 'bg-surface text-foreground hover:bg-secondary',
                 ].join(' ')}
               >
                 {category.name}
               </button>
             ))}
-            {uncategorizedItems.length > 0 && (
-              <button
-                onClick={() => scrollToCategory('uncategorized')}
-                className={[
-                  'shrink-0 rounded-full px-4 py-2 text-sm font-medium transition-all',
-                  activeCategory === 'uncategorized'
-                    ? 'bg-terracotta-500 text-white shadow-sm'
-                    : 'bg-paper text-warm-700 shadow-xs hover:bg-warm-100',
-                ].join(' ')}
-              >
-                Otros
-              </button>
-            )}
           </div>
         </div>
       </div>
 
-      <main className="mx-auto max-w-2xl px-5 py-6">
+      <main className="mx-auto max-w-3xl px-5 py-6">
         {visibleCategories.map((category) => {
           const categoryItems = itemsByCategory.get(category.id) ?? []
           if (categoryItems.length === 0) return null
@@ -258,8 +260,8 @@ export function OrderPageClient({
               ref={(el: HTMLDivElement | null) => { categoryRefs.current[category.id] = el }}
               className="mb-10"
             >
-              <h2 className="font-serif text-xl font-semibold text-foreground">{category.name}</h2>
-              <div className="mt-4 grid grid-cols-2 gap-4">
+              <h2 className="text-lg font-semibold text-foreground">{category.name}</h2>
+              <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
                 {categoryItems.map((item) => (
                   <ProductCard
                     key={item.id}
@@ -278,8 +280,8 @@ export function OrderPageClient({
             ref={(el: HTMLDivElement | null) => { categoryRefs.current['uncategorized'] = el }}
             className="mb-10"
           >
-            <h2 className="font-serif text-xl font-semibold text-foreground">Otros</h2>
-            <div className="mt-4 grid grid-cols-2 gap-4">
+            <h2 className="text-lg font-semibold text-foreground">Otros</h2>
+            <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
               {uncategorizedItems.map((item) => (
                 <ProductCard
                   key={item.id}
@@ -304,118 +306,167 @@ export function OrderPageClient({
             setActiveItem(null)
             setSelectedModifiers({})
           }}
-          onAdd={() => addToCart(activeItem)}
+          onAdd={(quantity) => addToCart(activeItem, quantity)}
           formatPrice={formatPrice}
         />
       )}
 
-      <Sheet open={cartOpen} onClose={() => setCartOpen(false)} title="Tu pedido">
-        <div className="space-y-5">
+      <Sheet open={cartOpen} onClose={() => setCartOpen(false)} title="Tu pedido" position="right" className="flex flex-col">
+        <div className="flex h-full flex-col">
           {cart.length === 0 ? (
-            <div className="py-8 text-center text-muted-foreground">
-              <Icon name="cart" className="mx-auto mb-3 h-10 w-10 text-warm-300" />
-              <p>Tu carrito esta vacio</p>
+            <div className="flex flex-1 flex-col items-center justify-center py-8 text-center text-muted-foreground">
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-surface">
+                <Icon name="cart" className="h-8 w-8 text-muted-foreground" />
+              </div>
+              <p className="mt-4 font-medium text-foreground">Tu carrito esta vacio</p>
+              <p className="mt-1 text-sm">Agrega productos para comenzar tu pedido.</p>
             </div>
           ) : (
             <>
-              <div className="space-y-4">
-                {cart.map((line, idx) => (
-                  <div key={idx} className="flex items-start gap-3">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-warm-100 text-sm font-semibold text-warm-800">
-                      {line.quantity}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="font-medium text-foreground">{line.item.name}</p>
-                      {line.modifiers.length > 0 && (
-                        <p className="text-sm text-muted-foreground">
-                          {line.modifiers.map((m) => m.name).join(', ')}
+              <div className="flex-1 space-y-5 overflow-y-auto">
+                <div className="space-y-4">
+                  {cart.map((line, idx) => (
+                    <div key={idx} className="flex items-start gap-3 rounded-lg border border-border bg-background p-3">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-surface text-sm font-semibold text-foreground">
+                        {line.quantity}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium text-foreground">{line.item.name}</p>
+                        {line.modifiers.length > 0 && (
+                          <p className="text-sm text-muted-foreground">
+                            {line.modifiers.map((m) => m.name).join(', ')}
+                          </p>
+                        )}
+                        <p className="mt-1 text-sm font-medium text-foreground">
+                          {formatPrice((line.item.price_cents + line.modifiers.reduce((s, m) => s + m.price_cents, 0)) * line.quantity)}
                         </p>
-                      )}
-                    </div>
-                    <div className="text-right">
-                      <p className="font-medium text-foreground">
-                        {formatPrice((line.item.price_cents + line.modifiers.reduce((s, m) => s + m.price_cents, 0)) * line.quantity)}
-                      </p>
-                      <div className="mt-1 flex items-center justify-end gap-2">
+                      </div>
+                      <div className="flex flex-col items-end gap-2">
                         <button
-                          onClick={() => updateQuantity(idx, -1)}
-                          className="flex h-6 w-6 items-center justify-center rounded-full bg-warm-100 text-warm-700 hover:bg-warm-200"
+                          onClick={() => removeLine(idx)}
+                          className="rounded-lg p-1.5 text-muted-foreground hover:bg-surface hover:text-danger"
+                          aria-label="Eliminar"
                         >
-                          <Icon name="minus" className="h-3 w-3" />
+                          <Icon name="trash" className="h-4 w-4" />
                         </button>
-                        <button
-                          onClick={() => updateQuantity(idx, 1)}
-                          className="flex h-6 w-6 items-center justify-center rounded-full bg-warm-100 text-warm-700 hover:bg-warm-200"
-                        >
-                          <Icon name="plus" className="h-3 w-3" />
-                        </button>
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={() => updateQuantity(idx, -1)}
+                            className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-background text-foreground hover:bg-surface"
+                            aria-label="Disminuir"
+                          >
+                            <Icon name="minus" className="h-3.5 w-3.5" />
+                          </button>
+                          <span className="w-6 text-center text-sm font-medium">{line.quantity}</span>
+                          <button
+                            onClick={() => updateQuantity(idx, 1)}
+                            className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-background text-foreground hover:bg-surface"
+                            aria-label="Aumentar"
+                          >
+                            <Icon name="plus" className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
                       </div>
                     </div>
+                  ))}
+                </div>
+
+                <div className="rounded-lg border border-border bg-background p-4">
+                  <div className="flex items-center justify-between text-base font-semibold text-foreground">
+                    <span>Total</span>
+                    <span>{formatPrice(totalCents)}</span>
                   </div>
-                ))}
+                </div>
+
+                <div className="space-y-3">
+                  <div>
+                    <label htmlFor="customerName" className="block text-sm font-medium text-foreground">
+                      Nombre
+                    </label>
+                    <Input
+                      id="customerName"
+                      type="text"
+                      value={customerName}
+                      onChange={(e) => setCustomerName(e.target.value)}
+                      placeholder="Como te llaman?"
+                      className="mt-1.5"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="customerPhone" className="block text-sm font-medium text-foreground">
+                      Telefono
+                    </label>
+                    <Input
+                      id="customerPhone"
+                      type="tel"
+                      value={customerPhone}
+                      onChange={(e) => setCustomerPhone(e.target.value)}
+                      placeholder="Para avisarte cuando este listo"
+                      className="mt-1.5"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="instructions" className="block text-sm font-medium text-foreground">
+                      Instrucciones especiales
+                    </label>
+                    <Textarea
+                      id="instructions"
+                      value={specialInstructions}
+                      onChange={(e) => setSpecialInstructions(e.target.value)}
+                      placeholder="Ej: menos hielo, sin azucar"
+                      rows={2}
+                      className="mt-1.5 resize-none"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <p className="block text-sm font-medium text-foreground">Tipo de recogida</p>
+                  <div className="mt-1.5 grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setPickupType('asap')}
+                      className={[
+                        'rounded-lg border px-4 py-3 text-left text-sm transition-all',
+                        pickupType === 'asap'
+                          ? 'border-foreground bg-foreground text-primary-foreground'
+                          : 'border-border bg-background text-foreground hover:bg-surface',
+                      ].join(' ')}
+                    >
+                      <span className="block font-medium">Lo antes posible</span>
+                      <span className="block text-xs opacity-80">Preparamos tu pedido ya</span>
+                    </button>
+                    <button
+                      type="button"
+                      disabled
+                      className="relative rounded-lg border border-border bg-surface px-4 py-3 text-left text-sm text-muted-foreground"
+                    >
+                      <span className="block font-medium">Programado</span>
+                      <span className="block text-xs">Proximamente</span>
+                    </button>
+                  </div>
+                </div>
+
+                {error && (
+                  <div className="flex items-start gap-2 rounded-lg bg-danger/10 p-3 text-sm text-danger">
+                    <Icon name="x" className="mt-0.5 h-4 w-4 shrink-0" />
+                    {error}
+                  </div>
+                )}
               </div>
 
-              <div className="border-t border-warm-200 pt-4">
-                <div className="flex items-center justify-between text-lg font-bold text-foreground">
-                  <span>Total</span>
-                  <span>{formatPrice(totalCents)}</span>
-                </div>
+              <div className="sticky bottom-0 -mx-6 -mb-6 mt-5 border-t border-border bg-surface-elevated p-6">
+                <Button onClick={handleSubmit} disabled={cart.length === 0 || loading} size="lg" className="w-full">
+                  {loading ? 'Procesando...' : `Pagar ${formatPrice(totalCents)}`}
+                </Button>
               </div>
-
-              <div className="space-y-3">
-                <div>
-                  <label htmlFor="customerName" className="block text-sm font-medium text-foreground">
-                    Nombre
-                  </label>
-                  <input
-                    id="customerName"
-                    type="text"
-                    value={customerName}
-                    onChange={(e) => setCustomerName(e.target.value)}
-                    placeholder="Como te llaman?"
-                    className="mt-1.5 block w-full rounded-xl border border-warm-200 bg-paper px-4 py-3 text-sm text-foreground placeholder:text-warm-400 focus:border-terracotta-400 focus:outline-none focus:ring-2 focus:ring-terracotta-400/20"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="customerPhone" className="block text-sm font-medium text-foreground">
-                    Telefono
-                  </label>
-                  <input
-                    id="customerPhone"
-                    type="tel"
-                    value={customerPhone}
-                    onChange={(e) => setCustomerPhone(e.target.value)}
-                    placeholder="Para avisarte cuando este listo"
-                    className="mt-1.5 block w-full rounded-xl border border-warm-200 bg-paper px-4 py-3 text-sm text-foreground placeholder:text-warm-400 focus:border-terracotta-400 focus:outline-none focus:ring-2 focus:ring-terracotta-400/20"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="instructions" className="block text-sm font-medium text-foreground">
-                    Instrucciones especiales
-                  </label>
-                  <textarea
-                    id="instructions"
-                    value={specialInstructions}
-                    onChange={(e) => setSpecialInstructions(e.target.value)}
-                    placeholder="Ej: menos hielo, sin azucar"
-                    rows={2}
-                    className="mt-1.5 block w-full resize-none rounded-xl border border-warm-200 bg-paper px-4 py-3 text-sm text-foreground placeholder:text-warm-400 focus:border-terracotta-400 focus:outline-none focus:ring-2 focus:ring-terracotta-400/20"
-                  />
-                </div>
-              </div>
-
-              {error && <p className="text-sm text-danger">{error}</p>}
-
-              <Button onClick={handleSubmit} disabled={cart.length === 0 || loading} size="lg" className="w-full">
-                {loading ? 'Procesando...' : `Pagar ${formatPrice(totalCents)}`}
-              </Button>
             </>
           )}
         </div>
       </Sheet>
 
-      <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-warm-200 bg-paper/95 p-4 shadow-lg backdrop-blur-sm">
-        <div className="mx-auto max-w-2xl">
+      <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-background p-4 shadow-lg safe-bottom">
+        <div className="mx-auto max-w-3xl">
           <Button
             onClick={() => setCartOpen(true)}
             disabled={cart.length === 0}
@@ -426,7 +477,7 @@ export function OrderPageClient({
               <Icon name="cart" className="h-5 w-5" />
               Ver pedido
               {totalItems > 0 && (
-                <span className="rounded-full bg-white/20 px-2 py-0.5 text-sm">{totalItems}</span>
+                <span className="rounded-full bg-primary-foreground/20 px-2 py-0.5 text-sm">{totalItems}</span>
               )}
             </span>
             <span className="ml-auto">{formatPrice(totalCents)}</span>
@@ -449,23 +500,23 @@ function ProductCard({
   return (
     <button
       onClick={onClick}
-      className="group flex flex-col overflow-hidden rounded-2xl bg-paper text-left shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
+      className="group flex gap-4 overflow-hidden rounded-xl border border-border bg-surface-elevated p-3 text-left transition-all hover:shadow-md"
     >
-      <div className="relative aspect-square w-full overflow-hidden bg-warm-100">
+      <div className="relative aspect-square w-28 shrink-0 overflow-hidden rounded-lg bg-surface">
         {item.image_url ? (
           <Image src={item.image_url} alt={item.name} fill className="object-cover transition-transform duration-300 group-hover:scale-105" />
         ) : (
-          <div className="flex h-full w-full flex-col items-center justify-center gap-2 bg-gradient-to-br from-warm-100 to-warm-200">
-            <Icon name="coffee" className="h-10 w-10 text-warm-400" />
+          <div className="flex h-full w-full items-center justify-center bg-surface">
+            <Icon name="utensils" className="h-8 w-8 text-muted-foreground/40" />
           </div>
         )}
       </div>
-      <div className="flex flex-1 flex-col p-4">
-        <h3 className="font-serif text-base font-semibold leading-tight text-foreground">{item.name}</h3>
+      <div className="flex min-w-0 flex-1 flex-col py-1">
+        <h3 className="font-medium text-foreground">{item.name}</h3>
         {item.description && (
-          <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{item.description}</p>
+          <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{item.description}</p>
         )}
-        <p className="mt-auto pt-2 text-sm font-semibold text-terracotta-600">{formatPrice(item.price_cents)}</p>
+        <p className="mt-auto pt-2 text-sm font-semibold text-foreground">{formatPrice(item.price_cents)}</p>
       </div>
     </button>
   )
@@ -487,9 +538,11 @@ function ProductSheet({
   selected: Record<string, string[]>
   onChange: (s: Record<string, string[]>) => void
   onClose: () => void
-  onAdd: () => void
+  onAdd: (quantity: number) => void
   formatPrice: (cents: number) => string
 }) {
+  const [quantity, setQuantity] = useState(1)
+
   const toggleOption = (groupId: string, optionId: string, maxSelect: number) => {
     const current = selected[groupId] ?? []
     if (current.includes(optionId)) {
@@ -516,25 +569,32 @@ function ProductSheet({
 
   return (
     <Sheet open onClose={onClose} position="bottom">
-      <div className="space-y-5">
-        <div className="relative flex flex-col items-center">
-          <div className="relative flex h-48 w-48 items-center justify-center overflow-hidden rounded-3xl bg-warm-100 shadow-sm">
-            {item.image_url ? (
-              <Image src={item.image_url} alt={item.name} fill className="object-cover" />
-            ) : (
-              <div className="flex h-full w-full flex-col items-center justify-center bg-gradient-to-br from-warm-100 to-warm-200">
-                <Icon name="coffee" className="h-16 w-16 text-warm-400" />
-              </div>
-            )}
-          </div>
-          <h2 className="mt-5 text-center font-serif text-2xl font-semibold text-foreground">{item.name}</h2>
-          {item.description && <p className="mt-1 text-center text-sm text-muted-foreground">{item.description}</p>}
+      <div className="flex flex-col">
+        <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-surface">
+          {item.image_url ? (
+            <Image src={item.image_url} alt={item.name} fill className="object-cover" />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center bg-surface">
+              <Icon name="utensils" className="h-16 w-16 text-muted-foreground/30" />
+            </div>
+          )}
+        </div>
+
+        <div className="mt-4">
+          <h2 className="text-xl font-semibold text-foreground">{item.name}</h2>
+          <p className="text-lg font-semibold text-foreground">{formatPrice(item.price_cents)}</p>
+          {item.description && <p className="mt-1 text-sm text-muted-foreground">{item.description}</p>}
         </div>
 
         {groups.map((group) => (
-          <div key={group.id}>
-            <h3 className="text-sm font-semibold text-foreground">{group.name}</h3>
-            <div className="mt-2 grid gap-2">
+          <div key={group.id} className="mt-5">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-foreground">{group.name}</h3>
+              {group.max_select > 1 && (
+                <span className="text-xs text-muted-foreground">Selecciona hasta {group.max_select}</span>
+              )}
+            </div>
+            <div className="mt-2 flex flex-wrap gap-2">
               {optionsForGroup(group.id).map((option) => {
                 const isSelected = (selected[group.id] ?? []).includes(option.id)
                 return (
@@ -542,25 +602,15 @@ function ProductSheet({
                     key={option.id}
                     onClick={() => toggleOption(group.id, option.id, group.max_select)}
                     className={[
-                      'flex items-center justify-between rounded-xl border px-4 py-3 text-left transition-all',
+                      'rounded-full px-4 py-2 text-sm font-medium transition-all',
                       isSelected
-                        ? 'border-terracotta-500 bg-terracotta-50 text-foreground'
-                        : 'border-warm-200 bg-paper text-foreground hover:bg-warm-50',
+                        ? 'bg-foreground text-primary-foreground'
+                        : 'bg-surface text-foreground hover:bg-secondary border border-border',
                     ].join(' ')}
                   >
-                    <span className="flex items-center gap-3">
-                      <span
-                        className={[
-                          'flex h-5 w-5 items-center justify-center rounded-full border transition-colors',
-                          isSelected ? 'border-terracotta-500 bg-terracotta-500 text-white' : 'border-warm-300',
-                        ].join(' ')}
-                      >
-                        {isSelected && <Icon name="check" className="h-3.5 w-3.5" />}
-                      </span>
-                      <span className="font-medium">{option.name}</span>
-                    </span>
+                    {option.name}
                     {option.price_cents > 0 && (
-                      <span className="text-sm text-muted-foreground">+{formatPrice(option.price_cents)}</span>
+                      <span className="ml-1.5 opacity-80">+{formatPrice(option.price_cents)}</span>
                     )}
                   </button>
                 )
@@ -569,9 +619,32 @@ function ProductSheet({
           </div>
         ))}
 
-        <Button onClick={onAdd} size="lg" className="w-full">
-          Agregar a tu pedido · {formatPrice(itemTotal)}
-        </Button>
+        <div className="mt-6 flex items-center justify-between rounded-lg border border-border bg-surface p-2">
+          <span className="pl-3 text-sm font-medium text-foreground">Cantidad</span>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+              className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-background text-foreground hover:bg-surface"
+              aria-label="Disminuir"
+            >
+              <Icon name="minus" className="h-4 w-4" />
+            </button>
+            <span className="w-6 text-center font-semibold">{quantity}</span>
+            <button
+              onClick={() => setQuantity((q) => q + 1)}
+              className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-background text-foreground hover:bg-surface"
+              aria-label="Aumentar"
+            >
+              <Icon name="plus" className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+
+        <div className="sticky bottom-0 -mx-6 -mb-6 mt-6 border-t border-border bg-surface-elevated p-6">
+          <Button onClick={() => onAdd(quantity)} size="lg" className="w-full">
+            Agregar · {formatPrice(itemTotal * quantity)}
+          </Button>
+        </div>
       </div>
     </Sheet>
   )

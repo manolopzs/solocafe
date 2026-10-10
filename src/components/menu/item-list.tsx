@@ -14,8 +14,10 @@ import { uploadImageToCloudinary } from '@/lib/cloudinary'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Badge } from '@/components/ui/badge'
 import { Icon } from '@/components/ui/icon'
+import { Select } from '@/components/ui/select'
+import { Textarea } from '@/components/ui/textarea'
+import { Sheet } from '@/components/ui/sheet'
 import type { MenuItem, MenuCategory, ModifierGroup, ItemModifierLink } from '@/types'
 
 export function ItemList({
@@ -33,52 +35,80 @@ export function ItemList({
   itemModifierLinks: ItemModifierLink[]
   currency: string
 }) {
-  const [editing, setEditing] = useState<string | null>(null)
+  const [sheetOpen, setSheetOpen] = useState(false)
+  const [editingItem, setEditingItem] = useState<MenuItem | null>(null)
+
+  const handleOpenCreate = () => {
+    setEditingItem(null)
+    setSheetOpen(true)
+  }
+
+  const handleOpenEdit = (item: MenuItem) => {
+    setEditingItem(item)
+    setSheetOpen(true)
+  }
+
+  const handleSaved = () => {
+    setSheetOpen(false)
+    setEditingItem(null)
+  }
 
   return (
-    <div className="space-y-6">
-      <ItemForm shopId={shopId} categories={categories} currency={currency} onSaved={() => {}} />
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">{items.length} productos</p>
+        <Button onClick={handleOpenCreate}>
+          <Icon name="plus" className="mr-2 h-4 w-4" />
+          Agregar producto
+        </Button>
+      </div>
 
       {items.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-warm-300 bg-paper py-10 text-center">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-warm-100 text-warm-500">
-            <Icon name="coffee" className="h-6 w-6" />
+        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-surface px-6 py-12 text-center">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-background">
+            <Icon name="package" className="h-6 w-6 text-muted-foreground" />
           </div>
           <p className="mt-3 text-sm font-medium text-foreground">Sin productos aun</p>
-          <p className="text-xs text-muted-foreground">Agrega tu primer producto arriba.</p>
+          <p className="text-sm text-muted-foreground">Agrega tu primer producto para empezar a vender.</p>
+          <Button className="mt-4" onClick={handleOpenCreate}>
+            <Icon name="plus" className="mr-2 h-4 w-4" />
+            Agregar producto
+          </Button>
         </div>
       ) : (
         <ul className="grid gap-3">
           {items.map((item) => (
-            <li
-              key={item.id}
-              className="rounded-2xl border border-warm-200 bg-paper p-4 shadow-xs transition-shadow hover:shadow-sm"
-            >
-              {editing === item.id ? (
-                <ItemForm
-                  shopId={shopId}
-                  item={item}
-                  categories={categories}
-                  modifierGroups={modifierGroups}
-                  itemModifierLinks={itemModifierLinks}
-                  currency={currency}
-                  onSaved={() => setEditing(null)}
-                />
-              ) : (
-                <ItemRow
-                  item={item}
-                  currency={currency}
-                  onEdit={() => setEditing(item.id)}
-                  onToggle86={() => toggleItem86(shopId, item.id, !item.is_86ed)}
-                  onDelete={() => {
-                    if (confirm('Eliminar producto?')) deleteItem(shopId, item.id)
-                  }}
-                />
-              )}
+            <li key={item.id}>
+              <ItemRow
+                item={item}
+                currency={currency}
+                onEdit={() => handleOpenEdit(item)}
+                onToggle86={() => toggleItem86(shopId, item.id, !item.is_86ed)}
+                onDelete={() => {
+                  if (confirm('Eliminar producto?')) deleteItem(shopId, item.id)
+                }}
+              />
             </li>
           ))}
         </ul>
       )}
+
+      <Sheet
+        open={sheetOpen}
+        onClose={() => setSheetOpen(false)}
+        title={editingItem ? 'Editar producto' : 'Nuevo producto'}
+        position="bottom"
+      >
+        <ItemForm
+          shopId={shopId}
+          item={editingItem ?? undefined}
+          categories={categories}
+          modifierGroups={modifierGroups}
+          itemModifierLinks={itemModifierLinks}
+          currency={currency}
+          onSaved={handleSaved}
+        />
+      </Sheet>
     </div>
   )
 }
@@ -143,13 +173,11 @@ function ItemForm({
         setImageUrl('')
         onSaved()
       }}
-      className="space-y-4"
+      className="space-y-5"
     >
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
-          <Label htmlFor={item ? `name-${item.id}` : 'new-item-name'} className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            Nombre
-          </Label>
+          <Label htmlFor={item ? `name-${item.id}` : 'new-item-name'}>Nombre</Label>
           <Input
             id={item ? `name-${item.id}` : 'new-item-name'}
             name="name"
@@ -157,13 +185,11 @@ function ItemForm({
             required
             placeholder="Nombre del producto"
             defaultValue={item?.name}
-            className="mt-1.5 border-warm-200 bg-cream"
+            className="mt-1.5"
           />
         </div>
         <div>
-          <Label htmlFor={item ? `price-${item.id}` : 'new-item-price'} className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            Precio ({currency})
-          </Label>
+          <Label htmlFor={item ? `price-${item.id}` : 'new-item-price'}>Precio ({currency})</Label>
           <Input
             id={item ? `price-${item.id}` : 'new-item-price'}
             name="price"
@@ -172,21 +198,19 @@ function ItemForm({
             required
             placeholder="0.00"
             defaultValue={item ? (item.price_cents / 100).toFixed(2) : ''}
-            className="mt-1.5 border-warm-200 bg-cream"
+            className="mt-1.5"
           />
         </div>
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
-          <Label htmlFor={item ? `category-${item.id}` : 'new-item-category'} className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            Categoria
-          </Label>
-          <select
+          <Label htmlFor={item ? `category-${item.id}` : 'new-item-category'}>Categoria</Label>
+          <Select
             id={item ? `category-${item.id}` : 'new-item-category'}
             name="category_id"
             defaultValue={item?.category_id ?? ''}
-            className="mt-1.5 block w-full rounded-xl border border-warm-200 bg-cream px-4 py-2.5 text-sm text-foreground focus:border-terracotta-400 focus:outline-none focus:ring-2 focus:ring-terracotta-400/20"
+            className="mt-1.5"
           >
             <option value="">Sin categoria</option>
             {categories.map((c) => (
@@ -194,12 +218,10 @@ function ItemForm({
                 {c.name}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
         <div>
-          <Label htmlFor={item ? `image-${item.id}` : 'new-item-image'} className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            Imagen
-          </Label>
+          <Label htmlFor={item ? `image-${item.id}` : 'new-item-image'}>Imagen</Label>
           <div className="mt-1.5 flex items-center gap-2">
             <Input
               id={item ? `image-${item.id}` : 'new-item-image'}
@@ -208,12 +230,12 @@ function ItemForm({
               value={imageUrl}
               onChange={(e) => setImageUrl(e.target.value)}
               placeholder="https://..."
-              className="flex-1 border-warm-200 bg-cream"
+              className="flex-1"
             />
             {isConfigured && (
               <>
                 <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
-                <Button type="button" variant="outline" size="md" onClick={() => fileInputRef.current?.click()} disabled={uploading}>
+                <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} disabled={uploading}>
                   {uploading ? '...' : 'Subir'}
                 </Button>
               </>
@@ -223,12 +245,12 @@ function ItemForm({
       </div>
 
       {imageUrl && (
-        <div className="relative inline-flex h-24 w-24 items-center justify-center overflow-hidden rounded-xl border border-warm-200 bg-warm-100">
+        <div className="relative inline-flex h-24 w-24 items-center justify-center overflow-hidden rounded-xl border border-border bg-surface">
           <Image src={imageUrl} alt="Vista previa" fill className="object-cover" />
           <button
             type="button"
             onClick={() => setImageUrl('')}
-            className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-espresso-900/70 text-white transition-colors hover:bg-espresso-900"
+            className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-foreground/70 text-background transition-colors hover:bg-foreground"
           >
             <Icon name="x" className="h-3.5 w-3.5" />
           </button>
@@ -243,16 +265,14 @@ function ItemForm({
       )}
 
       <div>
-        <Label htmlFor={item ? `desc-${item.id}` : 'new-item-desc'} className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-          Descripcion
-        </Label>
-        <textarea
+        <Label htmlFor={item ? `desc-${item.id}` : 'new-item-desc'}>Descripcion</Label>
+        <Textarea
           id={item ? `desc-${item.id}` : 'new-item-desc'}
           name="description"
           placeholder="Descripcion corta del producto"
           rows={2}
           defaultValue={item?.description ?? ''}
-          className="mt-1.5 block w-full resize-none rounded-xl border border-warm-200 bg-cream px-4 py-3 text-sm text-foreground placeholder:text-warm-400 focus:border-terracotta-400 focus:outline-none focus:ring-2 focus:ring-terracotta-400/20"
+          className="mt-1.5"
         />
       </div>
 
@@ -293,36 +313,33 @@ function ModifierLinkSection({
   const links = itemModifierLinks.filter((l) => l.item_id === itemId)
 
   return (
-    <div className="rounded-xl border border-warm-200 bg-cream p-4">
-      <Label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Modificadores disponibles</Label>
-      <div className="mt-3 space-y-2">
+    <div className="rounded-xl border border-border bg-surface p-4">
+      <Label className="text-sm font-medium">Modificadores disponibles</Label>
+      <div className="mt-3 flex flex-wrap gap-2">
         {modifierGroups.map((group) => {
           const link = links.find((l) => l.group_id === group.id)
           const isLinked = Boolean(link)
           return (
-            <div key={group.id} className="flex items-center justify-between">
-              <span className="text-sm text-foreground">{group.name}</span>
-              <Button
-                type="button"
-                variant={isLinked ? 'outline' : 'secondary'}
-                size="sm"
-                onClick={async () => {
-                  if (isLinked && link) {
-                    await unlinkModifierGroup(shopId, link.id)
-                  } else {
-                    await linkModifierGroup(shopId, itemId, group.id)
-                  }
-                }}
-              >
-                {isLinked ? 'Quitar' : 'Agregar'}
-              </Button>
-            </div>
+            <Button
+              key={group.id}
+              type="button"
+              variant={isLinked ? 'primary' : 'outline'}
+              size="sm"
+              onClick={async () => {
+                if (isLinked && link) {
+                  await unlinkModifierGroup(shopId, link.id)
+                } else {
+                  await linkModifierGroup(shopId, itemId, group.id)
+                }
+              }}
+            >
+              {isLinked && <Icon name="check" className="mr-1.5 h-3.5 w-3.5" />}
+              {group.name}
+            </Button>
           )
         })}
       </div>
-      {modifierGroups.length === 0 && (
-        <p className="text-sm text-muted-foreground">Crea grupos de modificadores primero.</p>
-      )}
+      {modifierGroups.length === 0 && <p className="mt-2 text-sm text-muted-foreground">Crea grupos de modificadores primero.</p>}
     </div>
   )
 }
@@ -341,45 +358,39 @@ function ItemRow({
   onDelete: () => void
 }) {
   return (
-    <div className="flex items-start gap-4">
-      <div className="relative flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-warm-200 bg-warm-100">
+    <div className="flex items-center gap-4 rounded-xl border border-border bg-surface p-3 transition-shadow hover:shadow-sm">
+      <div className="relative flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-background">
         {item.image_url ? (
           <Image src={item.image_url} alt={item.name} fill className="object-cover" />
         ) : (
-          <span className="text-xl font-bold text-warm-400">{item.name.charAt(0)}</span>
+          <div className="h-full w-full bg-surface" />
         )}
       </div>
       <div className="min-w-0 flex-1">
-        <div className="flex items-start justify-between gap-2">
-          <div>
-            <span className="font-semibold text-foreground">{item.name}</span>
-            <span className="ml-2 font-medium text-terracotta-600">
+        <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
+            <p className="truncate font-medium text-foreground">{item.name}</p>
+            <p className="text-sm font-medium text-accent">
               {currency} {(item.price_cents / 100).toFixed(2)}
-            </span>
-            {item.is_86ed && (
-              <Badge variant="danger" className="ml-2">
-                Agotado
-              </Badge>
-            )}
+            </p>
           </div>
           <div className="flex shrink-0 items-center gap-1">
-            <Button variant="ghost" size="sm" onClick={onToggle86}>
-              {item.is_86ed ? 'Reponer' : 'Agotar'}
-            </Button>
-            <Button variant="ghost" size="sm" onClick={onEdit}>
-              Editar
-            </Button>
             <Button
-              variant="ghost"
+              variant={item.is_86ed ? 'destructive' : 'outline'}
               size="sm"
-              className="text-danger hover:bg-red-50 hover:text-red-700"
-              onClick={onDelete}
+              onClick={onToggle86}
             >
-              Eliminar
+              {item.is_86ed ? 'Agotado' : 'Activo'}
+            </Button>
+            <Button variant="ghost" size="icon" onClick={onEdit} aria-label="Editar">
+              <Icon name="edit" className="h-4 w-4" />
+            </Button>
+            <Button variant="ghost" size="icon" className="text-danger hover:text-danger" onClick={onDelete} aria-label="Eliminar">
+              <Icon name="trash" className="h-4 w-4" />
             </Button>
           </div>
         </div>
-        {item.description && <p className="mt-1 text-sm text-muted-foreground">{item.description}</p>}
+        {item.description && <p className="mt-1 truncate text-sm text-muted-foreground">{item.description}</p>}
       </div>
     </div>
   )

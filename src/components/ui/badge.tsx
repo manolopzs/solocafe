@@ -7,16 +7,16 @@ export interface BadgeProps {
 }
 
 const variantStyles: Record<Required<BadgeProps>['variant'], string> = {
-  default: 'bg-espresso-700 text-white',
-  secondary: 'bg-warm-100 text-warm-800',
-  outline: 'border border-warm-200 bg-paper text-warm-700',
-  success: 'bg-sage-100 text-sage-800',
-  warning: 'bg-terracotta-100 text-terracotta-800',
-  danger: 'bg-red-100 text-red-800',
-  info: 'bg-warm-100 text-warm-800',
+  default: 'bg-foreground text-primary-foreground',
+  secondary: 'bg-surface text-foreground border border-border',
+  outline: 'border border-border bg-background text-foreground',
+  success: 'bg-success/10 text-success',
+  warning: 'bg-warning/10 text-warning',
+  danger: 'bg-danger/10 text-danger',
+  info: 'bg-surface text-foreground border border-border',
 }
 
-export function Badge({ children, variant = 'secondary', className = '' }: BadgeProps) {
+export function Badge({ children, variant = 'default', className = '' }: BadgeProps) {
   return (
     <span
       className={[
