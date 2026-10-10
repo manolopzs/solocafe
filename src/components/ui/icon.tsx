@@ -28,6 +28,7 @@ import {
   Settings,
   ShoppingCart,
   SlidersHorizontal,
+  Star,
   Store,
   Tag,
   Trash2,
@@ -68,6 +69,7 @@ export type IconName =
   | 'search'
   | 'settings'
   | 'sliders-horizontal'
+  | 'star'
   | 'store'
   | 'tag'
   | 'trash'
@@ -111,6 +113,7 @@ const iconMap: Record<IconName, React.ComponentType<LucideProps>> = {
   search: Search,
   settings: Settings,
   'sliders-horizontal': SlidersHorizontal,
+  star: Star,
   store: Store,
   tag: Tag,
   trash: Trash2,
