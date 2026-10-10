@@ -58,9 +58,9 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="border-y border-border bg-surface px-6 py-16 sm:py-20">
+      <section className="border-y border-border bg-surface px-6 py-16 sm:py-24">
         <div className="mx-auto max-w-6xl">
-          <div className="mb-12 text-center">
+          <div className="mb-14 text-center">
             <h2 className="font-sans text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
               Tu cafetería, tu sistema y tus clientes conectados
             </h2>
@@ -69,54 +69,45 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="hidden items-stretch gap-4 md:flex">
-            <DiagramCard
-              icon={<Icon name="store" className="h-8 w-8" />}
-              title="La cafetería"
-              description="Dashboard, KDS y QR en un solo lugar."
-              mockup={<DashboardMockup />}
-            />
-            <div className="flex flex-1 items-center">
-              <div className="flex-1 border-t-2 border-dashed border-border" />
+          <div className="relative hidden items-center justify-between gap-2 lg:flex">
+            <div className="flex flex-1 flex-col items-center">
+              <DashboardMockup />
+              <p className="mt-5 font-sans text-sm font-semibold uppercase tracking-wider text-muted-foreground">La cafetería</p>
             </div>
-            <div className="flex flex-col items-center justify-center text-center">
-              <div className="flex h-24 w-24 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-md">
-                <Icon name="coffee" className="h-12 w-12" />
+
+            <ConnectionLine />
+
+            <div className="flex flex-col items-center">
+              <div className="relative flex h-28 w-28 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-lg">
+                <Icon name="coffee" className="h-14 w-14" />
               </div>
-              <h3 className="mt-4 font-sans text-lg font-semibold text-foreground">Solo Cafe</h3>
-              <p className="mt-1 max-w-[12rem] text-sm text-muted-foreground">
-                Conecta tu menú con tus clientes.
-              </p>
+              <h3 className="mt-5 font-sans text-lg font-semibold text-foreground">Solo Cafe</h3>
+              <p className="mt-1 text-sm text-muted-foreground">Plataforma de pedidos</p>
             </div>
-            <div className="flex flex-1 items-center">
-              <div className="flex-1 border-t-2 border-dashed border-border" />
+
+            <ConnectionLine />
+
+            <div className="flex flex-1 flex-col items-center">
+              <PhoneMockup />
+              <p className="mt-5 font-sans text-sm font-semibold uppercase tracking-wider text-muted-foreground">Los clientes</p>
             </div>
-            <DiagramCard
-              icon={<Icon name="user" className="h-8 w-8" />}
-              title="Los clientes"
-              description="Ordenan, pagan y recogen sin filas."
-              mockup={<PhoneMockup />}
-            />
           </div>
 
-          <div className="grid gap-6 md:hidden">
-            <DiagramCard
-              icon={<Icon name="store" className="h-8 w-8" />}
-              title="La cafetería"
-              description="Dashboard, KDS y QR en un solo lugar."
-              mockup={<DashboardMockup />}
-            />
-            <div className="flex items-center justify-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-md">
-                <Icon name="coffee" className="h-8 w-8" />
-              </div>
+          <div className="grid gap-8 lg:hidden">
+            <div className="flex flex-col items-center">
+              <DashboardMockup />
+              <p className="mt-5 font-sans text-sm font-semibold uppercase tracking-wider text-muted-foreground">La cafetería</p>
             </div>
-            <DiagramCard
-              icon={<Icon name="user" className="h-8 w-8" />}
-              title="Los clientes"
-              description="Ordenan, pagan y recogen sin filas."
-              mockup={<PhoneMockup />}
-            />
+            <div className="flex flex-col items-center">
+              <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-lg">
+                <Icon name="coffee" className="h-10 w-10" />
+              </div>
+              <h3 className="mt-4 font-sans text-lg font-semibold text-foreground">Solo Cafe</h3>
+            </div>
+            <div className="flex flex-col items-center">
+              <PhoneMockup />
+              <p className="mt-5 font-sans text-sm font-semibold uppercase tracking-wider text-muted-foreground">Los clientes</p>
+            </div>
           </div>
         </div>
       </section>
@@ -313,25 +304,71 @@ export default function Home() {
   );
 }
 
+function ConnectionLine() {
+  return (
+    <div className="flex flex-1 items-center px-4">
+      <div className="relative flex flex-1 items-center">
+        <div className="flex-1 border-t-2 border-dashed border-border" />
+        <div className="absolute left-0 top-1/2 h-3 w-3 -translate-y-1/2 rounded-full border-2 border-border bg-background" />
+        <div className="absolute right-0 top-1/2 h-3 w-3 -translate-y-1/2 rounded-full border-2 border-border bg-background" />
+      </div>
+    </div>
+  );
+}
+
 function DashboardMockup() {
   return (
-    <div className="w-full max-w-[14rem] space-y-3 rounded-xl border border-border bg-background p-3 shadow-sm">
-      <div className="flex items-center justify-between">
-        <div className="h-2.5 w-16 rounded bg-border" />
-        <Icon name="qrcode" className="h-4 w-4 text-muted-foreground" />
+    <div className="w-full max-w-[20rem] overflow-hidden rounded-xl border border-border bg-background shadow-md">
+      <div className="flex items-center gap-1.5 border-b border-border bg-surface px-3 py-2">
+        <div className="h-2.5 w-2.5 rounded-full bg-red-400" />
+        <div className="h-2.5 w-2.5 rounded-full bg-amber-400" />
+        <div className="h-2.5 w-2.5 rounded-full bg-green-400" />
+        <div className="ml-3 h-4 flex-1 rounded bg-border" />
       </div>
-      <div className="space-y-2">
-        <div className="flex items-center gap-2 rounded-lg bg-surface p-2">
-          <Icon name="receipt" className="h-4 w-4 text-accent" />
-          <div className="h-2 w-20 rounded bg-border" />
+      <div className="flex">
+        <div className="w-12 border-r border-border bg-surface py-4">
+          <div className="mx-auto mb-3 h-5 w-5 rounded bg-border" />
+          <div className="mx-auto mb-3 h-5 w-5 rounded bg-border" />
+          <div className="mx-auto h-5 w-5 rounded bg-border" />
         </div>
-        <div className="flex items-center gap-2 rounded-lg bg-surface p-2">
-          <Icon name="utensils" className="h-4 w-4 text-muted-foreground" />
-          <div className="h-2 w-24 rounded bg-border" />
-        </div>
-        <div className="flex items-center gap-2 rounded-lg bg-surface p-2">
-          <Icon name="credit-card" className="h-4 w-4 text-muted-foreground" />
-          <div className="h-2 w-14 rounded bg-border" />
+        <div className="flex-1 p-4">
+          <div className="mb-4 h-4 w-24 rounded bg-border" />
+          <div className="mb-3 grid grid-cols-3 gap-2">
+            <div className="rounded-lg bg-surface p-2">
+              <div className="h-2 w-8 rounded bg-border" />
+              <div className="mt-2 h-5 w-12 rounded bg-border" />
+            </div>
+            <div className="rounded-lg bg-surface p-2">
+              <div className="h-2 w-8 rounded bg-border" />
+              <div className="mt-2 h-5 w-12 rounded bg-border" />
+            </div>
+            <div className="rounded-lg bg-surface p-2">
+              <div className="h-2 w-8 rounded bg-border" />
+              <div className="mt-2 h-5 w-12 rounded bg-border" />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between rounded-lg bg-surface p-2.5">
+              <div className="flex items-center gap-2">
+                <div className="h-8 w-8 rounded-full bg-accent/10" />
+                <div>
+                  <div className="h-2.5 w-20 rounded bg-border" />
+                  <div className="mt-1.5 h-2 w-14 rounded bg-border" />
+                </div>
+              </div>
+              <div className="h-2 w-10 rounded bg-border" />
+            </div>
+            <div className="flex items-center justify-between rounded-lg bg-surface p-2.5">
+              <div className="flex items-center gap-2">
+                <div className="h-8 w-8 rounded-full bg-accent/10" />
+                <div>
+                  <div className="h-2.5 w-24 rounded bg-border" />
+                  <div className="mt-1.5 h-2 w-16 rounded bg-border" />
+                </div>
+              </div>
+              <div className="h-2 w-10 rounded bg-border" />
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -340,48 +377,41 @@ function DashboardMockup() {
 
 function PhoneMockup() {
   return (
-    <div className="w-full max-w-[10rem] space-y-3 rounded-2xl border-4 border-border bg-background p-3 shadow-sm">
-      <div className="h-1.5 w-10 rounded-full bg-border" />
-      <div className="space-y-2">
-        <div className="h-16 rounded-lg bg-surface" />
-        <div className="flex items-center gap-2 rounded-lg bg-surface p-2">
-          <Icon name="coffee" className="h-4 w-4 text-accent" />
-          <div className="h-2 w-full rounded bg-border" />
+    <div className="w-full max-w-[12rem] overflow-hidden rounded-[1.75rem] border-[6px] border-border bg-background shadow-xl">
+      <div className="flex items-center justify-center bg-surface py-2">
+        <div className="h-1 w-12 rounded-full bg-border" />
+      </div>
+      <div className="p-3">
+        <div className="mb-3 h-24 rounded-xl bg-surface" />
+        <div className="mb-2 flex items-center justify-between">
+          <div className="h-3 w-16 rounded bg-border" />
+          <div className="h-3 w-10 rounded bg-border" />
         </div>
-        <div className="flex items-center gap-2 rounded-lg bg-surface p-2">
-          <Icon name="receipt" className="h-4 w-4 text-muted-foreground" />
-          <div className="h-2 w-full rounded bg-border" />
+        <div className="space-y-2">
+          <div className="flex items-center gap-2 rounded-lg bg-surface p-2">
+            <div className="h-10 w-10 rounded-lg bg-accent/10" />
+            <div className="flex-1">
+              <div className="h-2.5 w-full rounded bg-border" />
+              <div className="mt-1.5 h-2 w-16 rounded bg-border" />
+            </div>
+            <div className="h-2.5 w-10 rounded bg-border" />
+          </div>
+          <div className="flex items-center gap-2 rounded-lg bg-surface p-2">
+            <div className="h-10 w-10 rounded-lg bg-accent/10" />
+            <div className="flex-1">
+              <div className="h-2.5 w-full rounded bg-border" />
+              <div className="mt-1.5 h-2 w-20 rounded bg-border" />
+            </div>
+            <div className="h-2.5 w-10 rounded bg-border" />
+          </div>
         </div>
       </div>
-      <div className="rounded-lg bg-primary py-1.5 text-center text-xs font-medium text-primary-foreground">
-        Ordenar
+      <div className="p-3 pt-0">
+        <div className="rounded-lg bg-primary py-2 text-center text-xs font-semibold text-primary-foreground">
+          Ordenar
+        </div>
       </div>
     </div>
-  );
-}
-
-function DiagramCard({
-  icon,
-  title,
-  description,
-  mockup,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-  mockup: React.ReactNode;
-}) {
-  return (
-    <Card className="flex flex-1 flex-col items-center p-6 text-center">
-      <div className="mb-4 flex h-40 w-full items-center justify-center rounded-lg bg-surface">
-        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-accent/10 text-accent">
-          {icon}
-        </div>
-      </div>
-      {mockup}
-      <h3 className="mt-4 font-sans text-lg font-semibold text-foreground">{title}</h3>
-      <p className="mt-1 text-sm text-muted-foreground">{description}</p>
-    </Card>
   );
 }
 
