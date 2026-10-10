@@ -1,20 +1,29 @@
 import { z } from 'zod'
 
+const normalizeEmpty = (value: unknown) => {
+  if (typeof value === 'string' && value.trim().length === 0) return undefined
+  return value
+}
+
 const envSchema = z.object({
-  NEXT_PUBLIC_API_URL: z.string().url(),
-  NEXT_PUBLIC_APP_URL: z.string().url().default('http://localhost:3000'),
-  NEXT_PUBLIC_ENABLE_STAGE_2: z.enum(['true', 'false']).default('false'),
-  STRIPE_SECRET_KEY: z.string().min(1),
-  NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().min(1),
-  PLATFORM_FEE_PERCENT: z.string().default('0'),
+  NEXT_PUBLIC_API_URL: z.preprocess(normalizeEmpty, z.string().url()),
+  NEXT_PUBLIC_APP_URL: z.preprocess(normalizeEmpty, z.string().url().default('http://localhost:3000')),
+  NEXT_PUBLIC_ENABLE_STAGE_2: z.preprocess(normalizeEmpty, z.enum(['true', 'false']).default('false')),
+  STRIPE_SECRET_KEY: z.preprocess(normalizeEmpty, z.string().min(1)),
+  NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.preprocess(normalizeEmpty, z.string().min(1)),
+  PLATFORM_FEE_PERCENT: z.preprocess(normalizeEmpty, z.string().default('0')),
 })
 
 const parsed = envSchema.safeParse(process.env)
 
 if (!parsed.success) {
-  console.error('Invalid environment variables:', parsed.error.flatten().fieldErrors)
+  const fieldErrors = parsed.error.flatten().fieldErrors
+  const invalidFields = Object.entries(fieldErrors)
+    .map(([key, errors]) => `${key}: ${errors?.join(', ')}`)
+    .join('\n  ')
+  console.error('Invalid environment variables:\n  ' + invalidFields)
   if (process.env.NODE_ENV !== 'test') {
-    throw new Error('Invalid environment variables')
+    throw new Error(`Invalid environment variables: ${Object.keys(fieldErrors).join(', ')}`)
   }
 }
 
