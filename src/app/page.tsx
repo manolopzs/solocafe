@@ -40,10 +40,10 @@ export default function Home() {
             <span>4.9 promedio basado en 100+ opiniones</span>
           </div>
           <h1 className="mx-auto max-w-4xl font-sans text-4xl font-semibold tracking-tight text-foreground sm:text-6xl sm:leading-[1.1]">
-            Hacemos que vender café en línea sea simple, directo y rentable
+            Vende café directo a tus clientes, sin comisiones de marketplace
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground sm:text-xl">
-            Únete a cientos de cafeterías independientes que reciben pedidos, cobran directo y organizan su cocina sin pagar comisiones de marketplace.
+            Tu propia página de pedidos, pagos que llegan a tu cuenta y una cocina organizada. Todo bajo tu marca, en minutos.
           </p>
           <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Button asChild size="lg" className="w-full sm:w-auto">
@@ -344,26 +344,38 @@ function DashboardMockup() {
       <div className="p-3">
         <div className="mb-3 grid grid-cols-3 gap-2">
           <div className="rounded-lg bg-surface p-2">
-            <div className="h-1.5 w-6 rounded bg-border" />
-            <div className="mt-1.5 h-3 w-8 rounded bg-border" />
+            <p className="text-[0.6rem] text-muted-foreground">Ventas</p>
+            <p className="text-sm font-semibold text-foreground">$4,230</p>
           </div>
           <div className="rounded-lg bg-surface p-2">
-            <div className="h-1.5 w-6 rounded bg-border" />
-            <div className="mt-1.5 h-3 w-8 rounded bg-border" />
+            <p className="text-[0.6rem] text-muted-foreground">Pedidos</p>
+            <p className="text-sm font-semibold text-foreground">86</p>
           </div>
           <div className="rounded-lg bg-surface p-2">
-            <div className="h-1.5 w-6 rounded bg-border" />
-            <div className="mt-1.5 h-3 w-8 rounded bg-border" />
+            <p className="text-[0.6rem] text-muted-foreground">Ticket</p>
+            <p className="text-sm font-semibold text-foreground">$49</p>
           </div>
         </div>
         <div className="space-y-2">
           <div className="flex items-center justify-between rounded-lg bg-surface p-2">
-            <div className="h-2 w-16 rounded bg-border" />
-            <div className="h-2 w-8 rounded bg-border" />
+            <div className="flex items-center gap-2">
+              <div className="h-5 w-5 rounded-full bg-amber-100" />
+              <div>
+                <p className="text-[0.65rem] font-medium text-foreground">Cappuccino · María</p>
+                <p className="text-[0.6rem] text-muted-foreground">12:34</p>
+              </div>
+            </div>
+            <span className="rounded-full bg-amber-100 px-1.5 py-0.5 text-[0.55rem] font-medium text-amber-700">Prep</span>
           </div>
           <div className="flex items-center justify-between rounded-lg bg-surface p-2">
-            <div className="h-2 w-20 rounded bg-border" />
-            <div className="h-2 w-8 rounded bg-border" />
+            <div className="flex items-center gap-2">
+              <div className="h-5 w-5 rounded-full bg-green-100" />
+              <div>
+                <p className="text-[0.65rem] font-medium text-foreground">Latte · Juan</p>
+                <p className="text-[0.6rem] text-muted-foreground">12:31</p>
+              </div>
+            </div>
+            <span className="rounded-full bg-green-100 px-1.5 py-0.5 text-[0.55rem] font-medium text-green-700">Listo</span>
           </div>
         </div>
       </div>
@@ -378,20 +390,23 @@ function PhoneMockup() {
         <div className="h-1 w-10 rounded-full bg-border" />
       </div>
       <div className="p-2.5">
-        <div className="mb-2 h-16 rounded-lg bg-surface" />
+        <div className="mb-2 rounded-lg bg-gradient-to-br from-amber-100 to-amber-50 p-2">
+          <p className="text-[0.6rem] text-muted-foreground">Bienvenido a</p>
+          <p className="text-xs font-semibold text-foreground">Café de la Esquina</p>
+        </div>
         <div className="space-y-2">
           <div className="flex items-center gap-2 rounded-lg bg-surface p-1.5">
-            <div className="h-8 w-8 rounded-lg bg-accent/10" />
+            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-amber-700 to-amber-500" />
             <div className="flex-1">
-              <div className="h-2 w-full rounded bg-border" />
-              <div className="mt-1 h-1.5 w-12 rounded bg-border" />
+              <p className="text-[0.65rem] font-medium text-foreground">Cappuccino</p>
+              <p className="text-[0.6rem] text-muted-foreground">MXN 55.00</p>
             </div>
           </div>
           <div className="flex items-center gap-2 rounded-lg bg-surface p-1.5">
-            <div className="h-8 w-8 rounded-lg bg-accent/10" />
+            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-stone-600 to-stone-400" />
             <div className="flex-1">
-              <div className="h-2 w-full rounded bg-border" />
-              <div className="mt-1 h-1.5 w-14 rounded bg-border" />
+              <p className="text-[0.65rem] font-medium text-foreground">Latte Vainilla</p>
+              <p className="text-[0.6rem] text-muted-foreground">MXN 62.00</p>
             </div>
           </div>
         </div>
@@ -402,35 +417,60 @@ function PhoneMockup() {
 
 function PhoneMockupLarge() {
   return (
-    <div className="w-full max-w-[16rem] overflow-hidden rounded-[2rem] border-[6px] border-border bg-background shadow-2xl">
-      <div className="flex items-center justify-center bg-surface py-2">
-        <div className="h-1 w-14 rounded-full bg-border" />
+    <div className="w-full max-w-[18rem] overflow-hidden rounded-[2.25rem] border-[7px] border-border bg-background shadow-2xl">
+      <div className="flex items-center justify-center bg-surface py-2.5">
+        <div className="h-1.5 w-16 rounded-full bg-border" />
       </div>
       <div className="p-4">
-        <div className="mb-4 h-28 rounded-xl bg-surface" />
-        <div className="mb-3 h-3 w-24 rounded bg-border" />
+        <div className="mb-4 flex items-center gap-3">
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-surface text-foreground">
+            <Icon name="store" className="h-6 w-6" />
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">Bienvenido a</p>
+            <h3 className="font-sans text-base font-semibold text-foreground">Café de la Esquina</h3>
+          </div>
+        </div>
+        <div className="mb-4 flex gap-2">
+          <span className="rounded-full bg-green-100 px-2.5 py-1 text-xs font-medium text-green-700">Abierto</span>
+          <span className="rounded-full bg-surface px-2.5 py-1 text-xs font-medium text-foreground">Para recoger</span>
+        </div>
+        <div className="mb-4 flex gap-2 overflow-x-auto no-scrollbar">
+          <span className="shrink-0 rounded-full bg-foreground px-3 py-1 text-xs font-medium text-primary-foreground">Bebidas calientes</span>
+          <span className="shrink-0 rounded-full bg-surface px-3 py-1 text-xs font-medium text-foreground">Bebidas frías</span>
+          <span className="shrink-0 rounded-full bg-surface px-3 py-1 text-xs font-medium text-foreground">Panadería</span>
+        </div>
+        <p className="mb-3 font-sans text-sm font-semibold text-foreground">Bebidas calientes</p>
         <div className="space-y-3">
           <div className="flex items-center gap-3 rounded-xl bg-surface p-3">
-            <div className="h-12 w-12 rounded-xl bg-accent/10" />
-            <div className="flex-1">
-              <div className="h-2.5 w-full rounded bg-border" />
-              <div className="mt-2 h-2 w-20 rounded bg-border" />
+            <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-gradient-to-br from-amber-800 via-amber-600 to-amber-400" />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-foreground">Cappuccino</p>
+              <p className="text-xs text-muted-foreground truncate">Espresso doble con leche vaporizada</p>
+              <p className="mt-1 text-sm font-semibold text-foreground">MXN 55.00</p>
             </div>
-            <div className="h-2.5 w-10 rounded bg-border" />
           </div>
           <div className="flex items-center gap-3 rounded-xl bg-surface p-3">
-            <div className="h-12 w-12 rounded-xl bg-accent/10" />
-            <div className="flex-1">
-              <div className="h-2.5 w-full rounded bg-border" />
-              <div className="mt-2 h-2 w-24 rounded bg-border" />
+            <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-gradient-to-br from-stone-700 via-stone-500 to-stone-300" />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-foreground">Latte Vainilla</p>
+              <p className="text-xs text-muted-foreground truncate">Café suave con un toque de vainilla</p>
+              <p className="mt-1 text-sm font-semibold text-foreground">MXN 62.00</p>
             </div>
-            <div className="h-2.5 w-10 rounded bg-border" />
+          </div>
+          <div className="flex items-center gap-3 rounded-xl bg-surface p-3">
+            <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-gradient-to-br from-orange-900 via-amber-800 to-amber-600" />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-foreground">Americano</p>
+              <p className="text-xs text-muted-foreground truncate">Espresso con agua caliente</p>
+              <p className="mt-1 text-sm font-semibold text-foreground">MXN 42.00</p>
+            </div>
           </div>
         </div>
       </div>
       <div className="p-4 pt-0">
-        <div className="rounded-lg bg-primary py-2.5 text-center text-sm font-semibold text-primary-foreground">
-          Ordenar $85.00
+        <div className="rounded-xl bg-foreground py-3 text-center text-sm font-semibold text-primary-foreground">
+          Ver pedido · MXN 0.00
         </div>
       </div>
     </div>
@@ -439,7 +479,7 @@ function PhoneMockupLarge() {
 
 function DashboardMockupLarge() {
   return (
-    <div className="w-full max-w-[28rem] overflow-hidden rounded-xl border border-border bg-background shadow-2xl">
+    <div className="w-full max-w-[32rem] overflow-hidden rounded-xl border border-border bg-background shadow-2xl">
       <div className="flex items-center gap-1.5 border-b border-border bg-surface px-3 py-2">
         <div className="h-2.5 w-2.5 rounded-full bg-red-400" />
         <div className="h-2.5 w-2.5 rounded-full bg-amber-400" />
@@ -448,46 +488,86 @@ function DashboardMockupLarge() {
       </div>
       <div className="flex">
         <div className="w-14 border-r border-border bg-surface py-4">
-          <div className="mx-auto mb-3 h-5 w-5 rounded bg-border" />
-          <div className="mx-auto mb-3 h-5 w-5 rounded bg-border" />
-          <div className="mx-auto h-5 w-5 rounded bg-border" />
+          <div className="mx-auto mb-3 flex h-6 w-6 items-center justify-center rounded bg-border text-[0.6rem] text-muted-foreground">
+            <Icon name="store" className="h-3.5 w-3.5" />
+          </div>
+          <div className="mx-auto mb-3 flex h-6 w-6 items-center justify-center rounded bg-border text-[0.6rem] text-muted-foreground">
+            <Icon name="receipt" className="h-3.5 w-3.5" />
+          </div>
+          <div className="mx-auto flex h-6 w-6 items-center justify-center rounded bg-border text-[0.6rem] text-muted-foreground">
+            <Icon name="settings" className="h-3.5 w-3.5" />
+          </div>
         </div>
         <div className="flex-1 p-4">
-          <div className="mb-4 h-4 w-28 rounded bg-border" />
+          <div className="mb-4 flex items-center justify-between">
+            <h3 className="font-sans text-base font-semibold text-foreground">Panel de control</h3>
+            <div className="h-7 w-7 rounded-full bg-border" />
+          </div>
           <div className="mb-4 grid grid-cols-3 gap-3">
             <div className="rounded-lg bg-surface p-3">
-              <div className="h-2 w-10 rounded bg-border" />
-              <div className="mt-2 h-6 w-14 rounded bg-border" />
+              <p className="text-xs text-muted-foreground">Ventas hoy</p>
+              <p className="mt-1 font-sans text-lg font-semibold text-foreground">$4,230</p>
             </div>
             <div className="rounded-lg bg-surface p-3">
-              <div className="h-2 w-10 rounded bg-border" />
-              <div className="mt-2 h-6 w-14 rounded bg-border" />
+              <p className="text-xs text-muted-foreground">Pedidos</p>
+              <p className="mt-1 font-sans text-lg font-semibold text-foreground">86</p>
             </div>
             <div className="rounded-lg bg-surface p-3">
-              <div className="h-2 w-10 rounded bg-border" />
-              <div className="mt-2 h-6 w-14 rounded bg-border" />
+              <p className="text-xs text-muted-foreground">Ticket promedio</p>
+              <p className="mt-1 font-sans text-lg font-semibold text-foreground">$49</p>
             </div>
           </div>
-          <div className="space-y-2">
-            <div className="flex items-center justify-between rounded-lg bg-surface p-3">
-              <div className="flex items-center gap-2">
-                <div className="h-8 w-8 rounded-full bg-accent/10" />
-                <div>
-                  <div className="h-2.5 w-24 rounded bg-border" />
-                  <div className="mt-1.5 h-2 w-16 rounded bg-border" />
+          <div className="mb-4 rounded-lg bg-surface p-3">
+            <p className="mb-2 text-xs font-medium text-foreground">Pedidos activos</p>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between rounded-lg bg-background p-2">
+                <div className="flex items-center gap-2">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-100 text-amber-700">
+                    <Icon name="clock" className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold text-foreground">Cappuccino · María R.</p>
+                    <p className="text-[0.65rem] text-muted-foreground">Recibido hace 2 min</p>
+                  </div>
                 </div>
+                <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[0.6rem] font-medium text-amber-700">Preparando</span>
               </div>
-              <div className="h-2 w-12 rounded bg-border" />
+              <div className="flex items-center justify-between rounded-lg bg-background p-2">
+                <div className="flex items-center gap-2">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-100 text-green-700">
+                    <Icon name="check" className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold text-foreground">Latte Vainilla · Juan P.</p>
+                    <p className="text-[0.65rem] text-muted-foreground">Recibido hace 5 min</p>
+                  </div>
+                </div>
+                <span className="rounded-full bg-green-100 px-2 py-0.5 text-[0.6rem] font-medium text-green-700">Listo</span>
+              </div>
+              <div className="flex items-center justify-between rounded-lg bg-background p-2">
+                <div className="flex items-center gap-2">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-blue-700">
+                    <Icon name="receipt" className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold text-foreground">Americano · Ana L.</p>
+                    <p className="text-[0.65rem] text-muted-foreground">Recibido hace 8 min</p>
+                  </div>
+                </div>
+                <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[0.6rem] font-medium text-blue-700">Recibido</span>
+              </div>
             </div>
-            <div className="flex items-center justify-between rounded-lg bg-surface p-3">
-              <div className="flex items-center gap-2">
-                <div className="h-8 w-8 rounded-full bg-accent/10" />
-                <div>
-                  <div className="h-2.5 w-28 rounded bg-border" />
-                  <div className="mt-1.5 h-2 w-20 rounded bg-border" />
-                </div>
-              </div>
-              <div className="h-2 w-12 rounded bg-border" />
+          </div>
+          <div className="rounded-lg bg-surface p-3">
+            <p className="mb-2 text-xs font-medium text-foreground">Horas pico</p>
+            <div className="flex items-end gap-2">
+              <div className="w-4 rounded-sm bg-border" style={{ height: '2.5rem' }} />
+              <div className="w-4 rounded-sm bg-border" style={{ height: '3.5rem' }} />
+              <div className="w-4 rounded-sm bg-accent" style={{ height: '5rem' }} />
+              <div className="w-4 rounded-sm bg-border" style={{ height: '4rem' }} />
+              <div className="w-4 rounded-sm bg-border" style={{ height: '3rem' }} />
+              <div className="w-4 rounded-sm bg-border" style={{ height: '2rem' }} />
+              <div className="w-4 rounded-sm bg-border" style={{ height: '1.5rem' }} />
             </div>
           </div>
         </div>
