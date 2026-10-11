@@ -34,12 +34,14 @@ const nextActions: Record<string, { status: string; label: string } | null> = {
 
 function useNow(interval = 1000) {
   const [now, setNow] = useState(0)
+  const [mounted, setMounted] = useState(false)
   useEffect(() => {
+    setMounted(true)
     setNow(Date.now())
     const id = setInterval(() => setNow(Date.now()), interval)
     return () => clearInterval(id)
   }, [interval])
-  return now
+  return mounted ? now : 0
 }
 
 function getElapsedMinutes(createdAt: string, now: number) {
