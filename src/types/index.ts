@@ -88,6 +88,8 @@ export interface ItemModifierLink {
 export interface Order {
   id: string
   shop_id: string
+  shop_name?: string
+  shop_slug?: string
   customer_id: string | null
   status: OrderStatus
   payment_status: PaymentStatus

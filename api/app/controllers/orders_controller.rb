@@ -138,6 +138,15 @@ class OrdersController < ApplicationController
   def find_or_build_customer
     phone = order_params[:customer_phone]
     name = order_params[:customer_name]
+
+    if current_user.present?
+      customer = Customer.find_or_initialize_by(user_id: current_user.id)
+      customer.phone = phone if phone.present?
+      customer.name = name if name.present?
+      customer.save!
+      return customer
+    end
+
     return nil if phone.blank?
 
     customer = Customer.find_or_initialize_by(phone: phone, user_id: nil)

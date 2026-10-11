@@ -5,6 +5,10 @@ Rails.application.routes.draw do
   post "/auth/login", to: "authentication#login"
   get "/auth/me", to: "authentication#me"
 
+  get "/customers/me", to: "customers#me"
+  patch "/customers/me", to: "customers#update"
+  get "/customers/me/orders", to: "customers#orders"
+
   resources :shops, only: [:index, :create, :update]
   get "/shops/:slug", to: "shops#show"
 

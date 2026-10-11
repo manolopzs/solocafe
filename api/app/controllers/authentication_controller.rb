@@ -33,10 +33,12 @@ class AuthenticationController < ApplicationController
   end
 
   def user_payload(user)
+    customer = user.customers.first
     {
       id: user.id,
       email: user.email,
-      role: user.role
+      role: user.role,
+      customer: customer ? { id: customer.id, name: customer.name, phone: customer.phone } : nil
     }
   end
 end

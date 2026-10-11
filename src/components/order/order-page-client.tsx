@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo, useRef, useEffect } from 'react'
+import Link from 'next/link'
 import Image from 'next/image'
 import { createOrder } from '@/server/actions/orders'
 import { Button } from '@/components/ui/button'
@@ -9,7 +10,7 @@ import { Sheet } from '@/components/ui/sheet'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
-import type { Shop, MenuCategory, MenuItem, ModifierGroup, ModifierOption, ItemModifierLink } from '@/types'
+import type { Shop, MenuCategory, MenuItem, ModifierGroup, ModifierOption, ItemModifierLink, Customer } from '@/types'
 
 interface CartLine {
   item: MenuItem
@@ -24,6 +25,7 @@ export function OrderPageClient({
   modifierGroups,
   modifierOptions,
   itemModifierLinks,
+  customer,
   onCreateOrder,
 }: {
   shop: Shop
@@ -32,6 +34,7 @@ export function OrderPageClient({
   modifierGroups: ModifierGroup[]
   modifierOptions: ModifierOption[]
   itemModifierLinks: ItemModifierLink[]
+  customer: Customer | null
   onCreateOrder?: (input: {
     shop_id: string
     customer_name: string
@@ -44,8 +47,8 @@ export function OrderPageClient({
   const [cart, setCart] = useState<CartLine[]>([])
   const [activeItem, setActiveItem] = useState<MenuItem | null>(null)
   const [selectedModifiers, setSelectedModifiers] = useState<Record<string, string[]>>({})
-  const [customerName, setCustomerName] = useState('')
-  const [customerPhone, setCustomerPhone] = useState('')
+  const [customerName, setCustomerName] = useState(customer?.name ?? '')
+  const [customerPhone, setCustomerPhone] = useState(customer?.phone ?? '')
   const [specialInstructions, setSpecialInstructions] = useState('')
   const [pickupType, setPickupType] = useState<'asap' | 'scheduled'>('asap')
   const [loading, setLoading] = useState(false)
@@ -234,8 +237,9 @@ export function OrderPageClient({
           style={{ background: `linear-gradient(135deg, ${brandColor} 0%, transparent 70%)` }}
         />
         <div className="relative mx-auto max-w-3xl px-5 py-7">
-          <div className="flex items-start gap-4">
-            {shop.logo_url ? (
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex items-start gap-4">
+              {shop.logo_url ? (
               <div className="relative h-18 w-18 shrink-0 overflow-hidden rounded-2xl border border-border bg-background shadow-sm">
                 <Image src={shop.logo_url} alt={shop.name} fill className="object-cover" />
               </div>
@@ -262,8 +266,16 @@ export function OrderPageClient({
               </div>
             </div>
           </div>
+          <Link
+            href={customer ? '/account' : '/account/login'}
+            className="flex shrink-0 items-center justify-center rounded-full bg-background p-2.5 text-foreground shadow-sm hover:bg-surface"
+            aria-label={customer ? 'Mi cuenta' : 'Iniciar sesión'}
+          >
+            <Icon name="user" className="h-5 w-5" />
+          </Link>
         </div>
-      </header>
+      </div>
+    </header>
 
       <div className="sticky top-0 z-30 border-b border-border bg-background/95 backdrop-blur-md">
         <div className="mx-auto max-w-3xl">
@@ -417,6 +429,17 @@ export function OrderPageClient({
                     <span>{formatPrice(totalCents)}</span>
                   </div>
                 </div>
+
+                {!customer && (
+                  <div className="rounded-xl border border-border bg-surface p-4 text-sm">
+                    <p className="text-foreground">
+                      ¿Quieres guardar este pedido y reordenar más rápido?{' '}
+                      <Link href="/account/signup" className="font-medium text-accent hover:underline">
+                        Crea una cuenta
+                      </Link>
+                    </p>
+                  </div>
+                )}
 
                 <div className="space-y-3">
                   <div>
