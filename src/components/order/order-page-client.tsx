@@ -52,8 +52,10 @@ export function OrderPageClient({
   const [error, setError] = useState<string | null>(null)
   const [cartOpen, setCartOpen] = useState(false)
   const [activeCategory, setActiveCategory] = useState<string>(categories[0]?.id ?? '')
+  const [addedItemId, setAddedItemId] = useState<string | null>(null)
 
   const categoryRefs = useRef<Record<string, HTMLDivElement | null>>({})
+  const navRef = useRef<HTMLDivElement>(null)
 
   const groupsForItem = (itemId: string) => {
     const linkIds = itemModifierLinks.filter((l) => l.item_id === itemId).map((l) => l.group_id)
@@ -63,6 +65,8 @@ export function OrderPageClient({
   const optionsForGroup = (groupId: string) => {
     return modifierOptions.filter((o) => o.group_id === groupId)
   }
+
+  const hasModifiers = (itemId: string) => groupsForItem(itemId).length > 0
 
   const addToCart = (item: MenuItem, quantity: number) => {
     const groupIds = groupsForItem(item.id).map((g) => g.id)
@@ -89,6 +93,8 @@ export function OrderPageClient({
     })
     setActiveItem(null)
     setSelectedModifiers({})
+    setAddedItemId(item.id)
+    setTimeout(() => setAddedItemId((id) => (id === item.id ? null : id)), 900)
   }
 
   const removeLine = (index: number) => {
@@ -115,12 +121,12 @@ export function OrderPageClient({
   const totalItems = useMemo(() => cart.reduce((sum, line) => sum + line.quantity, 0), [cart])
 
   const handleSubmit = async () => {
-    if (!customerName) {
-      setError('Ingresa tu nombre')
+    if (!customerName.trim()) {
+      setError('Ingresa tu nombre para continuar')
       return
     }
     if (pickupType === 'scheduled') {
-      setError('Los horarios programados no estan disponibles todavia')
+      setError('Los horarios programados aún no están disponibles')
       return
     }
     setLoading(true)
@@ -129,10 +135,10 @@ export function OrderPageClient({
     try {
       const input = {
         shop_id: shop.id,
-        customer_name: customerName,
-        customer_phone: customerPhone,
+        customer_name: customerName.trim(),
+        customer_phone: customerPhone.trim(),
         pickup_type: pickupType,
-        special_instructions: specialInstructions,
+        special_instructions: specialInstructions.trim(),
         items: cart.map((line) => ({
           menu_item_id: line.item.id,
           quantity: line.quantity,
@@ -172,7 +178,9 @@ export function OrderPageClient({
     setActiveCategory(categoryId)
     const el = categoryRefs.current[categoryId]
     if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      const offset = 110
+      const top = el.getBoundingClientRect().top + window.scrollY - offset
+      window.scrollTo({ top, behavior: 'smooth' })
     }
   }
 
@@ -181,6 +189,28 @@ export function OrderPageClient({
       setActiveCategory(visibleCategories[0].id)
     }
   }, [visibleCategories, activeCategory])
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollPos = window.scrollY + 140
+      let current = visibleCategories[0]?.id ?? ''
+      for (const category of visibleCategories) {
+        const el = categoryRefs.current[category.id]
+        if (el && el.offsetTop <= scrollPos) {
+          current = category.id
+        }
+      }
+      if (uncategorizedItems.length > 0) {
+        const el = categoryRefs.current['uncategorized']
+        if (el && el.offsetTop <= scrollPos) {
+          current = 'uncategorized'
+        }
+      }
+      setActiveCategory(current)
+    }
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [visibleCategories, uncategorizedItems.length])
 
   const formatPrice = (cents: number) => {
     return `${shop.currency} ${(cents / 100).toFixed(2)}`
@@ -194,21 +224,27 @@ export function OrderPageClient({
     [visibleCategories, uncategorizedItems.length]
   )
 
+  const brandColor = shop.brand_color || '#c45d3a'
+
   return (
-    <div className="min-h-screen bg-background pb-32">
-      <header className="border-b border-border bg-surface">
-        <div className="mx-auto max-w-3xl px-5 py-6">
+    <div className="min-h-screen bg-background pb-36">
+      <header className="relative overflow-hidden bg-surface">
+        <div
+          className="absolute inset-0 opacity-[0.08]"
+          style={{ background: `linear-gradient(135deg, ${brandColor} 0%, transparent 70%)` }}
+        />
+        <div className="relative mx-auto max-w-3xl px-5 py-7">
           <div className="flex items-start gap-4">
             {shop.logo_url ? (
-              <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-border bg-background shadow-sm">
+              <div className="relative h-18 w-18 shrink-0 overflow-hidden rounded-2xl border border-border bg-background shadow-sm">
                 <Image src={shop.logo_url} alt={shop.name} fill className="object-cover" />
               </div>
             ) : (
-              <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl border border-border bg-background shadow-sm">
-                <Icon name="store" className="h-8 w-8 text-muted-foreground" />
+              <div className="flex h-18 w-18 shrink-0 items-center justify-center rounded-2xl border border-border bg-background shadow-sm">
+                <Icon name="store" className="h-9 w-9 text-muted-foreground" />
               </div>
             )}
-            <div className="min-w-0 flex-1">
+            <div className="min-w-0 flex-1 pt-0.5">
               <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Bienvenido a</p>
               <h1 className="text-2xl font-semibold tracking-tight text-foreground">{shop.name}</h1>
               {shop.address && (
@@ -218,8 +254,8 @@ export function OrderPageClient({
                 </p>
               )}
               <div className="mt-3 flex flex-wrap items-center gap-2">
-                <Badge variant="success">
-                  <span className="mr-1.5 inline-flex h-1.5 w-1.5 rounded-full bg-success" />
+                <Badge variant="success" className="gap-1.5 pl-2">
+                  <span className="h-1.5 w-1.5 rounded-full bg-success" />
                   Abierto
                 </Badge>
                 <Badge variant="secondary">Para recoger</Badge>
@@ -229,15 +265,15 @@ export function OrderPageClient({
         </div>
       </header>
 
-      <div className="sticky top-0 z-30 border-b border-border bg-background/95 backdrop-blur-sm">
+      <div className="sticky top-0 z-30 border-b border-border bg-background/95 backdrop-blur-md">
         <div className="mx-auto max-w-3xl">
-          <div className="flex gap-2 overflow-x-auto px-5 py-3 no-scrollbar">
+          <div ref={navRef} className="flex gap-2 overflow-x-auto px-5 py-3 no-scrollbar">
             {navItems.map((category) => (
               <button
                 key={category.id}
                 onClick={() => scrollToCategory(category.id)}
                 className={[
-                  'shrink-0 rounded-full px-4 py-2 text-sm font-medium transition-all',
+                  'shrink-0 rounded-full px-4 py-2 text-sm font-medium transition-all duration-200',
                   activeCategory === category.id
                     ? 'bg-foreground text-primary-foreground shadow-sm'
                     : 'bg-surface text-foreground hover:bg-secondary',
@@ -258,16 +294,18 @@ export function OrderPageClient({
             <section
               key={category.id}
               ref={(el: HTMLDivElement | null) => { categoryRefs.current[category.id] = el }}
-              className="mb-10"
+              className="mb-12"
             >
-              <h2 className="text-lg font-semibold text-foreground">{category.name}</h2>
-              <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <h2 className="text-xl font-semibold tracking-tight text-foreground">{category.name}</h2>
+              <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
                 {categoryItems.map((item) => (
                   <ProductCard
                     key={item.id}
                     item={item}
+                    customizable={hasModifiers(item.id)}
                     onClick={() => setActiveItem(item)}
                     formatPrice={formatPrice}
+                    highlight={addedItemId === item.id}
                   />
                 ))}
               </div>
@@ -278,16 +316,18 @@ export function OrderPageClient({
         {uncategorizedItems.length > 0 && (
           <section
             ref={(el: HTMLDivElement | null) => { categoryRefs.current['uncategorized'] = el }}
-            className="mb-10"
+            className="mb-12"
           >
-            <h2 className="text-lg font-semibold text-foreground">Otros</h2>
-            <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <h2 className="text-xl font-semibold tracking-tight text-foreground">Otros</h2>
+            <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
               {uncategorizedItems.map((item) => (
                 <ProductCard
                   key={item.id}
                   item={item}
+                  customizable={hasModifiers(item.id)}
                   onClick={() => setActiveItem(item)}
                   formatPrice={formatPrice}
+                  highlight={addedItemId === item.id}
                 />
               ))}
             </div>
@@ -311,22 +351,22 @@ export function OrderPageClient({
         />
       )}
 
-      <Sheet open={cartOpen} onClose={() => setCartOpen(false)} title="Tu pedido" position="right" className="flex flex-col">
+      <Sheet open={cartOpen} onClose={() => setCartOpen(false)} title="Tu pedido" position="bottom" className="flex flex-col">
         <div className="flex h-full flex-col">
           {cart.length === 0 ? (
-            <div className="flex flex-1 flex-col items-center justify-center py-8 text-center text-muted-foreground">
+            <div className="flex flex-1 flex-col items-center justify-center py-10 text-center text-muted-foreground">
               <div className="flex h-16 w-16 items-center justify-center rounded-full bg-surface">
                 <Icon name="cart" className="h-8 w-8 text-muted-foreground" />
               </div>
-              <p className="mt-4 font-medium text-foreground">Tu carrito esta vacio</p>
+              <p className="mt-4 font-medium text-foreground">Tu carrito está vacío</p>
               <p className="mt-1 text-sm">Agrega productos para comenzar tu pedido.</p>
             </div>
           ) : (
             <>
-              <div className="flex-1 space-y-5 overflow-y-auto">
-                <div className="space-y-4">
+              <div className="flex-1 space-y-6 overflow-y-auto">
+                <div className="space-y-3">
                   {cart.map((line, idx) => (
-                    <div key={idx} className="flex items-start gap-3 rounded-lg border border-border bg-background p-3">
+                    <div key={idx} className="flex items-start gap-3 rounded-xl border border-border bg-background p-3">
                       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-surface text-sm font-semibold text-foreground">
                         {line.quantity}
                       </div>
@@ -371,7 +411,7 @@ export function OrderPageClient({
                   ))}
                 </div>
 
-                <div className="rounded-lg border border-border bg-background p-4">
+                <div className="rounded-xl border border-border bg-surface p-4">
                   <div className="flex items-center justify-between text-base font-semibold text-foreground">
                     <span>Total</span>
                     <span>{formatPrice(totalCents)}</span>
@@ -388,20 +428,20 @@ export function OrderPageClient({
                       type="text"
                       value={customerName}
                       onChange={(e) => setCustomerName(e.target.value)}
-                      placeholder="Como te llaman?"
+                      placeholder="¿Cómo te llaman?"
                       className="mt-1.5"
                     />
                   </div>
                   <div>
                     <label htmlFor="customerPhone" className="block text-sm font-medium text-foreground">
-                      Telefono
+                      Teléfono
                     </label>
                     <Input
                       id="customerPhone"
                       type="tel"
                       value={customerPhone}
                       onChange={(e) => setCustomerPhone(e.target.value)}
-                      placeholder="Para avisarte cuando este listo"
+                      placeholder="Para avisarte cuando esté listo"
                       className="mt-1.5"
                     />
                   </div>
@@ -413,7 +453,7 @@ export function OrderPageClient({
                       id="instructions"
                       value={specialInstructions}
                       onChange={(e) => setSpecialInstructions(e.target.value)}
-                      placeholder="Ej: menos hielo, sin azucar"
+                      placeholder="Ej: menos hielo, sin azúcar"
                       rows={2}
                       className="mt-1.5 resize-none"
                     />
@@ -427,7 +467,7 @@ export function OrderPageClient({
                       type="button"
                       onClick={() => setPickupType('asap')}
                       className={[
-                        'rounded-lg border px-4 py-3 text-left text-sm transition-all',
+                        'rounded-xl border px-4 py-3 text-left text-sm transition-all',
                         pickupType === 'asap'
                           ? 'border-foreground bg-foreground text-primary-foreground'
                           : 'border-border bg-background text-foreground hover:bg-surface',
@@ -439,10 +479,10 @@ export function OrderPageClient({
                     <button
                       type="button"
                       disabled
-                      className="relative rounded-lg border border-border bg-surface px-4 py-3 text-left text-sm text-muted-foreground"
+                      className="relative rounded-xl border border-border bg-surface px-4 py-3 text-left text-sm text-muted-foreground"
                     >
                       <span className="block font-medium">Programado</span>
-                      <span className="block text-xs">Proximamente</span>
+                      <span className="block text-xs">Próximamente</span>
                     </button>
                   </div>
                 </div>
@@ -455,7 +495,7 @@ export function OrderPageClient({
                 )}
               </div>
 
-              <div className="sticky bottom-0 -mx-6 -mb-6 mt-5 border-t border-border bg-surface-elevated p-6">
+              <div className="sticky bottom-0 -mx-6 -mb-6 mt-6 border-t border-border bg-surface-elevated p-6">
                 <Button onClick={handleSubmit} disabled={cart.length === 0 || loading} size="lg" className="w-full">
                   {loading ? 'Procesando...' : `Pagar ${formatPrice(totalCents)}`}
                 </Button>
@@ -465,7 +505,7 @@ export function OrderPageClient({
         </div>
       </Sheet>
 
-      <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-background p-4 shadow-lg safe-bottom">
+      <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-background/95 p-4 shadow-lg backdrop-blur-md safe-bottom">
         <div className="mx-auto max-w-3xl">
           <Button
             onClick={() => setCartOpen(true)}
@@ -490,17 +530,25 @@ export function OrderPageClient({
 
 function ProductCard({
   item,
+  customizable,
   onClick,
   formatPrice,
+  highlight,
 }: {
   item: MenuItem
+  customizable: boolean
   onClick: () => void
   formatPrice: (cents: number) => string
+  highlight?: boolean
 }) {
   return (
     <button
       onClick={onClick}
-      className="group flex gap-4 overflow-hidden rounded-xl border border-border bg-surface-elevated p-3 text-left transition-all hover:shadow-md"
+      className={[
+        'group flex gap-4 overflow-hidden rounded-xl border border-border bg-surface-elevated p-3 text-left transition-all duration-200',
+        'hover:shadow-md hover:border-border/80 active:scale-[0.99]',
+        highlight ? 'ring-2 ring-accent ring-offset-2' : '',
+      ].join(' ')}
     >
       <div className="relative aspect-square w-28 shrink-0 overflow-hidden rounded-lg bg-surface">
         {item.image_url ? (
@@ -512,11 +560,20 @@ function ProductCard({
         )}
       </div>
       <div className="flex min-w-0 flex-1 flex-col py-1">
-        <h3 className="font-medium text-foreground">{item.name}</h3>
+        <div className="flex items-start justify-between gap-2">
+          <h3 className="font-medium text-foreground">{item.name}</h3>
+        </div>
         {item.description && (
           <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{item.description}</p>
         )}
-        <p className="mt-auto pt-2 text-sm font-semibold text-foreground">{formatPrice(item.price_cents)}</p>
+        <div className="mt-auto flex items-center justify-between pt-3">
+          <p className="text-sm font-semibold text-foreground">{formatPrice(item.price_cents)}</p>
+          {customizable && (
+            <span className="rounded-full bg-surface px-2 py-0.5 text-[0.65rem] font-medium text-muted-foreground">
+              Personalizable
+            </span>
+          )}
+        </div>
       </div>
     </button>
   )
@@ -570,7 +627,7 @@ function ProductSheet({
   return (
     <Sheet open onClose={onClose} position="bottom">
       <div className="flex flex-col">
-        <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-surface">
+        <div className="relative aspect-[16/10] w-full overflow-hidden rounded-xl bg-surface">
           {item.image_url ? (
             <Image src={item.image_url} alt={item.name} fill className="object-cover" />
           ) : (
@@ -581,7 +638,7 @@ function ProductSheet({
         </div>
 
         <div className="mt-4">
-          <h2 className="text-xl font-semibold text-foreground">{item.name}</h2>
+          <h2 className="text-xl font-semibold tracking-tight text-foreground">{item.name}</h2>
           <p className="text-lg font-semibold text-foreground">{formatPrice(item.price_cents)}</p>
           {item.description && <p className="mt-1 text-sm text-muted-foreground">{item.description}</p>}
         </div>
@@ -619,7 +676,7 @@ function ProductSheet({
           </div>
         ))}
 
-        <div className="mt-6 flex items-center justify-between rounded-lg border border-border bg-surface p-2">
+        <div className="mt-6 flex items-center justify-between rounded-xl border border-border bg-surface p-2">
           <span className="pl-3 text-sm font-medium text-foreground">Cantidad</span>
           <div className="flex items-center gap-3">
             <button

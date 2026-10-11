@@ -50,7 +50,7 @@ export default async function CheckoutPage({ params, searchParams }: CheckoutPag
           </div>
           <h1 className="mt-5 text-2xl font-semibold text-foreground">Pedido pagado</h1>
           <p className="mt-2 text-muted-foreground">
-            Tu pedido ya fue pagado. Ve a la cafeteria a recogerlo.
+            Tu pedido ya fue pagado. Ve a la cafetería a recogerlo.
           </p>
           <Button asChild className="mt-6 w-full">
             <Link href="/">Volver al inicio</Link>
@@ -64,8 +64,21 @@ export default async function CheckoutPage({ params, searchParams }: CheckoutPag
   const eta = pickupEta(order)
 
   return (
-    <main className="min-h-screen bg-background px-4 py-8 sm:px-6 sm:py-12">
+    <main className="min-h-screen bg-background px-4 py-6 sm:px-6 sm:py-10">
       <div className="mx-auto max-w-xl">
+        <Link href="/" className="mb-6 inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground">
+          <Icon name="arrow-left" className="h-4 w-4" />
+          Volver al menú
+        </Link>
+
+        <div className="mb-6 flex items-center gap-3 text-sm font-medium text-muted-foreground">
+          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-foreground text-xs text-primary-foreground">1</span>
+          <span className="text-foreground">Resumen</span>
+          <span className="h-px flex-1 bg-border" />
+          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-border text-xs text-foreground">2</span>
+          <span>Pago</span>
+        </div>
+
         <div className="mb-6 flex items-center gap-4">
           <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-border bg-surface-elevated">
             <Icon name="store" className="h-7 w-7 text-muted-foreground" />
