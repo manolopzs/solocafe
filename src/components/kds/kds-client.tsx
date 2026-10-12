@@ -122,7 +122,7 @@ export function KdsClient({
               Cocina {shopName ? `· ${shopName}` : ''}
             </h1>
             <p className="text-sm text-muted-foreground">
-              Actualización automática cada 5 segundos
+              Prepara, marca como listo y notifica al cliente.
             </p>
           </div>
           <Badge variant="secondary" className="h-8 px-3 text-base">

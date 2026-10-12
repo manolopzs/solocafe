@@ -78,28 +78,28 @@ export default async function ShopDashboardPage({
       description: 'Listo. Puedes editar los datos en Ajustes.',
     },
     {
-      label: 'Revisar tu menu',
+      label: 'Definir tu menu',
       done: hasMenuItems,
       href: `/dashboard/${shopId}/menu`,
-      description: hasMenuItems ? `${menu.items.length} productos listos.` : 'Agrega productos o edita los de ejemplo.',
+      description: hasMenuItems ? `${menu.items.length} productos listos.` : '5 a 7 opciones simples con poca configuracion.',
     },
     {
       label: 'Conectar Stripe',
       done: hasStripe,
       href: `/dashboard/${shopId}/settings`,
-      description: hasStripe ? 'Recibes pagos directamente.' : 'Para recibir pagos con tarjeta.',
+      description: hasStripe ? 'Recibes pagos directamente.' : 'Para recibir pagos con tarjeta, Apple Pay y Google Pay.',
     },
     {
       label: 'Compartir QR o enlace',
       done: hasMenuItems,
       href: `/dashboard/${shopId}/qr`,
-      description: 'Imprime el QR o comparte el enlace.',
+      description: 'Imprime el QR o comparte el enlace con tus clientes.',
     },
     {
       label: 'Abrir la cocina',
       done: false,
       href: `/dashboard/${shopId}/kds`,
-      description: 'Abre la tablet de cocina para recibir pedidos.',
+      description: 'Cumple pedidos y notifica a los clientes cuando esten listos.',
     },
   ]
 
@@ -109,7 +109,7 @@ export default async function ShopDashboardPage({
     <div className="space-y-8">
       <div className="flex flex-col gap-1">
         <h1 className="font-sans text-2xl font-semibold tracking-tight text-foreground">Resumen</h1>
-        <p className="text-sm text-muted-foreground">{formatToday()}</p>
+        <p className="text-sm text-muted-foreground">{formatToday()} · Forecasting y operación de tu cafetería</p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

@@ -18,8 +18,8 @@ export default function Home() {
           </Link>
           <div className="hidden items-center gap-8 text-sm font-medium text-muted-foreground md:flex">
             <Link href="#plataforma" className="hover:text-foreground">Plataforma</Link>
-            <Link href="#cafeterias" className="hover:text-foreground">Cafeterías</Link>
             <Link href="#clientes" className="hover:text-foreground">Clientes</Link>
+            <Link href="#cafeterias" className="hover:text-foreground">Cafeterías</Link>
             <Link href="#precios" className="hover:text-foreground">Precios</Link>
           </div>
           <div className="flex items-center gap-3">
@@ -36,14 +36,14 @@ export default function Home() {
       <section className="relative overflow-hidden bg-[#f0f4f8] px-6 pt-16 pb-12 sm:pt-24 sm:pb-16">
         <div className="relative mx-auto max-w-5xl text-center">
           <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-border bg-background px-4 py-1.5 text-sm text-muted-foreground shadow-xs">
-            <Icon name="star" className="h-4 w-4 fill-amber-400 text-amber-400" />
-            <span>4.9 promedio basado en 100+ opiniones</span>
+            <Icon name="coffee" className="h-4 w-4 text-accent" />
+            <span>Conectamos personas y lugares en el momento presente</span>
           </div>
           <h1 className="mx-auto max-w-4xl font-sans text-4xl font-semibold tracking-tight text-foreground sm:text-6xl sm:leading-[1.1]">
-            Vende café directo a tus clientes, sin comisiones de marketplace
+            Tu café, listo cuando llegues
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground sm:text-xl">
-            Tu propia página de pedidos, pagos que llegan a tu cuenta y una cocina organizada. Todo bajo tu marca, en minutos.
+            Clientes que ordenan y pagan desde su celular. Tú recibes el pedido, lo preparas y ellos recogen sin filas. Pago directo a tu cuenta.
           </p>
           <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Button asChild size="lg" className="w-full sm:w-auto">
@@ -60,10 +60,10 @@ export default function Home() {
         <div className="mx-auto max-w-6xl">
           <div className="mb-12 text-center">
             <h2 className="font-sans text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
-              Tu cafetería, Solo Cafe y tus clientes conectados
+              Pedidos, cocina y pago en un solo flujo
             </h2>
             <p className="mx-auto mt-3 max-w-2xl text-muted-foreground">
-              Solo Cafe se coloca en el centro: recibes pedidos, organizas la cocina y tus clientes pagan sin intermediarios.
+              Solo Cafe conecta a tus clientes con tu cafetería: ordenan por adelantado, tú recibes el pedido en la cocina y el pago va directo a tu cuenta.
             </p>
           </div>
 
@@ -141,16 +141,16 @@ export default function Home() {
           <div>
             <p className="text-sm font-semibold uppercase tracking-wider text-accent">Para tus clientes</p>
             <h2 className="mt-3 font-sans text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-              Ordena tu café favorito sin esperar
+              Acceso instantáneo a tu café
             </h2>
             <p className="mt-4 text-lg text-muted-foreground">
-              Tus clientes escanean el QR, eligen su bebida, personalizan su orden y pagan en segundos. Sin apps, sin registros obligatorios, sin filas.
+              Escanea el QR, elige tu bebida favorita, paga y recoge sin filas. Sin apps que descargar, sin registros obligatorios.
             </p>
             <ul className="mt-8 space-y-4">
-              <BenefitItem text="Ve el menú completo con fotos y precios" />
-              <BenefitItem text="Personaliza tu orden con modificadores" />
-              <BenefitItem text="Programa tu recogida y evita filas" />
-              <BenefitItem text="Recibe una notificación cuando tu pedido está listo" />
+              <BenefitItem text="Menú simple de 5 a 7 opciones con fotos y precios" />
+              <BenefitItem text="Paga con Apple Pay, Google Pay o tarjeta en segundos" />
+              <BenefitItem text="Recibe tu pedido listo al llegar a la cafetería" />
+              <BenefitItem text="Notificación cuando tu café está listo para recoger" />
             </ul>
             <div className="mt-8">
               <Button asChild variant="outline" size="lg">
@@ -172,16 +172,16 @@ export default function Home() {
           <div className="order-1 lg:order-2">
             <p className="text-sm font-semibold uppercase tracking-wider text-accent">Para tu cafetería</p>
             <h2 className="mt-3 font-sans text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-              Vende más, administra menos
+              Más tráfico, operación optimizada
             </h2>
             <p className="mt-4 text-lg text-muted-foreground">
-              Olvídate de pedidos desorganizados por WhatsApp y de regalar el 30% a los marketplaces. Con Solo Cafe el dinero va directo a tu cuenta.
+              Lleva más clientes a tu tienda y sirve más pedidos por hora. Define tu menú, fija tu capacidad y recibe pagos directos en tu cuenta.
             </p>
             <ul className="mt-8 space-y-4">
-              <BenefitItem text="Recibe pedidos organizados en tu cocina" />
-              <BenefitItem text="Cobra directo en tu cuenta con Stripe" />
-              <BenefitItem text="Controla tu menú y disponibilidad en tiempo real" />
-              <BenefitItem text="Gestiona horarios y capacidad por slot" />
+              <BenefitItem text="Recibe pedidos pagados en tu cocina en tiempo real" />
+              <BenefitItem text="Cobra directo con Stripe: Apple Pay, Google Pay y tarjeta" />
+              <BenefitItem text="Define menú simple y capacidad por slot" />
+              <BenefitItem text="Forecasting: pedidos, productos y patrones de horario" />
             </ul>
             <div className="mt-8">
               <Button asChild size="lg">
@@ -218,35 +218,29 @@ export default function Home() {
         <div className="mx-auto max-w-5xl">
           <div className="text-center">
             <h2 className="font-sans text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-              Un precio que crece contigo
+              Un precio justo para lanzarnos juntos
             </h2>
             <p className="mt-4 text-muted-foreground">
-              Sin renta mensual. Pagas una comisión pequeña solo cuando vendes.
+              En lanzamiento trabajamos con una comisión simbólica. A escala, 1% a 3% por transacción más una tarifa mensual de servicio.
             </p>
           </div>
-          <div className="mt-14 grid gap-6 sm:grid-cols-3">
+          <div className="mt-14 grid gap-6 sm:grid-cols-2">
             <PricingCard
-              name="Inicio"
-              description="Para cafeterías que empiezan"
-              fee="0%"
-              volume="Hasta $20,000 MXN"
-            />
-            <PricingCard
-              name="Crecimiento"
-              description="Para cafeterías con ritmo"
-              fee="2.5%"
-              volume="$20,000 - $100,000 MXN"
+              name="Lanzamiento"
+              description="Para la primera cafetería que prueba Solo Cafe"
+              fee="Simbólico"
+              volume="Comisión reducida por pedido"
               highlighted
             />
             <PricingCard
               name="Escala"
-              description="Para múltiples ubicaciones"
-              fee="1.5%"
-              volume="Más de $100,000 MXN"
+              description="Cuando crecemos juntos"
+              fee="1% - 3%"
+              volume="Por transacción + tarifa mensual"
             />
           </div>
           <p className="mt-6 text-center text-sm text-muted-foreground">
-            Comisión de plataforma. No incluye costos de procesamiento de Stripe. Sin contrato.
+            No incluye costos de procesamiento de Stripe. Sin contrato.
           </p>
         </div>
       </section>
@@ -254,10 +248,10 @@ export default function Home() {
       <section className="bg-primary px-6 py-20 sm:py-28">
         <div className="mx-auto max-w-3xl text-center">
           <h2 className="font-sans text-3xl font-semibold tracking-tight text-primary-foreground sm:text-4xl">
-            Deja de regalar tu margen hoy
+            Conecta tu cafetería con tus clientes hoy
           </h2>
           <p className="mt-4 text-lg text-primary-foreground/70">
-            Crea tu cuenta gratis y empieza a recibir pedidos en menos de 30 minutos.
+            Crea tu cuenta gratis y empieza a recibir pedidos pagados en minutos.
           </p>
           <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Button asChild size="lg" variant="secondary" className="w-full sm:w-auto">
@@ -279,7 +273,7 @@ export default function Home() {
             <span className="font-sans font-semibold text-foreground">Solo Cafe</span>
           </div>
           <p className="text-sm text-muted-foreground">
-            Hecho para cafeterías independientes.
+            Conectamos personas y lugares en el momento presente.
           </p>
           <div className="flex gap-6 text-sm text-muted-foreground">
             <Link href="/auth/login" className="hover:text-foreground">Entrar</Link>

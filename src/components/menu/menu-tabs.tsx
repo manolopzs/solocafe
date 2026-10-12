@@ -27,7 +27,7 @@ export function MenuTabs({ shop, menu }: { shop: Shop; menu: FullMenu }) {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="font-sans text-2xl font-semibold tracking-tight text-foreground">Menu</h1>
-          <p className="mt-1 text-muted-foreground">Administra categorias, productos y modificadores.</p>
+          <p className="mt-1 text-muted-foreground">Define 5 a 7 opciones simples. Menos configuracion, mas velocidad de venta.</p>
         </div>
         <Button asChild variant="outline">
           <Link href={`/${shop.slug}`} target="_blank">

@@ -143,7 +143,7 @@ export default async function CheckoutPage({ params, searchParams }: CheckoutPag
         <div className="mb-4 flex flex-wrap items-center gap-2">
           <Badge variant="outline" className="gap-1.5">
             <Icon name="check" className="h-3 w-3" />
-            Pago seguro con Stripe
+            Apple Pay, Google Pay y tarjeta
           </Badge>
           <Badge variant="outline" className="gap-1.5">
             <Icon name="clock" className="h-3 w-3" />
