@@ -181,7 +181,7 @@ export function OrderPageClient({
     setActiveCategory(categoryId)
     const el = categoryRefs.current[categoryId]
     if (el) {
-      const offset = 110
+      const offset = 120
       const top = el.getBoundingClientRect().top + window.scrollY - offset
       window.scrollTo({ top, behavior: 'smooth' })
     }
@@ -195,7 +195,7 @@ export function OrderPageClient({
 
   useEffect(() => {
     const handleScroll = () => {
-      const scrollPos = window.scrollY + 140
+      const scrollPos = window.scrollY + 150
       let current = visibleCategories[0]?.id ?? ''
       for (const category of visibleCategories) {
         const el = categoryRefs.current[category.id]
@@ -227,55 +227,55 @@ export function OrderPageClient({
     [visibleCategories, uncategorizedItems.length]
   )
 
-  const brandColor = shop.brand_color || '#c45d3a'
+  const brandColor = shop.brand_color || '#c17c5b'
 
   return (
-    <div className="min-h-screen bg-background pb-36">
+    <div className="min-h-screen bg-background pb-40">
       <header className="relative overflow-hidden bg-surface">
         <div
-          className="absolute inset-0 opacity-[0.08]"
-          style={{ background: `linear-gradient(135deg, ${brandColor} 0%, transparent 70%)` }}
+          className="absolute inset-0 opacity-[0.12]"
+          style={{ background: `linear-gradient(135deg, ${brandColor} 0%, transparent 65%)` }}
         />
-        <div className="relative mx-auto max-w-3xl px-5 py-7">
+        <div className="relative mx-auto max-w-3xl px-5 pb-5 pt-6">
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-start gap-4">
               {shop.logo_url ? (
-              <div className="relative h-18 w-18 shrink-0 overflow-hidden rounded-2xl border border-border bg-background shadow-sm">
-                <Image src={shop.logo_url} alt={shop.name} fill className="object-cover" />
-              </div>
-            ) : (
-              <div className="flex h-18 w-18 shrink-0 items-center justify-center rounded-2xl border border-border bg-background shadow-sm">
-                <Icon name="store" className="h-9 w-9 text-muted-foreground" />
-              </div>
-            )}
-            <div className="min-w-0 flex-1 pt-0.5">
-              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Bienvenido a</p>
-              <h1 className="text-2xl font-semibold tracking-tight text-foreground">{shop.name}</h1>
-              {shop.address && (
-                <p className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
-                  <Icon name="map-pin" className="h-3.5 w-3.5" />
-                  {shop.address}
-                </p>
+                <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-2xl border-2 border-white bg-white shadow-md">
+                  <Image src={shop.logo_url} alt={shop.name} fill className="object-cover" />
+                </div>
+              ) : (
+                <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl border-2 border-white bg-white shadow-md">
+                  <Icon name="store" className="h-10 w-10 text-muted-foreground" />
+                </div>
               )}
-              <div className="mt-3 flex flex-wrap items-center gap-2">
-                <Badge variant="success" className="gap-1.5 pl-2">
-                  <span className="h-1.5 w-1.5 rounded-full bg-success" />
-                  Abierto
-                </Badge>
-                <Badge variant="secondary">Para recoger</Badge>
+              <div className="min-w-0 flex-1 pt-1">
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Bienvenido a</p>
+                <h1 className="text-2xl font-bold tracking-tight text-foreground">{shop.name}</h1>
+                {shop.address && (
+                  <p className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
+                    <Icon name="map-pin" className="h-3.5 w-3.5" />
+                    {shop.address}
+                  </p>
+                )}
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <Badge variant="success" className="gap-1.5 pl-2">
+                    <span className="h-1.5 w-1.5 rounded-full bg-success" />
+                    Abierto
+                  </Badge>
+                  <Badge variant="secondary">Para recoger</Badge>
+                </div>
               </div>
             </div>
+            <Link
+              href={customer ? '/account' : '/account/login'}
+              className="flex shrink-0 items-center justify-center rounded-full bg-white p-3 text-foreground shadow-sm transition-transform hover:scale-105 active:scale-95"
+              aria-label={customer ? 'Mi cuenta' : 'Iniciar sesión'}
+            >
+              <Icon name="user" className="h-5 w-5" />
+            </Link>
           </div>
-          <Link
-            href={customer ? '/account' : '/account/login'}
-            className="flex shrink-0 items-center justify-center rounded-full bg-background p-2.5 text-foreground shadow-sm hover:bg-surface"
-            aria-label={customer ? 'Mi cuenta' : 'Iniciar sesión'}
-          >
-            <Icon name="user" className="h-5 w-5" />
-          </Link>
         </div>
-      </div>
-    </header>
+      </header>
 
       <div className="sticky top-0 z-30 border-b border-border bg-background/95 backdrop-blur-md">
         <div className="mx-auto max-w-3xl">
@@ -285,7 +285,7 @@ export function OrderPageClient({
                 key={category.id}
                 onClick={() => scrollToCategory(category.id)}
                 className={[
-                  'shrink-0 rounded-full px-4 py-2 text-sm font-medium transition-all duration-200',
+                  'shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition-all duration-200',
                   activeCategory === category.id
                     ? 'bg-foreground text-primary-foreground shadow-sm'
                     : 'bg-surface text-foreground hover:bg-secondary',
@@ -298,7 +298,7 @@ export function OrderPageClient({
         </div>
       </div>
 
-      <main className="mx-auto max-w-3xl px-5 py-6">
+      <main className="mx-auto max-w-3xl px-5 py-7">
         {visibleCategories.map((category) => {
           const categoryItems = itemsByCategory.get(category.id) ?? []
           if (categoryItems.length === 0) return null
@@ -308,8 +308,8 @@ export function OrderPageClient({
               ref={(el: HTMLDivElement | null) => { categoryRefs.current[category.id] = el }}
               className="mb-12"
             >
-              <h2 className="text-xl font-semibold tracking-tight text-foreground">{category.name}</h2>
-              <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <h2 className="text-xl font-bold tracking-tight text-foreground">{category.name}</h2>
+              <div className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-3">
                 {categoryItems.map((item) => (
                   <ProductCard
                     key={item.id}
@@ -330,8 +330,8 @@ export function OrderPageClient({
             ref={(el: HTMLDivElement | null) => { categoryRefs.current['uncategorized'] = el }}
             className="mb-12"
           >
-            <h2 className="text-xl font-semibold tracking-tight text-foreground">Otros</h2>
-            <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <h2 className="text-xl font-bold tracking-tight text-foreground">Otros</h2>
+            <div className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-3">
               {uncategorizedItems.map((item) => (
                 <ProductCard
                   key={item.id}
@@ -368,7 +368,7 @@ export function OrderPageClient({
           {cart.length === 0 ? (
             <div className="flex flex-1 flex-col items-center justify-center py-10 text-center text-muted-foreground">
               <div className="flex h-16 w-16 items-center justify-center rounded-full bg-surface">
-                <Icon name="cart" className="h-8 w-8 text-muted-foreground" />
+                <Icon name="cart" className="h-8 w-8" />
               </div>
               <p className="mt-4 font-medium text-foreground">Tu carrito está vacío</p>
               <p className="mt-1 text-sm">Agrega productos para comenzar tu pedido.</p>
@@ -378,18 +378,18 @@ export function OrderPageClient({
               <div className="flex-1 space-y-6 overflow-y-auto">
                 <div className="space-y-3">
                   {cart.map((line, idx) => (
-                    <div key={idx} className="flex items-start gap-3 rounded-xl border border-border bg-background p-3">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-surface text-sm font-semibold text-foreground">
+                    <div key={idx} className="flex items-start gap-3 rounded-xl border border-border bg-surface p-3">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-background text-sm font-bold text-foreground">
                         {line.quantity}
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="font-medium text-foreground">{line.item.name}</p>
+                        <p className="font-semibold text-foreground">{line.item.name}</p>
                         {line.modifiers.length > 0 && (
                           <p className="text-sm text-muted-foreground">
                             {line.modifiers.map((m) => m.name).join(', ')}
                           </p>
                         )}
-                        <p className="mt-1 text-sm font-medium text-foreground">
+                        <p className="mt-1 text-sm font-bold text-foreground">
                           {formatPrice((line.item.price_cents + line.modifiers.reduce((s, m) => s + m.price_cents, 0)) * line.quantity)}
                         </p>
                       </div>
@@ -409,7 +409,7 @@ export function OrderPageClient({
                           >
                             <Icon name="minus" className="h-3.5 w-3.5" />
                           </button>
-                          <span className="w-6 text-center text-sm font-medium">{line.quantity}</span>
+                          <span className="w-6 text-center text-sm font-bold">{line.quantity}</span>
                           <button
                             onClick={() => updateQuantity(idx, 1)}
                             className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-background text-foreground hover:bg-surface"
@@ -424,7 +424,7 @@ export function OrderPageClient({
                 </div>
 
                 <div className="rounded-xl border border-border bg-surface p-4">
-                  <div className="flex items-center justify-between text-base font-semibold text-foreground">
+                  <div className="flex items-center justify-between text-base font-bold text-foreground">
                     <span>Total</span>
                     <span>{formatPrice(totalCents)}</span>
                   </div>
@@ -434,7 +434,7 @@ export function OrderPageClient({
                   <div className="rounded-xl border border-border bg-surface p-4 text-sm">
                     <p className="text-foreground">
                       ¿Quieres guardar este pedido y reordenar más rápido?{' '}
-                      <Link href="/account/signup" className="font-medium text-accent hover:underline">
+                      <Link href="/account/signup" className="font-bold text-accent hover:underline">
                         Crea una cuenta
                       </Link>
                     </p>
@@ -443,7 +443,7 @@ export function OrderPageClient({
 
                 <div className="space-y-3">
                   <div>
-                    <label htmlFor="customerName" className="block text-sm font-medium text-foreground">
+                    <label htmlFor="customerName" className="block text-sm font-semibold text-foreground">
                       Nombre
                     </label>
                     <Input
@@ -456,7 +456,7 @@ export function OrderPageClient({
                     />
                   </div>
                   <div>
-                    <label htmlFor="customerPhone" className="block text-sm font-medium text-foreground">
+                    <label htmlFor="customerPhone" className="block text-sm font-semibold text-foreground">
                       Teléfono
                     </label>
                     <Input
@@ -469,7 +469,7 @@ export function OrderPageClient({
                     />
                   </div>
                   <div>
-                    <label htmlFor="instructions" className="block text-sm font-medium text-foreground">
+                    <label htmlFor="instructions" className="block text-sm font-semibold text-foreground">
                       Instrucciones especiales
                     </label>
                     <Textarea
@@ -484,7 +484,7 @@ export function OrderPageClient({
                 </div>
 
                 <div>
-                  <p className="block text-sm font-medium text-foreground">Tipo de recogida</p>
+                  <p className="block text-sm font-semibold text-foreground">Tipo de recogida</p>
                   <div className="mt-1.5 grid grid-cols-2 gap-2">
                     <button
                       type="button"
@@ -493,10 +493,10 @@ export function OrderPageClient({
                         'rounded-xl border px-4 py-3 text-left text-sm transition-all',
                         pickupType === 'asap'
                           ? 'border-foreground bg-foreground text-primary-foreground'
-                          : 'border-border bg-background text-foreground hover:bg-surface',
+                          : 'border-border bg-surface-elevated text-foreground hover:bg-surface',
                       ].join(' ')}
                     >
-                      <span className="block font-medium">Lo antes posible</span>
+                      <span className="block font-bold">Lo antes posible</span>
                       <span className="block text-xs opacity-80">Preparamos tu pedido ya</span>
                     </button>
                     <button
@@ -504,7 +504,7 @@ export function OrderPageClient({
                       disabled
                       className="relative rounded-xl border border-border bg-surface px-4 py-3 text-left text-sm text-muted-foreground"
                     >
-                      <span className="block font-medium">Programado</span>
+                      <span className="block font-bold">Programado</span>
                       <span className="block text-xs">Próximamente</span>
                     </button>
                   </div>
@@ -528,7 +528,7 @@ export function OrderPageClient({
         </div>
       </Sheet>
 
-      <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-background/95 p-4 shadow-lg backdrop-blur-md safe-bottom">
+      <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-surface-elevated/95 p-4 shadow-lg backdrop-blur-md safe-bottom">
         <div className="mx-auto max-w-3xl">
           <Button
             onClick={() => setCartOpen(true)}
@@ -540,10 +540,10 @@ export function OrderPageClient({
               <Icon name="cart" className="h-5 w-5" />
               Ver pedido
               {totalItems > 0 && (
-                <span className="rounded-full bg-primary-foreground/20 px-2 py-0.5 text-sm">{totalItems}</span>
+                <span className="rounded-full bg-primary-foreground/20 px-2.5 py-0.5 text-sm font-bold">{totalItems}</span>
               )}
             </span>
-            <span className="ml-auto">{formatPrice(totalCents)}</span>
+            <span className="ml-auto font-bold">{formatPrice(totalCents)}</span>
           </Button>
         </div>
       </div>
@@ -568,35 +568,31 @@ function ProductCard({
     <button
       onClick={onClick}
       className={[
-        'group flex gap-4 overflow-hidden rounded-xl border border-border bg-surface-elevated p-3 text-left transition-all duration-200',
-        'hover:shadow-md hover:border-border/80 active:scale-[0.99]',
+        'group flex flex-col overflow-hidden rounded-2xl border border-border bg-surface-elevated text-left transition-all duration-200',
+        'hover:shadow-lg hover:border-border/80 active:scale-[0.98]',
         highlight ? 'ring-2 ring-accent ring-offset-2' : '',
       ].join(' ')}
     >
-      <div className="relative aspect-square w-28 shrink-0 overflow-hidden rounded-lg bg-surface">
+      <div className="relative aspect-square w-full overflow-hidden bg-surface">
         {item.image_url ? (
           <Image src={item.image_url} alt={item.name} fill className="object-cover transition-transform duration-300 group-hover:scale-105" />
         ) : (
-          <div className="flex h-full w-full items-center justify-center bg-surface">
-            <Icon name="utensils" className="h-8 w-8 text-muted-foreground/40" />
+          <div className="flex h-full w-full flex-col items-center justify-center gap-2 bg-surface text-muted-foreground">
+            <Icon name="utensils" className="h-8 w-8 opacity-40" />
           </div>
         )}
-      </div>
-      <div className="flex min-w-0 flex-1 flex-col py-1">
-        <div className="flex items-start justify-between gap-2">
-          <h3 className="font-medium text-foreground">{item.name}</h3>
-        </div>
-        {item.description && (
-          <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{item.description}</p>
+        {customizable && (
+          <span className="absolute right-2 top-2 rounded-full bg-background/90 px-2 py-0.5 text-[0.6rem] font-bold text-foreground shadow-sm backdrop-blur-sm">
+            Personalizable
+          </span>
         )}
-        <div className="mt-auto flex items-center justify-between pt-3">
-          <p className="text-sm font-semibold text-foreground">{formatPrice(item.price_cents)}</p>
-          {customizable && (
-            <span className="rounded-full bg-surface px-2 py-0.5 text-[0.65rem] font-medium text-muted-foreground">
-              Personalizable
-            </span>
-          )}
-        </div>
+      </div>
+      <div className="flex flex-1 flex-col p-3">
+        <h3 className="font-bold leading-tight text-foreground">{item.name}</h3>
+        {item.description && (
+          <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{item.description}</p>
+        )}
+        <p className="mt-auto pt-2 text-sm font-bold text-foreground">{formatPrice(item.price_cents)}</p>
       </div>
     </button>
   )
@@ -650,26 +646,26 @@ function ProductSheet({
   return (
     <Sheet open onClose={onClose} position="bottom">
       <div className="flex flex-col">
-        <div className="relative aspect-[16/10] w-full overflow-hidden rounded-xl bg-surface">
+        <div className="relative aspect-[16/10] w-full overflow-hidden rounded-2xl bg-surface">
           {item.image_url ? (
             <Image src={item.image_url} alt={item.name} fill className="object-cover" />
           ) : (
-            <div className="flex h-full w-full items-center justify-center bg-surface">
-              <Icon name="utensils" className="h-16 w-16 text-muted-foreground/30" />
+            <div className="flex h-full w-full flex-col items-center justify-center gap-2 bg-surface text-muted-foreground">
+              <Icon name="utensils" className="h-16 w-16 opacity-30" />
             </div>
           )}
         </div>
 
-        <div className="mt-4">
-          <h2 className="text-xl font-semibold tracking-tight text-foreground">{item.name}</h2>
-          <p className="text-lg font-semibold text-foreground">{formatPrice(item.price_cents)}</p>
+        <div className="mt-5">
+          <h2 className="text-2xl font-bold tracking-tight text-foreground">{item.name}</h2>
+          <p className="text-lg font-bold text-foreground">{formatPrice(item.price_cents)}</p>
           {item.description && <p className="mt-1 text-sm text-muted-foreground">{item.description}</p>}
         </div>
 
         {groups.map((group) => (
           <div key={group.id} className="mt-5">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-foreground">{group.name}</h3>
+              <h3 className="text-sm font-bold text-foreground">{group.name}</h3>
               {group.max_select > 1 && (
                 <span className="text-xs text-muted-foreground">Selecciona hasta {group.max_select}</span>
               )}
@@ -682,7 +678,7 @@ function ProductSheet({
                     key={option.id}
                     onClick={() => toggleOption(group.id, option.id, group.max_select)}
                     className={[
-                      'rounded-full px-4 py-2 text-sm font-medium transition-all',
+                      'rounded-full px-4 py-2 text-sm font-semibold transition-all',
                       isSelected
                         ? 'bg-foreground text-primary-foreground'
                         : 'bg-surface text-foreground hover:bg-secondary border border-border',
@@ -700,19 +696,19 @@ function ProductSheet({
         ))}
 
         <div className="mt-6 flex items-center justify-between rounded-xl border border-border bg-surface p-2">
-          <span className="pl-3 text-sm font-medium text-foreground">Cantidad</span>
+          <span className="pl-3 text-sm font-bold text-foreground">Cantidad</span>
           <div className="flex items-center gap-3">
             <button
               onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-              className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-background text-foreground hover:bg-surface"
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-background text-foreground hover:bg-surface"
               aria-label="Disminuir"
             >
               <Icon name="minus" className="h-4 w-4" />
             </button>
-            <span className="w-6 text-center font-semibold">{quantity}</span>
+            <span className="w-6 text-center text-lg font-bold">{quantity}</span>
             <button
               onClick={() => setQuantity((q) => q + 1)}
-              className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-background text-foreground hover:bg-surface"
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-background text-foreground hover:bg-surface"
               aria-label="Aumentar"
             >
               <Icon name="plus" className="h-4 w-4" />

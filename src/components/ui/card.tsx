@@ -6,7 +6,7 @@ export interface CardProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 const variantStyles: Record<Required<CardProps>['variant'], string> = {
-  default: 'bg-surface-elevated border border-border',
+  default: 'bg-surface-elevated border border-border shadow-sm',
   outline: 'bg-surface-elevated border border-border',
   flat: 'bg-surface',
 }
@@ -15,7 +15,7 @@ export function Card({ children, variant = 'default', className = '', ...props }
   return (
     <div
       className={[
-        'rounded-lg',
+        'rounded-2xl',
         variantStyles[variant],
         className,
       ].join(' ')}

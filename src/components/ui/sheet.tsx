@@ -92,12 +92,12 @@ export function Sheet({ open, onClose, title, children, position = 'bottom', cla
       <div
         ref={sheetRef}
         className={[
-          'absolute bg-surface-elevated shadow-lg transition-all duration-200 ease-out',
+          'absolute bg-surface-elevated shadow-2xl transition-all duration-300 ease-out',
           isBottom
-            ? 'bottom-0 left-0 right-0 top-auto max-h-[90vh] rounded-t-lg'
+            ? 'bottom-0 left-0 right-0 top-auto max-h-[92vh] rounded-t-2xl'
             : isRight
-              ? 'right-0 top-0 bottom-0 h-full w-full max-w-md rounded-l-lg'
-              : 'left-1/2 top-1/2 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-lg',
+              ? 'right-0 top-0 bottom-0 h-full w-full max-w-md rounded-l-2xl'
+              : 'left-1/2 top-1/2 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-2xl',
           isBottom && visible ? 'translate-y-0' : '',
           isBottom && !visible ? 'translate-y-full' : '',
           isRight && visible ? 'translate-x-0' : '',
@@ -113,25 +113,27 @@ export function Sheet({ open, onClose, title, children, position = 'bottom', cla
             onPointerMove={handlePointerMove}
             onPointerUp={handlePointerUp}
             onPointerCancel={handlePointerUp}
-            className="flex cursor-grab justify-center pt-3 pb-1 active:cursor-grabbing"
+            className="flex cursor-grab justify-center pt-4 pb-2 active:cursor-grabbing"
           >
-            <div className="h-1.5 w-12 rounded-full bg-subtle" />
+            <div className="h-1.5 w-14 rounded-full bg-subtle" />
           </div>
         )}
-        <div className="flex items-center justify-between border-b border-border px-6 py-4">
-          <div className="text-lg font-semibold text-foreground">{title}</div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-lg p-1.5 text-muted-foreground hover:bg-surface hover:text-foreground"
-            aria-label="Cerrar"
-          >
-            <X className="h-5 w-5" />
-          </button>
-        </div>
+        {title && (
+          <div className="flex items-center justify-between border-b border-border px-6 py-4">
+            <div className="text-lg font-semibold text-foreground">{title}</div>
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-full p-2 text-muted-foreground hover:bg-surface hover:text-foreground"
+              aria-label="Cerrar"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+        )}
         <div className={[
           'overflow-y-auto',
-          isBottom ? 'max-h-[calc(90vh-4rem)]' : 'h-[calc(100%-4rem)]',
+          isBottom ? 'max-h-[calc(92vh-4rem)]' : 'h-[calc(100%-4rem)]',
           'p-6',
         ].join(' ')}>{children}</div>
       </div>

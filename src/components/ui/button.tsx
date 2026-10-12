@@ -9,26 +9,26 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantStyles: Record<Required<ButtonProps>['variant'], string> = {
   primary:
-    'bg-primary text-primary-foreground shadow-sm hover:bg-primary-hover active:bg-foreground active:scale-[0.98] disabled:bg-subtle disabled:text-muted-foreground',
+    'bg-primary text-primary-foreground shadow-md hover:bg-primary-hover hover:shadow-lg active:scale-[0.97] disabled:bg-subtle disabled:text-muted-foreground disabled:shadow-none',
   secondary:
-    'bg-background text-foreground border border-border hover:bg-surface hover:shadow-sm active:bg-surface active:scale-[0.98] disabled:bg-surface disabled:text-muted-foreground',
+    'bg-surface text-foreground border border-border hover:bg-background hover:shadow-sm active:scale-[0.97] disabled:bg-surface disabled:text-muted-foreground',
   outline:
-    'border border-border bg-background text-foreground hover:bg-surface active:bg-surface active:scale-[0.98] disabled:bg-surface disabled:text-muted-foreground',
+    'border border-border bg-surface-elevated text-foreground hover:bg-surface hover:shadow-sm active:scale-[0.97] disabled:bg-surface disabled:text-muted-foreground',
   ghost:
-    'bg-transparent text-foreground hover:bg-surface active:bg-surface active:scale-[0.98] disabled:text-muted-foreground',
+    'bg-transparent text-foreground hover:bg-surface active:scale-[0.97] disabled:text-muted-foreground',
   destructive:
-    'bg-danger text-danger-foreground shadow-sm hover:bg-red-700 active:bg-red-800 active:scale-[0.98] disabled:bg-red-200 disabled:text-white/70',
+    'bg-danger text-danger-foreground shadow-md hover:bg-red-700 active:scale-[0.97] disabled:bg-red-200 disabled:text-white/70',
   danger:
-    'bg-danger text-danger-foreground shadow-sm hover:bg-red-700 active:bg-red-800 active:scale-[0.98] disabled:bg-red-200 disabled:text-white/70',
+    'bg-danger text-danger-foreground shadow-md hover:bg-red-700 active:scale-[0.97] disabled:bg-red-200 disabled:text-white/70',
 }
 
 const sizeStyles: Record<Required<ButtonProps>['size'], string> = {
-  sm: 'h-9 px-3 text-sm rounded-lg gap-1.5',
-  default: 'h-11 px-5 text-sm rounded-lg gap-2',
-  md: 'h-11 px-5 text-sm rounded-lg gap-2',
-  lg: 'h-12 px-6 text-base rounded-lg gap-2',
-  xl: 'h-12 px-6 text-base rounded-lg gap-2',
-  icon: 'h-10 w-10 rounded-lg',
+  sm: 'h-9 px-4 text-sm rounded-full gap-1.5',
+  default: 'h-12 px-6 text-sm rounded-full gap-2',
+  md: 'h-12 px-6 text-sm rounded-full gap-2',
+  lg: 'h-14 px-8 text-base rounded-full gap-2',
+  xl: 'h-14 px-8 text-base rounded-full gap-2',
+  icon: 'h-11 w-11 rounded-full',
 }
 
 export function Button({
