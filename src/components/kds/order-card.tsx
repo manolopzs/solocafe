@@ -89,38 +89,38 @@ export function OrderCard({
 
   return (
     <Card variant="outline" className={`flex flex-col overflow-hidden border-l-8 ${urgencyClass}`}>
-      <div className="flex items-start justify-between border-b border-border bg-surface-elevated px-4 py-3">
-        <div>
-          <p className="font-sans text-5xl font-bold leading-none text-foreground">
+      <div className="flex items-start justify-between border-b border-border bg-surface-elevated px-3 py-3 sm:px-4">
+        <div className="min-w-0 flex-1">
+          <p className="font-sans text-4xl font-bold leading-none text-foreground sm:text-5xl">
             #{shortOrderNumber(order.id)}
           </p>
-          <p className="mt-1 text-lg font-semibold text-foreground">
+          <p className="mt-1 text-base font-semibold text-foreground sm:text-lg">
             {order.customer_name || 'Cliente'}
           </p>
           {order.customer_phone && (
-            <p className="text-base text-muted-foreground">{order.customer_phone}</p>
+            <p className="text-sm text-muted-foreground sm:text-base">{order.customer_phone}</p>
           )}
         </div>
-        <div className="flex flex-col items-end gap-2">
-          <Badge variant={statusVariants[order.status] ?? 'secondary'} className="text-sm">
+        <div className="flex flex-col items-end gap-2 pl-3">
+          <Badge variant={statusVariants[order.status] ?? 'secondary'} className="text-xs sm:text-sm">
             {statusLabels[order.status]}
           </Badge>
-          <div className="flex items-center gap-1 text-xl font-semibold text-muted-foreground">
-            <Icon name="clock" className="h-5 w-5" />
+          <div className="flex items-center gap-1 text-lg font-semibold text-muted-foreground sm:text-xl">
+            <Icon name="clock" className="h-4 w-4 sm:h-5 sm:w-5" />
             {formatElapsed(order.created_at, now)}
           </div>
         </div>
       </div>
 
-      <div className="flex-1 bg-surface-elevated p-4">
+      <div className="flex-1 bg-surface-elevated p-3 sm:p-4">
         <ul className="space-y-2">
           {items.map((item) => (
-            <li key={item.id} className="rounded-lg border border-border bg-surface p-3">
-              <span className="text-xl font-bold text-foreground">
+            <li key={item.id} className="rounded-lg border border-border bg-surface p-2.5 sm:p-3">
+              <span className="text-base font-bold text-foreground sm:text-xl">
                 {item.quantity}x {item.item_name_snapshot}
               </span>
               {item.modifiers && item.modifiers.length > 0 && (
-                <p className="mt-1 text-lg text-muted-foreground">
+                <p className="mt-1 text-sm text-muted-foreground sm:text-lg">
                   {item.modifiers.map((m) => m.option_name_snapshot).join(', ')}
                 </p>
               )}
@@ -129,23 +129,23 @@ export function OrderCard({
         </ul>
 
         {order.special_instructions && (
-          <div className="mt-3 flex gap-2 rounded-lg border border-border bg-surface p-3 text-lg text-foreground">
-            <Icon name="message-circle" className="mt-0.5 h-5 w-5 shrink-0 text-accent" />
+          <div className="mt-3 flex gap-2 rounded-lg border border-border bg-surface p-2.5 text-sm text-foreground sm:p-3 sm:text-lg">
+            <Icon name="message-circle" className="mt-0.5 h-4 w-4 shrink-0 text-accent sm:h-5 sm:w-5" />
             {order.special_instructions}
           </div>
         )}
 
-        <p className="mt-4 text-lg font-semibold text-foreground">
+        <p className="mt-3 text-base font-semibold text-foreground sm:mt-4 sm:text-lg">
           Total: {order.currency ?? ''} {(order.total_cents / 100).toFixed(2)}
         </p>
       </div>
 
-      <div className="flex flex-col gap-2 border-t border-border bg-surface-elevated p-4">
+      <div className="flex flex-col gap-2 border-t border-border bg-surface-elevated p-3 sm:p-4">
         {action && (
           <Button
             variant="primary"
             size="lg"
-            className="h-16 w-full text-2xl font-bold"
+            className="h-14 w-full text-xl font-bold touch-manipulation sm:h-16 sm:text-2xl"
             onClick={() => updateOrderStatus(shopId, order.id, action.status as any)}
           >
             {action.label}
@@ -155,7 +155,7 @@ export function OrderCard({
           <Button
             variant="outline"
             size="lg"
-            className="h-12 w-full text-lg text-danger hover:bg-danger/10"
+            className="h-12 w-full text-base text-danger hover:bg-danger/10 touch-manipulation sm:text-lg"
             onClick={() => updateOrderStatus(shopId, order.id, 'cancelled')}
           >
             Cancelar

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { Card } from "@/components/ui/card";
+import { MobileNav } from "@/components/landing/mobile-nav";
 
 export default function Home() {
   return (
@@ -22,13 +23,14 @@ export default function Home() {
             <Link href="#cafeterias" className="hover:text-foreground">Cafeterías</Link>
             <Link href="#precios" className="hover:text-foreground">Precios</Link>
           </div>
-          <div className="flex items-center gap-3">
-            <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex whitespace-nowrap">
               <Link href="/auth/login">Entrar</Link>
             </Button>
-            <Button asChild size="sm">
+            <Button asChild size="sm" className="whitespace-nowrap">
               <Link href="/auth/signup">Empezar gratis</Link>
             </Button>
+            <MobileNav />
           </div>
         </div>
       </nav>

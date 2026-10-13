@@ -58,6 +58,7 @@ export function KdsClient({
   const [soundEnabled, setSoundEnabled] = useState(false)
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
   const [isFullscreen, setIsFullscreen] = useState(false)
+  const [mobileColumn, setMobileColumn] = useState<OrderWithItems['status']>('received')
 
   useEffect(() => {
     const handleChange = () => {
@@ -160,29 +161,76 @@ export function KdsClient({
           </p>
         </div>
       ) : (
-        <div className="grid flex-1 grid-cols-1 gap-4 md:grid-cols-3">
-          {columns.map((column) => {
-            const columnOrders = orders.filter((o) => o.status === column.status)
-            return (
-              <section
-                key={column.status}
-                className="flex flex-col rounded-xl border border-border bg-surface p-3"
-              >
-                <div className="mb-3 flex items-center justify-between px-1">
-                  <h2 className="font-sans text-lg font-semibold text-foreground">{column.label}</h2>
-                  <Badge variant="secondary" className="text-sm">
-                    {columnOrders.length}
+        <>
+          <div className="flex gap-2 md:hidden">
+            {columns.map((column) => {
+              const count = orders.filter((o) => o.status === column.status).length
+              return (
+                <button
+                  key={column.status}
+                  onClick={() => setMobileColumn(column.status)}
+                  className={[
+                    'flex flex-1 items-center justify-center gap-2 rounded-xl border px-3 py-2 text-sm font-semibold transition-colors touch-manipulation',
+                    mobileColumn === column.status
+                      ? 'border-foreground bg-foreground text-primary-foreground'
+                      : 'border-border bg-surface text-foreground hover:bg-secondary',
+                  ].join(' ')}
+                >
+                  {column.label}
+                  <Badge variant={mobileColumn === column.status ? 'secondary' : 'default'} className="text-xs">
+                    {count}
                   </Badge>
-                </div>
-                <div className="flex flex-col gap-3 overflow-y-auto pr-1">
-                  {columnOrders.map((order) => (
-                    <OrderCard key={order.id} order={order} items={order.items} shopId={shopId} />
-                  ))}
-                </div>
-              </section>
-            )
-          })}
-        </div>
+                </button>
+              )
+            })}
+          </div>
+
+          <div className="hidden flex-1 grid-cols-3 gap-4 md:grid">
+            {columns.map((column) => {
+              const columnOrders = orders.filter((o) => o.status === column.status)
+              return (
+                <section
+                  key={column.status}
+                  className="flex flex-col rounded-xl border border-border bg-surface p-3"
+                >
+                  <div className="mb-3 flex items-center justify-between px-1">
+                    <h2 className="font-sans text-lg font-semibold text-foreground">{column.label}</h2>
+                    <Badge variant="secondary" className="text-sm">
+                      {columnOrders.length}
+                    </Badge>
+                  </div>
+                  <div className="flex flex-col gap-3 overflow-y-auto pr-1">
+                    {columnOrders.map((order) => (
+                      <OrderCard key={order.id} order={order} items={order.items} shopId={shopId} />
+                    ))}
+                  </div>
+                </section>
+              )
+            })}
+          </div>
+
+          <div className="flex flex-1 flex-col md:hidden">
+            {(() => {
+              const column = columns.find((c) => c.status === mobileColumn) ?? columns[0]
+              const columnOrders = orders.filter((o) => o.status === column.status)
+              return (
+                <section className="flex flex-1 flex-col rounded-xl border border-border bg-surface p-3">
+                  <div className="mb-3 flex items-center justify-between px-1">
+                    <h2 className="font-sans text-lg font-semibold text-foreground">{column.label}</h2>
+                    <Badge variant="secondary" className="text-sm">
+                      {columnOrders.length}
+                    </Badge>
+                  </div>
+                  <div className="flex flex-1 flex-col gap-3 overflow-y-auto pr-1">
+                    {columnOrders.map((order) => (
+                      <OrderCard key={order.id} order={order} items={order.items} shopId={shopId} />
+                    ))}
+                  </div>
+                </section>
+              )
+            })()}
+          </div>
+        </>
       )}
     </div>
   )

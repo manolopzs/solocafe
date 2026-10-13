@@ -236,39 +236,39 @@ export function OrderPageClient({
           className="absolute inset-0 opacity-[0.12]"
           style={{ background: `linear-gradient(135deg, ${brandColor} 0%, transparent 65%)` }}
         />
-        <div className="relative mx-auto max-w-3xl px-5 pb-5 pt-6">
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex items-start gap-4">
+        <div className="relative mx-auto max-w-3xl px-4 pb-4 pt-5 sm:px-5 sm:pb-5 sm:pt-6">
+          <div className="flex items-start justify-between gap-3 sm:gap-4">
+            <div className="flex items-start gap-3 sm:gap-4">
               {shop.logo_url ? (
-                <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-2xl border-2 border-white bg-white shadow-md">
+                <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-2xl border-2 border-white bg-white shadow-md sm:h-20 sm:w-20">
                   <Image src={shop.logo_url} alt={shop.name} fill className="object-cover" />
                 </div>
               ) : (
-                <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl border-2 border-white bg-white shadow-md">
-                  <Icon name="store" className="h-10 w-10 text-muted-foreground" />
+                <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl border-2 border-white bg-white shadow-md sm:h-20 sm:w-20">
+                  <Icon name="store" className="h-8 w-8 text-muted-foreground sm:h-10 sm:w-10" />
                 </div>
               )}
-              <div className="min-w-0 flex-1 pt-1">
+              <div className="min-w-0 flex-1 pt-0.5 sm:pt-1">
                 <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Bienvenido a</p>
-                <h1 className="text-2xl font-bold tracking-tight text-foreground">{shop.name}</h1>
+                <h1 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">{shop.name}</h1>
                 {shop.address && (
-                  <p className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
-                    <Icon name="map-pin" className="h-3.5 w-3.5" />
-                    {shop.address}
+                  <p className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground sm:mt-1 sm:text-sm">
+                    <Icon name="map-pin" className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+                    <span className="truncate">{shop.address}</span>
                   </p>
                 )}
-                <div className="mt-3 flex flex-wrap items-center gap-2">
-                  <Badge variant="success" className="gap-1.5 pl-2">
+                <div className="mt-2 flex flex-wrap items-center gap-2 sm:mt-3">
+                  <Badge variant="success" className="gap-1.5 pl-2 text-xs sm:text-sm">
                     <span className="h-1.5 w-1.5 rounded-full bg-success" />
                     Abierto
                   </Badge>
-                  <Badge variant="secondary">Para recoger</Badge>
+                  <Badge variant="secondary" className="text-xs sm:text-sm">Para recoger</Badge>
                 </div>
               </div>
             </div>
             <Link
               href={customer ? '/account' : '/account/login'}
-              className="flex shrink-0 items-center justify-center rounded-full bg-white p-3 text-foreground shadow-sm transition-transform hover:scale-105 active:scale-95"
+              className="flex shrink-0 items-center justify-center rounded-full bg-white p-2.5 text-foreground shadow-sm transition-transform hover:scale-105 active:scale-95 sm:p-3"
               aria-label={customer ? 'Mi cuenta' : 'Iniciar sesión'}
             >
               <Icon name="user" className="h-5 w-5" />
@@ -279,13 +279,16 @@ export function OrderPageClient({
 
       <div className="sticky top-0 z-30 border-b border-border bg-background/95 backdrop-blur-md">
         <div className="mx-auto max-w-3xl">
-          <div ref={navRef} className="flex gap-2 overflow-x-auto px-5 py-3 no-scrollbar">
+          <div
+            ref={navRef}
+            className="flex snap-x snap-mandatory gap-2 overflow-x-auto scroll-smooth px-4 py-3 no-scrollbar touch-pan-y sm:px-5"
+          >
             {navItems.map((category) => (
               <button
                 key={category.id}
                 onClick={() => scrollToCategory(category.id)}
                 className={[
-                  'shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition-all duration-200',
+                  'snap-start shrink-0 rounded-full px-3.5 py-2 text-sm font-semibold transition-all duration-200 touch-manipulation',
                   activeCategory === category.id
                     ? 'bg-foreground text-primary-foreground shadow-sm'
                     : 'bg-surface text-foreground hover:bg-secondary',
@@ -308,8 +311,8 @@ export function OrderPageClient({
               ref={(el: HTMLDivElement | null) => { categoryRefs.current[category.id] = el }}
               className="mb-12"
             >
-              <h2 className="text-xl font-bold tracking-tight text-foreground">{category.name}</h2>
-              <div className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-3">
+              <h2 className="text-lg font-bold tracking-tight text-foreground sm:text-xl">{category.name}</h2>
+              <div className="mt-4 grid grid-cols-2 gap-3 sm:mt-5 sm:gap-4 sm:grid-cols-3">
                 {categoryItems.map((item) => (
                   <ProductCard
                     key={item.id}
@@ -330,8 +333,8 @@ export function OrderPageClient({
             ref={(el: HTMLDivElement | null) => { categoryRefs.current['uncategorized'] = el }}
             className="mb-12"
           >
-            <h2 className="text-xl font-bold tracking-tight text-foreground">Otros</h2>
-            <div className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-3">
+            <h2 className="text-lg font-bold tracking-tight text-foreground sm:text-xl">Otros</h2>
+            <div className="mt-4 grid grid-cols-2 gap-3 sm:mt-5 sm:gap-4 sm:grid-cols-3">
               {uncategorizedItems.map((item) => (
                 <ProductCard
                   key={item.id}
@@ -396,7 +399,7 @@ export function OrderPageClient({
                       <div className="flex flex-col items-end gap-2">
                         <button
                           onClick={() => removeLine(idx)}
-                          className="rounded-lg p-1.5 text-muted-foreground hover:bg-surface hover:text-danger"
+                          className="rounded-lg p-2 text-muted-foreground hover:bg-surface hover:text-danger touch-manipulation"
                           aria-label="Eliminar"
                         >
                           <Icon name="trash" className="h-4 w-4" />
@@ -404,7 +407,7 @@ export function OrderPageClient({
                         <div className="flex items-center gap-1">
                           <button
                             onClick={() => updateQuantity(idx, -1)}
-                            className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-background text-foreground hover:bg-surface"
+                            className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-background text-foreground hover:bg-surface touch-manipulation"
                             aria-label="Disminuir"
                           >
                             <Icon name="minus" className="h-3.5 w-3.5" />
@@ -412,7 +415,7 @@ export function OrderPageClient({
                           <span className="w-6 text-center text-sm font-bold">{line.quantity}</span>
                           <button
                             onClick={() => updateQuantity(idx, 1)}
-                            className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-background text-foreground hover:bg-surface"
+                            className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-background text-foreground hover:bg-surface touch-manipulation"
                             aria-label="Aumentar"
                           >
                             <Icon name="plus" className="h-3.5 w-3.5" />
@@ -518,8 +521,8 @@ export function OrderPageClient({
                 )}
               </div>
 
-              <div className="sticky bottom-0 -mx-6 -mb-6 mt-6 border-t border-border bg-surface-elevated p-6">
-                <Button onClick={handleSubmit} disabled={cart.length === 0 || loading} size="lg" className="w-full">
+              <div className="sticky bottom-0 -mx-6 -mb-6 mt-6 border-t border-border bg-surface-elevated p-4 sm:p-6">
+                <Button onClick={handleSubmit} disabled={cart.length === 0 || loading} size="lg" className="w-full touch-manipulation">
                   {loading ? 'Procesando...' : `Pagar ${formatPrice(totalCents)}`}
                 </Button>
               </div>
@@ -534,7 +537,7 @@ export function OrderPageClient({
             onClick={() => setCartOpen(true)}
             disabled={cart.length === 0}
             size="lg"
-            className="w-full"
+            className="w-full touch-manipulation"
           >
             <span className="flex items-center gap-2">
               <Icon name="cart" className="h-5 w-5" />
@@ -568,7 +571,7 @@ function ProductCard({
     <button
       onClick={onClick}
       className={[
-        'group flex flex-col overflow-hidden rounded-2xl border border-border bg-surface-elevated text-left transition-all duration-200',
+        'group flex flex-col overflow-hidden rounded-2xl border border-border bg-surface-elevated text-left transition-all duration-200 touch-manipulation',
         'hover:shadow-lg hover:border-border/80 active:scale-[0.98]',
         highlight ? 'ring-2 ring-accent ring-offset-2' : '',
       ].join(' ')}
@@ -587,10 +590,10 @@ function ProductCard({
           </span>
         )}
       </div>
-      <div className="flex flex-1 flex-col p-3">
-        <h3 className="font-bold leading-tight text-foreground">{item.name}</h3>
+      <div className="flex flex-1 flex-col p-2.5 sm:p-3">
+        <h3 className="text-sm font-bold leading-tight text-foreground sm:text-base">{item.name}</h3>
         {item.description && (
-          <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{item.description}</p>
+          <p className="mt-0.5 line-clamp-2 text-[0.65rem] text-muted-foreground sm:mt-1 sm:text-xs">{item.description}</p>
         )}
         <p className="mt-auto pt-2 text-sm font-bold text-foreground">{formatPrice(item.price_cents)}</p>
       </div>
@@ -646,7 +649,7 @@ function ProductSheet({
   return (
     <Sheet open onClose={onClose} position="bottom">
       <div className="flex flex-col">
-        <div className="relative aspect-[16/10] w-full overflow-hidden rounded-2xl bg-surface">
+        <div className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl bg-surface sm:aspect-[16/10]">
           {item.image_url ? (
             <Image src={item.image_url} alt={item.name} fill className="object-cover" />
           ) : (
@@ -654,11 +657,18 @@ function ProductSheet({
               <Icon name="utensils" className="h-16 w-16 opacity-30" />
             </div>
           )}
+          <button
+            onClick={onClose}
+            className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-background/90 text-foreground shadow-sm backdrop-blur-sm transition-colors hover:bg-background touch-manipulation"
+            aria-label="Cerrar"
+          >
+            <Icon name="x" className="h-5 w-5" />
+          </button>
         </div>
 
-        <div className="mt-5">
-          <h2 className="text-2xl font-bold tracking-tight text-foreground">{item.name}</h2>
-          <p className="text-lg font-bold text-foreground">{formatPrice(item.price_cents)}</p>
+        <div className="mt-4 sm:mt-5">
+          <h2 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">{item.name}</h2>
+          <p className="text-base font-bold text-foreground sm:text-lg">{formatPrice(item.price_cents)}</p>
           {item.description && <p className="mt-1 text-sm text-muted-foreground">{item.description}</p>}
         </div>
 
@@ -678,7 +688,7 @@ function ProductSheet({
                     key={option.id}
                     onClick={() => toggleOption(group.id, option.id, group.max_select)}
                     className={[
-                      'rounded-full px-4 py-2 text-sm font-semibold transition-all',
+                      'rounded-full px-3.5 py-2 text-sm font-semibold transition-all touch-manipulation',
                       isSelected
                         ? 'bg-foreground text-primary-foreground'
                         : 'bg-surface text-foreground hover:bg-secondary border border-border',
@@ -716,8 +726,8 @@ function ProductSheet({
           </div>
         </div>
 
-        <div className="sticky bottom-0 -mx-6 -mb-6 mt-6 border-t border-border bg-surface-elevated p-6">
-          <Button onClick={() => onAdd(quantity)} size="lg" className="w-full">
+        <div className="sticky bottom-0 -mx-6 -mb-6 mt-6 border-t border-border bg-surface-elevated p-4 sm:p-6">
+          <Button onClick={() => onAdd(quantity)} size="lg" className="w-full touch-manipulation">
             Agregar · {formatPrice(itemTotal * quantity)}
           </Button>
         </div>

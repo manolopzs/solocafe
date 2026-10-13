@@ -34,7 +34,7 @@ export default async function QrPage({
           </CardHeader>
           <CardContent className="flex flex-col items-center gap-4">
             <div className="rounded-2xl border border-warm-200 bg-white p-4 shadow-sm">
-              <QrCode url={publicUrl} size={320} />
+              <QrCode url={publicUrl} size={320} className="h-56 w-56 sm:h-72 sm:w-72" />
             </div>
             <p className="text-center text-sm font-medium text-foreground">{shop.name}</p>
           </CardContent>

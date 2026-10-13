@@ -213,8 +213,8 @@ export default async function ShopDashboardPage({
                 <p className="text-sm text-muted-foreground">Los pedidos apareceran aqui.</p>
               </div>
             ) : (
-              <div className="overflow-hidden rounded-xl border border-border">
-                <table className="w-full text-sm">
+              <div className="overflow-x-auto rounded-xl border border-border">
+                <table className="w-full min-w-[28rem] text-sm">
                   <thead className="bg-surface">
                     <tr>
                       <th className="px-4 py-3 text-left font-medium text-muted-foreground">Estado</th>
@@ -273,7 +273,7 @@ export default async function ShopDashboardPage({
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="inline-flex rounded-xl border border-border bg-background p-3">
-                <QrCode url={publicUrl} size={180} />
+                <QrCode url={publicUrl} size={180} className="h-36 w-36 sm:h-44 sm:w-44" />
               </div>
               <div>
                 <Button asChild variant="outline" size="sm">
@@ -297,7 +297,7 @@ export default async function ShopDashboardPage({
             {steps.map((step, idx) => (
               <li
                 key={step.label}
-                className={`flex items-start gap-4 rounded-lg border p-4 ${
+                className={`flex flex-col gap-3 rounded-lg border p-4 sm:flex-row sm:items-start sm:gap-4 ${
                   step.done ? 'border-success/20 bg-success/5' : 'border-border bg-surface'
                 }`}
               >
