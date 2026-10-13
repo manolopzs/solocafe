@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_08_010000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_13_141202) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -221,6 +221,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_08_010000) do
     t.string "brand_color", default: "#000000", null: false
     t.string "stripe_account_id"
     t.string "stripe_connect_status", default: "pending", null: false
+    t.jsonb "operating_hours", default: {}
+    t.integer "slot_duration_minutes", default: 15, null: false
+    t.integer "prep_time_buffer_minutes", default: 10, null: false
+    t.integer "max_days_ahead", default: 7, null: false
     t.uuid "owner_id"
     t.string "status", default: "active", null: false
     t.datetime "created_at", null: false

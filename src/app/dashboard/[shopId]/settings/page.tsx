@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getShopById } from '@/server/queries/shops'
 import { connectStripeAccount } from '@/server/actions/stripe-connect'
+import { ShopSettingsForm } from '@/components/dashboard/shop-settings-form'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -85,6 +86,8 @@ export default async function SettingsPage({
           </Button>
         </CardContent>
       </Card>
+
+      <ShopSettingsForm shopId={shopId} shop={shop} />
     </div>
   )
 }

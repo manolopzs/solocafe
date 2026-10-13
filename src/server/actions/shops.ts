@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { apiPost } from '@/lib/api/server'
+import { apiPost, apiPatch } from '@/lib/api/server'
 import { z } from 'zod'
 
 const sampleMenu = {
@@ -110,6 +110,45 @@ const onboardingSchema = z.object({
 })
 
 export type OnboardingInput = z.infer<typeof onboardingSchema>
+
+const operatingHoursDaySchema = z.object({
+  is_open: z.boolean(),
+  open: z.string().regex(/^\d{2}:\d{2}$/),
+  close: z.string().regex(/^\d{2}:\d{2}$/),
+})
+
+const shopSettingsSchema = z.object({
+  operating_hours: z.object({
+    mon: operatingHoursDaySchema,
+    tue: operatingHoursDaySchema,
+    wed: operatingHoursDaySchema,
+    thu: operatingHoursDaySchema,
+    fri: operatingHoursDaySchema,
+    sat: operatingHoursDaySchema,
+    sun: operatingHoursDaySchema,
+  }),
+  slot_duration_minutes: z.number().int().min(5).max(120),
+  prep_time_buffer_minutes: z.number().int().min(0).max(120),
+  max_days_ahead: z.number().int().min(1).max(30),
+})
+
+export type ShopSettingsInput = z.infer<typeof shopSettingsSchema>
+
+export async function updateShopSettings(shopId: string, input: ShopSettingsInput) {
+  const parsed = shopSettingsSchema.parse(input)
+
+  await apiPatch(`/shops/${shopId}`, {
+    shop: {
+      operating_hours: parsed.operating_hours,
+      slot_duration_minutes: parsed.slot_duration_minutes,
+      prep_time_buffer_minutes: parsed.prep_time_buffer_minutes,
+      max_days_ahead: parsed.max_days_ahead,
+    },
+  })
+
+  revalidatePath(`/dashboard/${shopId}/settings`)
+  revalidatePath(`/${shopId}`)
+}
 
 export async function createShop(input: OnboardingInput) {
   const parsed = onboardingSchema.parse(input)

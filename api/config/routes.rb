@@ -27,6 +27,7 @@ Rails.application.routes.draw do
 
   get "/public/shops", to: "public/shops#index"
   get "/public/shops/:shop_id/menu", to: "public/menus#show"
+  get "/public/shops/:shop_id/pickup_slots", to: "public/pickup_slots#index"
   get "/public/orders/:id", to: "orders#show_public"
 
   post "/payments", to: "payments#create"

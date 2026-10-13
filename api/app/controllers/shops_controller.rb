@@ -15,6 +15,7 @@ class ShopsController < ApplicationController
     ActiveRecord::Base.transaction do
       @shop = Shop.new(shop_params.merge(owner: current_user))
       @shop.status = "active"
+      @shop.operating_hours = Shop::DEFAULT_HOURS if @shop.operating_hours.blank?
 
       if @shop.save
         ShopMember.create!(shop: @shop, user: current_user, role: :owner)
@@ -48,7 +49,9 @@ class ShopsController < ApplicationController
   def shop_params
     params.require(:shop).permit(
       :name, :slug, :timezone, :currency, :locale,
-      :tax_included, :tax_rate, :address, :brand_color
+      :tax_included, :tax_rate, :address, :brand_color,
+      :slot_duration_minutes, :prep_time_buffer_minutes, :max_days_ahead,
+      operating_hours: {}
     )
   end
 
@@ -65,7 +68,11 @@ class ShopsController < ApplicationController
       address: shop.address,
       brand_color: shop.brand_color,
       stripe_connect_status: shop.stripe_connect_status,
-      status: shop.status
+      status: shop.status,
+      operating_hours: shop.operating_hours,
+      slot_duration_minutes: shop.slot_duration_minutes,
+      prep_time_buffer_minutes: shop.prep_time_buffer_minutes,
+      max_days_ahead: shop.max_days_ahead
     }
   end
 end

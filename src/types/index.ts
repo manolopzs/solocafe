@@ -6,6 +6,30 @@ export type PaymentStatus = 'pending' | 'succeeded' | 'failed' | 'refunded'
 
 export type PickupType = 'asap' | 'scheduled'
 
+export interface OperatingHoursDay {
+  is_open: boolean
+  open: string
+  close: string
+}
+
+export interface OperatingHours {
+  mon: OperatingHoursDay
+  tue: OperatingHoursDay
+  wed: OperatingHoursDay
+  thu: OperatingHoursDay
+  fri: OperatingHoursDay
+  sat: OperatingHoursDay
+  sun: OperatingHoursDay
+}
+
+export interface PickupSlot {
+  start_time: string
+  end_time: string
+  capacity: number
+  reserved: number
+  available: number
+}
+
 export interface Shop {
   id: string
   slug: string
@@ -23,6 +47,10 @@ export interface Shop {
   brand_color: string
   stripe_account_id: string | null
   stripe_connect_status: string
+  operating_hours: OperatingHours
+  slot_duration_minutes: number
+  prep_time_buffer_minutes: number
+  max_days_ahead: number
   owner_id: string | null
   status: string
   created_at: string

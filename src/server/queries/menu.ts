@@ -1,7 +1,7 @@
 'use server'
 
 import { apiGet, apiPost, apiPatch, apiDelete } from '@/lib/api/server'
-import type { MenuCategory, MenuItem, ModifierGroup, ModifierOption, ItemModifierLink } from '@/types'
+import type { MenuCategory, MenuItem, ModifierGroup, ModifierOption, ItemModifierLink, PickupSlot } from '@/types'
 
 export interface FullMenu {
   categories: MenuCategory[]
@@ -60,4 +60,9 @@ export async function getPublicMenu(shopId: string): Promise<FullMenu> {
     modifierOptions: data.modifier_options ?? [],
     itemModifierLinks: data.item_modifier_links ?? [],
   }
+}
+
+export async function getPublicPickupSlots(shopId: string, date: string): Promise<PickupSlot[]> {
+  const data = await apiGet<{ slots: PickupSlot[] }>(`/public/shops/${shopId}/pickup_slots?date=${date}`, false)
+  return data.slots ?? []
 }

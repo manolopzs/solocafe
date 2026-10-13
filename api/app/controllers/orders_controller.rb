@@ -43,11 +43,15 @@ class OrdersController < ApplicationController
     items = validate_order_items
     return if items.nil?
 
+    pickup_time, pickup_slot = validate_pickup_time_and_slot
+    return if pickup_time.nil? && order_params[:pickup_type] == "scheduled"
+
     ActiveRecord::Base.transaction do
       customer = find_or_build_customer
-      order = build_order(customer, items)
+      order = build_order(customer, items, pickup_time)
 
       if order.save
+        reserve_pickup_slot(order, pickup_slot, pickup_time) if order.pickup_type_scheduled?
         render json: { order: order_payload(order) }, status: :created
       else
         render json: { errors: order.errors.full_messages }, status: :unprocessable_entity
@@ -155,13 +159,14 @@ class OrdersController < ApplicationController
     customer
   end
 
-  def build_order(customer, items)
+  def build_order(customer, items, pickup_time)
     order = Current.shop.orders.build(
       customer: customer,
       status: "received",
       payment_status: "pending",
       currency: Current.shop.currency,
       pickup_type: order_params[:pickup_type] || "asap",
+      pickup_time: pickup_time,
       customer_name: order_params[:customer_name],
       customer_phone: order_params[:customer_phone],
       special_instructions: order_params[:special_instructions]
@@ -207,6 +212,69 @@ class OrdersController < ApplicationController
     order
   end
 
+  def validate_pickup_time_and_slot
+    return [ nil, nil ] if order_params[:pickup_type] != "scheduled"
+
+    date_string = order_params[:pickup_slot_date]
+    time_string = order_params[:pickup_slot_start_time]
+
+    if date_string.blank? || time_string.blank?
+      render json: { errors: ["Pickup date and time are required for scheduled orders"] }, status: :unprocessable_entity
+      return [ nil, nil ]
+    end
+
+    begin
+      slot_date = Date.parse(date_string)
+    rescue ArgumentError
+      render json: { errors: ["Invalid pickup date"] }, status: :unprocessable_entity
+      return [ nil, nil ]
+    end
+
+    pickup_time = nil
+    begin
+      Time.use_zone(Current.shop.timezone) do
+        hour, min = time_string.split(":").map(&:to_i)
+        pickup_time = Time.zone.local(slot_date.year, slot_date.month, slot_date.day, hour, min)
+      end
+    rescue ArgumentError
+      render json: { errors: ["Invalid pickup time"] }, status: :unprocessable_entity
+      return [ nil, nil ]
+    end
+
+    unless Current.shop.open_at?(pickup_time)
+      render json: { errors: ["Selected time is outside operating hours"] }, status: :unprocessable_entity
+      return [ nil, nil ]
+    end
+
+    min_time = Time.zone.now + Current.shop.prep_time_buffer_minutes.minutes
+    if pickup_time < min_time
+      render json: { errors: ["Pickup time must be at least #{Current.shop.prep_time_buffer_minutes} minutes from now"] }, status: :unprocessable_entity
+      return [ nil, nil ]
+    end
+
+    slot = Current.shop.pickup_slots.find_by(slot_date: slot_date, start_time: time_string + ":00")
+    if slot && SlotReservation.where(slot_id: slot.id).count >= slot.capacity
+      render json: { errors: ["Selected pickup slot is full"] }, status: :unprocessable_entity
+      return [ nil, nil ]
+    end
+
+    [ pickup_time, slot ]
+  end
+
+  def reserve_pickup_slot(order, existing_slot, pickup_time)
+    slot = existing_slot || Time.use_zone(Current.shop.timezone) do
+      Current.shop.pickup_slots.create!(
+        slot_date: pickup_time.to_date,
+        start_time: pickup_time.in_time_zone.strftime("%H:%M:%S"),
+        end_time: (pickup_time + Current.shop.slot_duration_minutes.minutes).in_time_zone.strftime("%H:%M:%S"),
+        capacity: 10
+      )
+    end
+
+    order.update!(pickup_slot: slot, pickup_time: pickup_time)
+    SlotReservation.create!(slot: slot, order: order)
+  end
+
   def create_status_event(order, from_status, to_status)
     Current.shop.events.create!(
       order: order,
@@ -227,7 +295,10 @@ class OrdersController < ApplicationController
   end
 
   def order_params
-    params.require(:order).permit(:customer_name, :customer_phone, :special_instructions, :pickup_type)
+    params.require(:order).permit(
+      :customer_name, :customer_phone, :special_instructions,
+      :pickup_type, :pickup_slot_date, :pickup_slot_start_time
+    )
   end
 
   def order_items_params
@@ -250,12 +321,23 @@ class OrdersController < ApplicationController
       currency: order.currency,
       pickup_type: order.pickup_type,
       pickup_time: order.pickup_time,
+      pickup_slot: order.pickup_slot ? pickup_slot_payload(order.pickup_slot) : nil,
       customer_name: order.customer_name,
       customer_phone: order.customer_phone,
       special_instructions: order.special_instructions,
       created_at: order.created_at,
       updated_at: order.updated_at,
       items: order.order_items.map { |order_item| order_item_payload(order_item) }
+    }
+  end
+
+  def pickup_slot_payload(slot)
+    {
+      id: slot.id,
+      slot_date: slot.slot_date,
+      start_time: slot.start_time,
+      end_time: slot.end_time,
+      capacity: slot.capacity
     }
   end
 

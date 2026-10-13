@@ -20,7 +20,12 @@ module Public
           name: shop.name,
           slug: shop.slug,
           currency: shop.currency,
-          locale: shop.locale
+          locale: shop.locale,
+          timezone: shop.timezone,
+          operating_hours: shop.operating_hours,
+          slot_duration_minutes: shop.slot_duration_minutes,
+          prep_time_buffer_minutes: shop.prep_time_buffer_minutes,
+          max_days_ahead: shop.max_days_ahead
         },
         categories: categories.map { |c| category_payload(c) },
         items: items.map { |i| item_payload(i) },

@@ -4,13 +4,14 @@ import { useState, useMemo, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { createOrder } from '@/server/actions/orders'
+import { getPublicPickupSlots } from '@/server/queries/menu'
 import { Button } from '@/components/ui/button'
 import { Icon } from '@/components/ui/icon'
 import { Sheet } from '@/components/ui/sheet'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
-import type { Shop, MenuCategory, MenuItem, ModifierGroup, ModifierOption, ItemModifierLink, Customer, Order } from '@/types'
+import type { Shop, MenuCategory, MenuItem, ModifierGroup, ModifierOption, ItemModifierLink, Customer, Order, PickupSlot } from '@/types'
 
 interface CartLine {
   item: MenuItem
@@ -44,6 +45,8 @@ export function OrderPageClient({
     customer_name: string
     customer_phone: string
     pickup_type: 'asap' | 'scheduled'
+    pickup_slot_date?: string
+    pickup_slot_start_time?: string
     special_instructions: string
     items: { menu_item_id: string; quantity: number; modifier_option_ids: string[] }[]
   }) => Promise<void> | void
@@ -55,6 +58,10 @@ export function OrderPageClient({
   const [customerPhone, setCustomerPhone] = useState(customer?.phone ?? '')
   const [specialInstructions, setSpecialInstructions] = useState('')
   const [pickupType, setPickupType] = useState<'asap' | 'scheduled'>('asap')
+  const [selectedDate, setSelectedDate] = useState<string>(() => formatDateInput(new Date()))
+  const [slots, setSlots] = useState<PickupSlot[]>([])
+  const [selectedSlot, setSelectedSlot] = useState<PickupSlot | null>(null)
+  const [slotsLoading, setSlotsLoading] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [cartOpen, setCartOpen] = useState(false)
@@ -164,8 +171,8 @@ export function OrderPageClient({
       setError('Ingresa tu nombre para continuar')
       return
     }
-    if (pickupType === 'scheduled') {
-      setError('Los horarios programados aún no están disponibles')
+    if (pickupType === 'scheduled' && !selectedSlot) {
+      setError('Selecciona un horario de recogida')
       return
     }
     setLoading(true)
@@ -177,6 +184,8 @@ export function OrderPageClient({
         customer_name: customerName.trim(),
         customer_phone: customerPhone.trim(),
         pickup_type: pickupType,
+        pickup_slot_date: pickupType === 'scheduled' ? selectedDate : undefined,
+        pickup_slot_start_time: pickupType === 'scheduled' ? selectedSlot?.start_time : undefined,
         special_instructions: specialInstructions.trim(),
         items: cart.map((line) => ({
           menu_item_id: line.item.id,
@@ -230,6 +239,37 @@ export function OrderPageClient({
   }, [visibleCategories, activeCategory])
 
   useEffect(() => {
+    if (pickupType !== 'scheduled') {
+      setSlots([])
+      setSelectedSlot(null)
+      return
+    }
+
+    let cancelled = false
+    setSlotsLoading(true)
+    getPublicPickupSlots(shop.id, selectedDate)
+      .then((data) => {
+        if (cancelled) return
+        setSlots(data)
+        setSelectedSlot((prev) => {
+          if (prev && data.find((s) => s.start_time === prev.start_time)) return prev
+          return data.find((s) => s.available > 0) ?? null
+        })
+      })
+      .catch(() => {
+        if (cancelled) return
+        setSlots([])
+        setSelectedSlot(null)
+      })
+      .finally(() => {
+        if (cancelled) return
+        setSlotsLoading(false)
+      })
+
+    return () => { cancelled = true }
+  }, [pickupType, selectedDate, shop.id])
+
+  useEffect(() => {
     const handleScroll = () => {
       const scrollPos = window.scrollY + 150
       let current = visibleCategories[0]?.id ?? ''
@@ -253,6 +293,19 @@ export function OrderPageClient({
 
   const formatPrice = (cents: number) => {
     return `${shop.currency} ${(cents / 100).toFixed(2)}`
+  }
+
+  function formatDateInput(date: Date) {
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
+  }
+
+  function addDays(date: Date, days: number) {
+    const next = new Date(date)
+    next.setDate(next.getDate() + days)
+    return next
   }
 
   const navItems = useMemo(
@@ -548,14 +601,72 @@ export function OrderPageClient({
                     </button>
                     <button
                       type="button"
-                      disabled
-                      className="relative rounded-xl border border-border bg-surface px-4 py-3 text-left text-sm text-muted-foreground"
+                      onClick={() => setPickupType('scheduled')}
+                      className={[
+                        'rounded-xl border px-4 py-3 text-left text-sm transition-all',
+                        pickupType === 'scheduled'
+                          ? 'border-foreground bg-foreground text-primary-foreground'
+                          : 'border-border bg-surface-elevated text-foreground hover:bg-surface',
+                      ].join(' ')}
                     >
                       <span className="block font-bold">Programado</span>
-                      <span className="block text-xs">Próximamente</span>
+                      <span className="block text-xs opacity-80">Elige horario</span>
                     </button>
                   </div>
                 </div>
+
+                {pickupType === 'scheduled' && (
+                  <div className="space-y-3">
+                    <div>
+                      <label htmlFor="pickupDate" className="block text-sm font-semibold text-foreground">
+                        Fecha
+                      </label>
+                      <Input
+                        id="pickupDate"
+                        type="date"
+                        value={selectedDate}
+                        min={formatDateInput(new Date())}
+                        max={formatDateInput(addDays(new Date(), shop.max_days_ahead))}
+                        onChange={(e) => {
+                          setSelectedDate(e.target.value)
+                          setSelectedSlot(null)
+                        }}
+                        className="mt-1.5"
+                      />
+                    </div>
+
+                    <div>
+                      <p className="block text-sm font-semibold text-foreground">Horario</p>
+                      {slotsLoading ? (
+                        <p className="mt-1.5 text-sm text-muted-foreground">Cargando horarios...</p>
+                      ) : slots.length === 0 ? (
+                        <p className="mt-1.5 text-sm text-muted-foreground">No hay horarios disponibles para esta fecha.</p>
+                      ) : (
+                        <div className="mt-1.5 grid grid-cols-3 gap-2">
+                          {slots.map((slot) => (
+                            <button
+                              key={slot.start_time}
+                              type="button"
+                              disabled={slot.available <= 0}
+                              onClick={() => setSelectedSlot(slot)}
+                              className={[
+                                'rounded-xl border px-2 py-2.5 text-center text-sm transition-all touch-manipulation',
+                                selectedSlot?.start_time === slot.start_time
+                                  ? 'border-foreground bg-foreground text-primary-foreground'
+                                  : slot.available <= 0
+                                    ? 'border-border bg-surface text-muted-foreground'
+                                    : 'border-border bg-surface-elevated text-foreground hover:bg-surface',
+                              ].join(' ')}
+                            >
+                              <span className="block font-bold">{slot.start_time}</span>
+                              {slot.available <= 0 && <span className="block text-[0.6rem]">Lleno</span>}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
 
                 {error && (
                   <div className="flex items-start gap-2 rounded-lg bg-danger/10 p-3 text-sm text-danger">
