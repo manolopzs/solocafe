@@ -107,7 +107,7 @@ function OrderCard({ order }: { order: Order }) {
         <div className="mt-4 flex items-center justify-between border-t border-border pt-4">
           <span className="font-semibold text-foreground">{formatCurrency(order.total_cents, order.currency)}</span>
           <Button asChild variant="outline" size="sm">
-            <Link href={`/${shopSlug}`}>Reordenar</Link>
+            <Link href={`/${shopSlug}?reorder=${order.id}`}>Reordenar</Link>
           </Button>
         </div>
       </CardContent>

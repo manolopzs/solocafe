@@ -8,6 +8,7 @@ Rails.application.routes.draw do
   get "/customers/me", to: "customers#me"
   patch "/customers/me", to: "customers#update"
   get "/customers/me/orders", to: "customers#orders"
+  get "/customers/me/orders/:id", to: "customers#order"
 
   resources :shops, only: [:index, :create, :update]
   get "/shops/:slug", to: "shops#show"

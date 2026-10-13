@@ -2,6 +2,7 @@ import type { SVGProps } from 'react'
 import {
   ArrowLeft,
   ArrowRight,
+  Bell,
   Check,
   ChevronDown,
   ChevronRight,
@@ -43,6 +44,7 @@ import {
 export type IconName =
   | 'arrow-left'
   | 'arrow-right'
+  | 'bell'
   | 'cart'
   | 'check'
   | 'chevron-down'
@@ -87,6 +89,7 @@ export interface IconProps extends Omit<SVGProps<SVGSVGElement>, 'name'> {
 const iconMap: Record<IconName, React.ComponentType<LucideProps>> = {
   'arrow-left': ArrowLeft,
   'arrow-right': ArrowRight,
+  bell: Bell,
   cart: ShoppingCart,
   check: Check,
   'chevron-down': ChevronDown,

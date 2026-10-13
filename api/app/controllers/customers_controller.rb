@@ -20,6 +20,14 @@ class CustomersController < ApplicationController
     render json: { orders: orders.map { |order| order_payload(order) } }
   end
 
+  def order
+    customer = current_customer
+    order = customer.orders.find(params[:id])
+    render json: { order: order_payload(order) }
+  rescue ActiveRecord::RecordNotFound
+    render json: { error: "Order not found" }, status: :not_found
+  end
+
   private
 
   def current_customer

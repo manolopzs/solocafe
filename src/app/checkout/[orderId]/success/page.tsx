@@ -15,6 +15,7 @@ export default async function CheckoutSuccessPage({
   const { orderId } = await params
   const order = await getOrderWithItems(orderId)
   if (!order) notFound()
+  const phone = order.customer_phone ?? ''
 
   const statusLabels: Record<string, string> = {
     received: 'Recibido',
@@ -64,6 +65,11 @@ export default async function CheckoutSuccessPage({
         </Card>
 
         <Button asChild size="lg" className="mt-6 w-full">
+          <Link href={`/order/${orderId}?phone=${encodeURIComponent(phone)}`}>
+            Seguir tu pedido
+          </Link>
+        </Button>
+        <Button asChild variant="outline" size="lg" className="mt-3 w-full">
           <Link href="/">Volver al inicio</Link>
         </Button>
       </div>

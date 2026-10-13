@@ -10,7 +10,7 @@ import { Sheet } from '@/components/ui/sheet'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
-import type { Shop, MenuCategory, MenuItem, ModifierGroup, ModifierOption, ItemModifierLink, Customer } from '@/types'
+import type { Shop, MenuCategory, MenuItem, ModifierGroup, ModifierOption, ItemModifierLink, Customer, Order } from '@/types'
 
 interface CartLine {
   item: MenuItem
@@ -26,6 +26,7 @@ export function OrderPageClient({
   modifierOptions,
   itemModifierLinks,
   customer,
+  reorderOrder,
   onCreateOrder,
 }: {
   shop: Shop
@@ -35,6 +36,7 @@ export function OrderPageClient({
   modifierOptions: ModifierOption[]
   itemModifierLinks: ItemModifierLink[]
   customer: Customer | null
+  reorderOrder: Order | null
   onCreateOrder?: (input: {
     shop_id: string
     customer_name: string
@@ -56,6 +58,38 @@ export function OrderPageClient({
   const [cartOpen, setCartOpen] = useState(false)
   const [activeCategory, setActiveCategory] = useState<string>(categories[0]?.id ?? '')
   const [addedItemId, setAddedItemId] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!reorderOrder?.items || reorderOrder.items.length === 0) return
+
+    const initialLines: CartLine[] = []
+    for (const orderItem of reorderOrder.items) {
+      const menuItem = items.find((i) => i.id === orderItem.item_id)
+      if (!menuItem || !menuItem.is_active || menuItem.is_86ed) continue
+
+      const selected: Record<string, string[]> = {}
+      const chosenModifiers: ModifierOption[] = []
+      for (const mod of orderItem.modifiers ?? []) {
+        const option = modifierOptions.find((o) => o.id === mod.option_id)
+        if (!option) continue
+        const group = modifierGroups.find((g) => g.id === option.group_id)
+        if (!group) continue
+        selected[group.id] = [...(selected[group.id] ?? []), option.id]
+        chosenModifiers.push(option)
+      }
+
+      initialLines.push({
+        item: menuItem,
+        quantity: orderItem.quantity,
+        modifiers: chosenModifiers,
+      })
+    }
+
+    if (initialLines.length > 0) {
+      setCart(initialLines)
+      setCartOpen(true)
+    }
+  }, [reorderOrder, items, modifierGroups, modifierOptions])
 
   const categoryRefs = useRef<Record<string, HTMLDivElement | null>>({})
   const navRef = useRef<HTMLDivElement>(null)

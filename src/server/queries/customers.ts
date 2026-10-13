@@ -20,3 +20,12 @@ export async function getCustomerOrders(): Promise<Order[]> {
     return []
   }
 }
+
+export async function getCustomerOrder(orderId: string): Promise<Order | null> {
+  try {
+    const data = await apiGet<{ order: Order }>(`/customers/me/orders/${orderId}`)
+    return data.order
+  } catch {
+    return null
+  }
+}
