@@ -27,6 +27,7 @@ export function OrderPageClient({
   itemModifierLinks,
   customer,
   reorderOrder,
+  reorderCount,
   onCreateOrder,
 }: {
   shop: Shop
@@ -37,6 +38,7 @@ export function OrderPageClient({
   itemModifierLinks: ItemModifierLink[]
   customer: Customer | null
   reorderOrder: Order | null
+  reorderCount: number
   onCreateOrder?: (input: {
     shop_id: string
     customer_name: string
@@ -310,6 +312,14 @@ export function OrderPageClient({
           </div>
         </div>
       </header>
+
+      {reorderCount > 0 && (
+        <div className="mx-auto max-w-3xl px-4 py-2 sm:px-5">
+          <div className="rounded-xl border border-accent/20 bg-accent/10 px-4 py-3 text-sm font-medium text-foreground">
+            Se agregaron {reorderCount} productos de tu pedido anterior. Revisa tu carrito.
+          </div>
+        </div>
+      )}
 
       <div className="sticky top-0 z-30 border-b border-border bg-background/95 backdrop-blur-md">
         <div className="mx-auto max-w-3xl">

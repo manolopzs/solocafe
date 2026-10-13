@@ -24,6 +24,8 @@ export default async function PublicOrderPage({
     reorderOrderId ? getCustomerOrder(reorderOrderId) : Promise.resolve(null),
   ])
 
+  const reorderCount = reorderOrder?.items?.reduce((sum, item) => sum + item.quantity, 0) ?? 0
+
   return (
     <OrderPageClient
       shop={shop}
@@ -34,6 +36,7 @@ export default async function PublicOrderPage({
       itemModifierLinks={menu.itemModifierLinks}
       customer={customer}
       reorderOrder={reorderOrder}
+      reorderCount={reorderCount}
     />
   )
 }

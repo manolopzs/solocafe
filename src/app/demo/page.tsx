@@ -24,6 +24,7 @@ export default function DemoOrderPage() {
       itemModifierLinks={demoItemModifierLinks}
       customer={null}
       reorderOrder={null}
+      reorderCount={0}
       onCreateOrder={() => {
         router.push('/demo/success')
       }}
