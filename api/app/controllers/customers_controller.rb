@@ -92,7 +92,7 @@ class CustomersController < ApplicationController
   def order_item_payload(order_item)
     {
       id: order_item.id,
-      menu_item_id: order_item.item_id,
+      item_id: order_item.item_id,
       item_name_snapshot: order_item.item_name_snapshot,
       unit_price_cents: order_item.unit_price_cents,
       quantity: order_item.quantity,
