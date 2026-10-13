@@ -35,6 +35,7 @@ export async function accountSignupAction(prevState: unknown, formData: FormData
   const email = formData.get('email') as string
   const password = formData.get('password') as string
   const name = formData.get('name') as string
+  const phone = formData.get('phone') as string
 
   if (!email || !password) {
     return { error: 'Correo y contraseña son requeridos' }
@@ -57,9 +58,9 @@ export async function accountSignupAction(prevState: unknown, formData: FormData
     await setToken(token)
   }
 
-  if (name) {
+  if (name || phone) {
     try {
-      await apiPatch('/customers/me', { customer: { name } })
+      await apiPatch('/customers/me', { customer: { name, phone } })
     } catch {
       // ignore update error, user can fill profile later
     }

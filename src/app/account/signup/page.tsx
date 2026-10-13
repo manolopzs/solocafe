@@ -55,6 +55,17 @@ export default function AccountSignupPage() {
               </div>
 
               <div>
+                <Label htmlFor="phone">Teléfono</Label>
+                <Input
+                  id="phone"
+                  name="phone"
+                  type="tel"
+                  placeholder="Para avisarte cuando esté listo"
+                  className="mt-1.5"
+                />
+              </div>
+
+              <div>
                 <Label htmlFor="password">Contraseña</Label>
                 <div className="relative mt-1.5">
                   <Input
