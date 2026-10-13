@@ -50,6 +50,7 @@ module Public
         image_url: item.image_url,
         prep_time_min: item.prep_time_min,
         sort_order: item.sort_order,
+        is_active: item.is_active,
         is_86ed: item.is_86ed
       }
     end

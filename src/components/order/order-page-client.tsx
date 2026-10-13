@@ -62,18 +62,12 @@ export function OrderPageClient({
   const [addedItemId, setAddedItemId] = useState<string | null>(null)
 
   useEffect(() => {
-    console.log('[reorder effect] reorderOrder:', reorderOrder?.id, 'items count:', items.length, 'items:', items.map((i) => ({ id: i.id, name: i.name, active: i.is_active, eighty_sixed: i.is_86ed })))
-    if (!reorderOrder?.items || reorderOrder.items.length === 0) {
-      console.log('[reorder effect] no reorder items, returning')
-      return
-    }
+    if (!reorderOrder?.items || reorderOrder.items.length === 0) return
 
     const initialLines: CartLine[] = []
     for (const orderItem of reorderOrder.items) {
-      console.log('[reorder effect] trying item_id:', orderItem.item_id, 'qty:', orderItem.quantity)
       const menuItem = items.find((i) => i.id === orderItem.item_id)
-      console.log('[reorder effect] found menuItem:', menuItem?.name, 'active:', menuItem?.is_active, '86ed:', menuItem?.is_86ed)
-      if (!menuItem || !menuItem.is_active || menuItem.is_86ed) continue
+      if (!menuItem || menuItem.is_active === false || menuItem.is_86ed) continue
 
       const selected: Record<string, string[]> = {}
       const chosenModifiers: ModifierOption[] = []
@@ -93,7 +87,6 @@ export function OrderPageClient({
       })
     }
 
-    console.log('[reorder effect] initialLines:', initialLines.length)
     if (initialLines.length > 0) {
       setCart(initialLines)
       setCartOpen(true)
