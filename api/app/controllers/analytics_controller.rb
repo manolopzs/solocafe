@@ -28,30 +28,49 @@ class AnalyticsController < ApplicationController
   private
 
   def peak_hours(orders)
-    orders
-      .group("EXTRACT(HOUR FROM created_at AT TIME ZONE 'UTC' AT TIME ZONE ?)", Current.shop.timezone)
-      .count
-      .transform_keys(&:to_i)
-      .sort_by { |hour, count| -count }
-      .first(5)
-      .to_h
+    return [] if orders.count.zero?
+
+    order_ids = orders.pluck(:id)
+    timezone = ActiveRecord::Base.connection.quote(Current.shop.timezone)
+
+    sql = <<~SQL
+      SELECT EXTRACT(HOUR FROM created_at AT TIME ZONE 'UTC' AT TIME ZONE #{timezone}) AS hour,
+             COUNT(*) AS order_count
+      FROM orders
+      WHERE id IN (#{order_ids.map { |id| ActiveRecord::Base.connection.quote(id) }.join(', ')})
+      GROUP BY hour
+      ORDER BY order_count DESC
+      LIMIT 5
+    SQL
+
+    ActiveRecord::Base.connection.select_all(sql).map do |row|
+      { hour: row["hour"].to_i, count: row["order_count"].to_i }
+    end
   end
 
   def top_items(orders)
-    order_ids = orders.select(:id)
-    OrderItem
-      .where(order_id: order_ids)
-      .group(:item_name_snapshot)
-      .select("item_name_snapshot, SUM(quantity) as total_quantity, SUM(subtotal_cents) as total_revenue_cents")
-      .order("SUM(quantity) DESC")
-      .limit(5)
-      .map do |item|
-        {
-          name: item.item_name_snapshot,
-          quantity: item.total_quantity.to_i,
-          revenue_cents: item.total_revenue_cents.to_i
-        }
-      end
+    return [] if orders.count.zero?
+
+    order_ids = orders.pluck(:id)
+
+    sql = <<~SQL
+      SELECT item_name_snapshot AS name,
+             SUM(quantity) AS total_quantity,
+             SUM(subtotal_cents) AS total_revenue_cents
+      FROM order_items
+      WHERE order_id IN (#{order_ids.map { |id| ActiveRecord::Base.connection.quote(id) }.join(', ')})
+      GROUP BY item_name_snapshot
+      ORDER BY total_quantity DESC
+      LIMIT 5
+    SQL
+
+    ActiveRecord::Base.connection.select_all(sql).map do |row|
+      {
+        name: row["name"],
+        quantity: row["total_quantity"].to_i,
+        revenue_cents: row["total_revenue_cents"].to_i
+      }
+    end
   end
 
   def repeat_customer_rate(orders)
