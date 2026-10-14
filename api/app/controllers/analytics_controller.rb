@@ -9,10 +9,8 @@ class AnalyticsController < ApplicationController
     orders = Current.shop.orders
     orders = orders.where("created_at >= ?", days.days.ago) if params[:days] != "all"
 
-    paid_orders = orders.where(payment_status: "succeeded")
-
-    order_count = paid_orders.count
-    revenue_cents = paid_orders.sum(:total_cents)
+    order_count = orders.count
+    revenue_cents = orders.sum(:total_cents)
     average_ticket_cents = order_count.positive? ? (revenue_cents / order_count) : 0
 
     render json: {
