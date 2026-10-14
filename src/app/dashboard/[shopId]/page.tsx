@@ -112,14 +112,14 @@ export default async function ShopDashboardPage({
         <p className="text-sm text-muted-foreground">{formatToday()} · Forecasting y operación de tu cafetería</p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardContent className="p-5">
             <div className="flex items-center gap-2 text-muted-foreground">
               <Icon name="receipt" className="h-4 w-4" />
               <span className="text-sm">Pedidos pagados</span>
             </div>
-            <p className="mt-2 text-3xl font-semibold tracking-tight text-foreground">{analytics.orderCount}</p>
+            <p className="mt-2 text-3xl font-semibold tracking-tight text-foreground">{analytics.order_count}</p>
           </CardContent>
         </Card>
         <Card>
@@ -129,7 +129,7 @@ export default async function ShopDashboardPage({
               <span className="text-sm">Ingresos</span>
             </div>
             <p className="mt-2 text-3xl font-semibold tracking-tight text-foreground">
-              {formatCurrency(analytics.revenueCents, shop.currency)}
+              {formatCurrency(analytics.revenue_cents, shop.currency)}
             </p>
           </CardContent>
         </Card>
@@ -140,8 +140,81 @@ export default async function ShopDashboardPage({
               <span className="text-sm">Ticket promedio</span>
             </div>
             <p className="mt-2 text-3xl font-semibold tracking-tight text-foreground">
-              {formatCurrency(analytics.averageTicketCents, shop.currency)}
+              {formatCurrency(analytics.average_ticket_cents, shop.currency)}
             </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-5">
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Icon name="users" className="h-4 w-4" />
+              <span className="text-sm">Clientes recurrentes</span>
+            </div>
+            <p className="mt-2 text-3xl font-semibold tracking-tight text-foreground">{analytics.repeat_customer_rate}%</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Horas pico</CardTitle>
+            <CardDescription>Horarios con más pedidos.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {analytics.peak_hours.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Aún no hay datos suficientes.</p>
+            ) : (
+              <div className="space-y-3">
+                {analytics.peak_hours.map(({ hour, count }) => (
+                  <div key={hour} className="flex items-center gap-3">
+                    <span className="w-12 text-sm font-medium">{String(hour).padStart(2, '0')}:00</span>
+                    <div className="h-2 flex-1 overflow-hidden rounded-full bg-surface">
+                      <div
+                        className="h-full rounded-full bg-accent"
+                        style={{ width: `${Math.max(5, (count / analytics.peak_hours[0].count) * 100)}%` }}
+                      />
+                    </div>
+                    <span className="w-8 text-right text-sm text-muted-foreground">{count}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Productos top</CardTitle>
+            <CardDescription>Lo más vendido por cantidad.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {analytics.top_items.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Aún no hay datos suficientes.</p>
+            ) : (
+              <div className="overflow-x-auto rounded-xl border border-border">
+                <table className="w-full text-sm">
+                  <thead className="bg-surface">
+                    <tr>
+                      <th className="px-4 py-3 text-left font-medium text-muted-foreground">Producto</th>
+                      <th className="px-4 py-3 text-right font-medium text-muted-foreground">Cantidad</th>
+                      <th className="px-4 py-3 text-right font-medium text-muted-foreground">Ingresos</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {analytics.top_items.map((item) => (
+                      <tr key={item.name} className="bg-background">
+                        <td className="px-4 py-3 text-foreground">{item.name}</td>
+                        <td className="px-4 py-3 text-right text-muted-foreground">{item.quantity}</td>
+                        <td className="px-4 py-3 text-right font-medium text-foreground">
+                          {formatCurrency(item.revenue_cents, shop.currency)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

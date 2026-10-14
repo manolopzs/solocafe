@@ -34,6 +34,7 @@ import {
   Tag,
   Trash2,
   User,
+  Users,
   Utensils,
   Volume2,
   VolumeX,
@@ -76,6 +77,7 @@ export type IconName =
   | 'tag'
   | 'trash'
   | 'user'
+  | 'users'
   | 'utensils'
   | 'volume-2'
   | 'volume-x'
@@ -121,6 +123,7 @@ const iconMap: Record<IconName, React.ComponentType<LucideProps>> = {
   tag: Tag,
   trash: Trash2,
   user: User,
+  users: Users,
   utensils: Utensils,
   'volume-2': Volume2,
   'volume-x': VolumeX,

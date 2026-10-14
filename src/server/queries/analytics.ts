@@ -1,25 +1,29 @@
 'use server'
 
-import { apiGet, apiPost, apiPatch, apiDelete } from '@/lib/api/server'
+import { apiGet } from '@/lib/api/server'
+import type { ShopAnalytics } from '@/types'
 
-export async function getShopAnalytics(shopId: string) {
+export async function getShopAnalytics(shopId: string, days: number | 'all' = 30): Promise<ShopAnalytics> {
   try {
-    const data = await apiGet<{
-      order_count: number
-      revenue_cents: number
-      average_ticket_cents: number
-    }>(`/shops/${shopId}/analytics/summary`)
+    const daysParam = days === 'all' ? 'all' : String(days)
+    const data = await apiGet<ShopAnalytics>(`/shops/${shopId}/analytics/summary?days=${daysParam}`)
 
     return {
-      orderCount: data.order_count,
-      revenueCents: data.revenue_cents,
-      averageTicketCents: data.average_ticket_cents,
+      order_count: data.order_count ?? 0,
+      revenue_cents: data.revenue_cents ?? 0,
+      average_ticket_cents: data.average_ticket_cents ?? 0,
+      peak_hours: data.peak_hours ?? [],
+      top_items: data.top_items ?? [],
+      repeat_customer_rate: data.repeat_customer_rate ?? 0,
     }
   } catch {
     return {
-      orderCount: 0,
-      revenueCents: 0,
-      averageTicketCents: 0,
+      order_count: 0,
+      revenue_cents: 0,
+      average_ticket_cents: 0,
+      peak_hours: [],
+      top_items: [],
+      repeat_customer_rate: 0,
     }
   }
 }

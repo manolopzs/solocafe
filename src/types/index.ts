@@ -177,3 +177,23 @@ export interface Customer {
   email: string | null
   created_at: string
 }
+
+export interface PeakHour {
+  hour: number
+  count: number
+}
+
+export interface TopItem {
+  name: string
+  quantity: number
+  revenue_cents: number
+}
+
+export interface ShopAnalytics {
+  order_count: number
+  revenue_cents: number
+  average_ticket_cents: number
+  peak_hours: PeakHour[]
+  top_items: TopItem[]
+  repeat_customer_rate: number
+}
