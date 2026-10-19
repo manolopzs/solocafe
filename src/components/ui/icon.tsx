@@ -15,6 +15,7 @@ import {
   EyeOff,
   ExternalLink,
   FolderOpen,
+  Heart,
   MapPin,
   Maximize2,
   Package,
@@ -59,6 +60,7 @@ export type IconName =
   | 'eye-off'
   | 'external-link'
   | 'folder-open'
+  | 'heart'
   | 'map-pin'
   | 'maximize-2'
   | 'menu'
@@ -105,6 +107,7 @@ const iconMap: Record<IconName, React.ComponentType<LucideProps>> = {
   'eye-off': EyeOff,
   'external-link': ExternalLink,
   'folder-open': FolderOpen,
+  heart: Heart,
   'map-pin': MapPin,
   'maximize-2': Maximize2,
   menu: Menu,

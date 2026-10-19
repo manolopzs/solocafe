@@ -1,7 +1,17 @@
 class OrdersController < ApplicationController
-  before_action :authenticate_user!, only: [:index, :update]
+  before_action :authenticate_user!, only: [:index, :update, :recent]
   before_action :require_shop_member!, only: [:index, :update]
-  before_action :set_public_shop, only: [:create, :show]
+  before_action :set_public_shop, only: [:create, :show, :recent]
+
+  def recent
+    orders = current_customer.orders
+      .where(shop: Current.shop, payment_status: "succeeded")
+      .where.not(status: "cancelled")
+      .order(created_at: :desc)
+      .limit(3)
+
+    render json: { orders: orders.map { |order| order_payload(order) } }
+  end
 
   def show_public
     order = Order.find(params[:id])
@@ -325,10 +335,17 @@ class OrdersController < ApplicationController
       customer_name: order.customer_name,
       customer_phone: order.customer_phone,
       special_instructions: order.special_instructions,
+      estimated_ready_minutes: estimated_ready_minutes(order.shop),
       created_at: order.created_at,
       updated_at: order.updated_at,
       items: order.order_items.map { |order_item| order_item_payload(order_item) }
     }
+  end
+
+  def estimated_ready_minutes(shop)
+    active_orders_count = shop.orders.where(status: %w[received preparing]).count
+    base_minutes = shop.prep_time_buffer_minutes + shop.menu_items.where(is_active: true, is_86ed: false).minimum(:prep_time_min).to_i
+    [base_minutes + active_orders_count, 60].min
   end
 
   def pickup_slot_payload(slot)

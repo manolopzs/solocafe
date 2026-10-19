@@ -21,6 +21,14 @@ class ApplicationController < ActionController::API
     render json: { error: "Unauthorized" }, status: :unauthorized unless current_user
   end
 
+  def current_customer
+    return nil unless current_user
+
+    Customer.find_or_create_by!(user_id: current_user.id) do |customer|
+      customer.name = current_user.email.split("@").first
+    end
+  end
+
   def set_current_shop!
     shop = Shop.active.find_by(id: params[:shop_id])
     if shop.nil?

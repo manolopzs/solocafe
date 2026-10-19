@@ -5,6 +5,7 @@ class MenuItem < ApplicationRecord
   has_many :item_modifier_links, dependent: :destroy
   has_many :modifier_groups, through: :item_modifier_links
   has_many :order_items, dependent: :restrict_with_error
+  has_many :customer_favorites, dependent: :destroy
 
   validates :name, presence: true
   validates :price_cents, numericality: { greater_than_or_equal_to: 0 }

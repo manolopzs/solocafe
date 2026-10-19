@@ -25,6 +25,8 @@ export default function DemoOrderPage() {
       customer={null}
       reorderOrder={null}
       reorderCount={0}
+      favoriteIds={[]}
+      recentOrders={[]}
       onCreateOrder={() => {
         router.push('/demo/success')
       }}

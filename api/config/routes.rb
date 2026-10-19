@@ -13,6 +13,8 @@ Rails.application.routes.draw do
   resources :shops, only: [:index, :create, :update]
   get "/shops/:slug", to: "shops#show"
 
+  get "/shops/:shop_id/orders/recent", to: "orders#recent", as: :recent_shop_orders
+
   scope "/shops/:shop_id", as: :shop do
     resources :menu_categories, only: [:index, :create, :update, :destroy]
     resources :menu_items, only: [:index, :create, :update, :destroy]
@@ -21,6 +23,7 @@ Rails.application.routes.draw do
       resources :modifier_options, only: [:index, :create, :update, :destroy]
     end
     resources :orders, only: [:index, :create, :show, :update]
+    resources :favorites, only: [:index, :create, :destroy], controller: "customer_favorites", param: :menu_item_id
     post "/stripe/connect", to: "stripe_connect#create"
     get "/analytics/summary", to: "analytics#summary"
   end

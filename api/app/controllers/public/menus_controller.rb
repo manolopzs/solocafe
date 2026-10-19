@@ -14,6 +14,9 @@ module Public
       groups = ModifierGroup.where(id: group_ids).order(:sort_order)
       options = ModifierOption.where(group_id: group_ids, is_active: true).order(:sort_order)
 
+      active_orders_count = shop.orders.where(status: %w[received preparing]).count
+      estimated_ready_minutes = [shop.prep_time_buffer_minutes + 5 + active_orders_count, 60].min
+
       render json: {
         shop: {
           id: shop.id,
@@ -25,7 +28,8 @@ module Public
           operating_hours: shop.operating_hours,
           slot_duration_minutes: shop.slot_duration_minutes,
           prep_time_buffer_minutes: shop.prep_time_buffer_minutes,
-          max_days_ahead: shop.max_days_ahead
+          max_days_ahead: shop.max_days_ahead,
+          estimated_ready_minutes: estimated_ready_minutes
         },
         categories: categories.map { |c| category_payload(c) },
         items: items.map { |i| item_payload(i) },

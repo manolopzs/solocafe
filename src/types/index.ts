@@ -51,6 +51,7 @@ export interface Shop {
   slot_duration_minutes: number
   prep_time_buffer_minutes: number
   max_days_ahead: number
+  estimated_ready_minutes?: number
   owner_id: string | null
   status: string
   created_at: string
@@ -132,6 +133,7 @@ export interface Order {
   customer_name: string | null
   customer_phone: string | null
   special_instructions: string | null
+  estimated_ready_minutes?: number
   created_at: string
   updated_at: string
   items?: OrderItem[]

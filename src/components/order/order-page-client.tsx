@@ -5,6 +5,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { createOrder } from '@/server/actions/orders'
 import { getPublicPickupSlots } from '@/server/queries/menu'
+import { addFavorite, removeFavorite } from '@/server/queries/favorites'
 import { api } from '@/lib/api/client'
 import type { FullMenu } from '@/server/queries/menu'
 import { Button } from '@/components/ui/button'
@@ -31,6 +32,8 @@ export function OrderPageClient({
   customer,
   reorderOrder,
   reorderCount,
+  favoriteIds: initialFavoriteIds,
+  recentOrders,
   onCreateOrder,
 }: {
   shop: Shop
@@ -42,6 +45,8 @@ export function OrderPageClient({
   customer: Customer | null
   reorderOrder: Order | null
   reorderCount: number
+  favoriteIds: string[]
+  recentOrders: Order[]
   onCreateOrder?: (input: {
     shop_id: string
     customer_name: string
@@ -54,6 +59,7 @@ export function OrderPageClient({
   }) => Promise<void> | void
 }) {
   const [items, setItems] = useState<MenuItem[]>(initialItems)
+  const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set(initialFavoriteIds))
   const [cart, setCart] = useState<CartLine[]>([])
   const [activeItem, setActiveItem] = useState<MenuItem | null>(null)
   const [selectedModifiers, setSelectedModifiers] = useState<Record<string, string[]>>({})
@@ -148,6 +154,52 @@ export function OrderPageClient({
 
   const removeLine = (index: number) => {
     setCart((prev) => prev.filter((_, i) => i !== index))
+  }
+
+  const toggleFavorite = async (itemId: string) => {
+    if (!customer) return
+    const isFavorite = favoriteIds.has(itemId)
+    setFavoriteIds((prev) => {
+      const next = new Set(prev)
+      if (isFavorite) next.delete(itemId)
+      else next.add(itemId)
+      return next
+    })
+    try {
+      if (isFavorite) {
+        await removeFavorite(shop.id, itemId)
+      } else {
+        await addFavorite(shop.id, itemId)
+      }
+    } catch {
+      setFavoriteIds((prev) => {
+        const next = new Set(prev)
+        if (isFavorite) next.add(itemId)
+        else next.delete(itemId)
+        return next
+      })
+    }
+  }
+
+  const reorderRecent = (order: Order) => {
+    const lines: CartLine[] = []
+    for (const orderItem of order.items ?? []) {
+      const menuItem = items.find((i) => i.id === orderItem.item_id)
+      if (!menuItem || menuItem.is_active === false || menuItem.is_86ed) continue
+
+      const chosenModifiers: ModifierOption[] = []
+      for (const mod of orderItem.modifiers ?? []) {
+        const option = modifierOptions.find((o) => o.id === mod.option_id)
+        if (option) chosenModifiers.push(option)
+      }
+
+      lines.push({ item: menuItem, quantity: orderItem.quantity, modifiers: chosenModifiers })
+    }
+
+    if (lines.length > 0) {
+      setCart(lines)
+      setCartOpen(true)
+    }
   }
 
   const updateQuantity = (index: number, delta: number) => {
@@ -333,6 +385,11 @@ export function OrderPageClient({
     [visibleCategories, uncategorizedItems.length]
   )
 
+  const favoriteItems = useMemo(
+    () => items.filter((item) => favoriteIds.has(item.id) && item.is_active && !item.is_86ed),
+    [items, favoriteIds]
+  )
+
   const brandColor = shop.brand_color || '#c17c5b'
 
   return (
@@ -369,6 +426,12 @@ export function OrderPageClient({
                     Abierto
                   </Badge>
                   <Badge variant="secondary" className="text-xs sm:text-sm">Para recoger</Badge>
+                  {shop.estimated_ready_minutes !== undefined && (
+                    <Badge variant="secondary" className="gap-1.5 text-xs sm:text-sm">
+                      <Icon name="clock" className="h-3 w-3" />
+                      Listo en ~{shop.estimated_ready_minutes} min
+                    </Badge>
+                  )}
                 </div>
               </div>
             </div>
@@ -389,6 +452,58 @@ export function OrderPageClient({
             Se agregaron {reorderCount} productos de tu pedido anterior. Revisa tu carrito.
           </div>
         </div>
+      )}
+
+      {recentOrders.length > 0 && (
+        <section className="mx-auto max-w-3xl px-4 pt-4 sm:px-5">
+          <h2 className="text-sm font-bold text-foreground">Pedidos recientes</h2>
+          <div className="mt-3 flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2 no-scrollbar">
+            {recentOrders.map((order) => (
+              <button
+                key={order.id}
+                onClick={() => reorderRecent(order)}
+                className="snap-start shrink-0 rounded-xl border border-border bg-surface p-3 text-left transition-colors hover:bg-surface-elevated"
+              >
+                <p className="text-xs font-semibold text-muted-foreground">
+                  {order.items?.reduce((sum, i) => sum + i.quantity, 0)} productos
+                </p>
+                <p className="mt-1 line-clamp-1 text-sm font-bold text-foreground">
+                  {order.items?.map((i) => i.item_name_snapshot).join(', ')}
+                </p>
+                <p className="mt-1 text-xs text-accent">
+                  {formatPrice(order.total_cents)} · Reordenar
+                </p>
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {favoriteItems.length > 0 && (
+        <section className="mx-auto max-w-3xl px-4 pt-4 sm:px-5">
+          <h2 className="text-sm font-bold text-foreground">Tus favoritos</h2>
+          <div className="mt-3 flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2 no-scrollbar">
+            {favoriteItems.map((item) => (
+              <button
+                key={item.id}
+                onClick={() => setActiveItem(item)}
+                className="snap-start shrink-0 w-32 rounded-xl border border-border bg-surface p-2 text-left transition-colors hover:bg-surface-elevated"
+              >
+                <div className="relative aspect-square w-full overflow-hidden rounded-lg bg-surface">
+                  {item.image_url ? (
+                    <Image src={item.image_url} alt={item.name} fill className="object-cover" />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center text-muted-foreground">
+                      <Icon name="coffee" className="h-6 w-6 opacity-30" />
+                    </div>
+                  )}
+                </div>
+                <p className="mt-2 line-clamp-2 text-xs font-bold text-foreground">{item.name}</p>
+                <p className="text-xs text-muted-foreground">{formatPrice(item.price_cents)}</p>
+              </button>
+            ))}
+          </div>
+        </section>
       )}
 
       <div className="sticky top-0 z-30 border-b border-border bg-background/95 backdrop-blur-md">
@@ -432,7 +547,10 @@ export function OrderPageClient({
                     key={item.id}
                     item={item}
                     customizable={hasModifiers(item.id)}
+                    isFavorite={favoriteIds.has(item.id)}
+                    showFavorite={customer !== null}
                     onClick={() => setActiveItem(item)}
+                    onToggleFavorite={() => toggleFavorite(item.id)}
                     formatPrice={formatPrice}
                     highlight={addedItemId === item.id}
                   />
@@ -454,7 +572,10 @@ export function OrderPageClient({
                   key={item.id}
                   item={item}
                   customizable={hasModifiers(item.id)}
+                  isFavorite={favoriteIds.has(item.id)}
+                  showFavorite={customer !== null}
                   onClick={() => setActiveItem(item)}
+                  onToggleFavorite={() => toggleFavorite(item.id)}
                   formatPrice={formatPrice}
                   highlight={addedItemId === item.id}
                 />
@@ -729,13 +850,19 @@ export function OrderPageClient({
 function ProductCard({
   item,
   customizable,
+  isFavorite,
+  showFavorite,
   onClick,
+  onToggleFavorite,
   formatPrice,
   highlight,
 }: {
   item: MenuItem
   customizable: boolean
+  isFavorite: boolean
+  showFavorite: boolean
   onClick: () => void
+  onToggleFavorite: () => void
   formatPrice: (cents: number) => string
   highlight?: boolean
 }) {
@@ -766,6 +893,25 @@ function ProductCard({
           <span className="absolute right-2 top-2 rounded-full bg-background/90 px-2 py-0.5 text-[0.6rem] font-bold text-foreground shadow-sm backdrop-blur-sm">
             Personalizable
           </span>
+        )}
+        {showFavorite && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation()
+              onToggleFavorite()
+            }}
+            className="absolute left-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-background/90 text-foreground shadow-sm backdrop-blur-sm transition-colors hover:bg-background active:scale-90 touch-manipulation"
+            aria-label={isFavorite ? 'Quitar de favoritos' : 'Agregar a favoritos'}
+          >
+            <Icon
+              name="heart"
+              className={[
+                'h-4 w-4 transition-colors',
+                isFavorite ? 'fill-danger text-danger' : 'text-muted-foreground',
+              ].join(' ')}
+            />
+          </button>
         )}
       </div>
       <div className="flex flex-1 flex-col p-2.5 sm:p-3">
