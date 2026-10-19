@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useTransition } from 'react'
 import { updateOrderStatus } from '@/server/actions/kds'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -79,6 +79,7 @@ export function OrderCard({
   const now = useNow()
   const elapsedMinutes = getElapsedMinutes(order.created_at, now)
   const action = nextActions[order.status]
+  const [isPending, startTransition] = useTransition()
 
   const urgencyClass =
     elapsedMinutes > 10
@@ -146,7 +147,8 @@ export function OrderCard({
             variant="primary"
             size="lg"
             className="h-14 w-full text-xl font-bold touch-manipulation sm:h-16 sm:text-2xl"
-            onClick={() => updateOrderStatus(shopId, order.id, action.status as any)}
+            loading={isPending}
+            onClick={() => startTransition(() => updateOrderStatus(shopId, order.id, action.status as any))}
           >
             {action.label}
           </Button>
@@ -156,7 +158,8 @@ export function OrderCard({
             variant="outline"
             size="lg"
             className="h-12 w-full text-base text-danger hover:bg-danger/10 touch-manipulation sm:text-lg"
-            onClick={() => updateOrderStatus(shopId, order.id, 'cancelled')}
+            disabled={isPending}
+            onClick={() => startTransition(() => updateOrderStatus(shopId, order.id, 'cancelled'))}
           >
             Cancelar
           </Button>

@@ -159,8 +159,8 @@ export function ShopSettingsForm({ shopId, shop }: { shopId: string; shop: Shop 
         </div>
       )}
 
-      <Button type="submit" disabled={saving}>
-        {saving ? 'Guardando...' : 'Guardar cambios'}
+      <Button type="submit" loading={saving}>
+        Guardar cambios
       </Button>
     </form>
   )

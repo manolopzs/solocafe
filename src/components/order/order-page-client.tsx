@@ -677,8 +677,8 @@ export function OrderPageClient({
               </div>
 
               <div className="sticky bottom-0 -mx-6 -mb-6 mt-6 border-t border-border bg-surface-elevated p-4 sm:p-6">
-                <Button onClick={handleSubmit} disabled={cart.length === 0 || loading} size="lg" className="w-full touch-manipulation">
-                  {loading ? 'Procesando...' : `Pagar ${formatPrice(totalCents)}`}
+                <Button onClick={handleSubmit} disabled={cart.length === 0} loading={loading} size="lg" className="w-full touch-manipulation">
+                  Pagar {formatPrice(totalCents)}
                 </Button>
               </div>
             </>
@@ -733,10 +733,16 @@ function ProductCard({
     >
       <div className="relative aspect-square w-full overflow-hidden bg-surface">
         {item.image_url ? (
-          <Image src={item.image_url} alt={item.name} fill className="object-cover transition-transform duration-300 group-hover:scale-105" />
+          <Image
+            src={item.image_url}
+            alt={item.name}
+            fill
+            className="object-cover transition-transform duration-300 group-hover:scale-105"
+            sizes="(max-width: 640px) 50vw, 33vw"
+          />
         ) : (
-          <div className="flex h-full w-full flex-col items-center justify-center gap-2 bg-surface text-muted-foreground">
-            <Icon name="utensils" className="h-8 w-8 opacity-40" />
+          <div className="flex h-full w-full flex-col items-center justify-center gap-2 bg-gradient-to-br from-surface to-surface-elevated text-muted-foreground">
+            <Icon name="coffee" className="h-8 w-8 opacity-30" />
           </div>
         )}
         {customizable && (
@@ -776,6 +782,13 @@ function ProductSheet({
   formatPrice: (cents: number) => string
 }) {
   const [quantity, setQuantity] = useState(1)
+  const [adding, setAdding] = useState(false)
+
+  const handleAdd = () => {
+    setAdding(true)
+    onAdd(quantity)
+    setTimeout(() => setAdding(false), 300)
+  }
 
   const toggleOption = (groupId: string, optionId: string, maxSelect: number) => {
     const current = selected[groupId] ?? []
@@ -882,7 +895,7 @@ function ProductSheet({
         </div>
 
         <div className="sticky bottom-0 -mx-6 -mb-6 mt-6 border-t border-border bg-surface-elevated p-4 sm:p-6">
-          <Button onClick={() => onAdd(quantity)} size="lg" className="w-full touch-manipulation">
+          <Button onClick={handleAdd} loading={adding} size="lg" className="w-full touch-manipulation">
             Agregar · {formatPrice(itemTotal * quantity)}
           </Button>
         </div>
