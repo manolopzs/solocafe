@@ -17,5 +17,13 @@ export default async function KdsPage({
 
   const [orders, menu] = await Promise.all([getShopOrders(shopId), getFullMenu(shopId)])
 
-  return <KdsClient shopId={shopId} shopName={shop.name} initialOrders={orders} initialMenuItems={menu.items} />
+  return (
+    <KdsClient
+      shopId={shopId}
+      shopName={shop.name}
+      initialOrders={orders}
+      initialMenuItems={menu.items}
+      initialCategories={menu.categories}
+    />
+  )
 }

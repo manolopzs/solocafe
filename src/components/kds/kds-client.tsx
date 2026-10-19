@@ -49,18 +49,20 @@ export function KdsClient({
   shopId,
   initialOrders,
   initialMenuItems,
+  initialCategories = [],
   autoPoll = true,
   shopName,
 }: {
   shopId: string
   initialOrders: Order[]
   initialMenuItems: MenuItem[]
+  initialCategories?: MenuCategory[]
   autoPoll?: boolean
   shopName?: string
 }) {
   const [orders, setOrders] = useState<OrderWithItems[]>(initialOrders as OrderWithItems[])
   const [menuItems, setMenuItems] = useState<MenuItem[]>(initialMenuItems)
-  const [categories, setCategories] = useState<MenuCategory[]>([])
+  const [categories, setCategories] = useState<MenuCategory[]>(initialCategories)
   const [menuPanelOpen, setMenuPanelOpen] = useState(false)
   const [pending86, setPending86] = useState<Set<string>>(new Set())
   const [soundEnabled, setSoundEnabled] = useState(false)

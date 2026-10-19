@@ -1,7 +1,7 @@
 'use client'
 
 import { KdsClient } from '@/components/kds/kds-client'
-import { demoShop, demoOrders, demoItems } from '@/lib/demo-data'
+import { demoShop, demoOrders, demoItems, demoCategories } from '@/lib/demo-data'
 
 export default function DemoKdsPage() {
   return (
@@ -11,6 +11,7 @@ export default function DemoKdsPage() {
         shopName={demoShop.name}
         initialOrders={demoOrders}
         initialMenuItems={demoItems}
+        initialCategories={demoCategories}
         autoPoll={false}
       />
     </main>
