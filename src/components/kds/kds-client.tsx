@@ -20,6 +20,14 @@ const columns: { status: OrderWithItems['status']; label: string }[] = [
   { status: 'ready', label: 'Listo' },
 ]
 
+function isKitchenOrder(order: { status: string; payment_status: string }) {
+  if (order.status === 'pending_payment' || order.status === 'picked_up' || order.status === 'cancelled') {
+    return false
+  }
+
+  return order.payment_status === 'succeeded' || order.payment_status === 'refunded'
+}
+
 function playBeep() {
   try {
     const AudioCtx = window.AudioContext || (window as any).webkitAudioContext
@@ -60,7 +68,9 @@ export function KdsClient({
   autoPoll?: boolean
   shopName?: string
 }) {
-  const [orders, setOrders] = useState<OrderWithItems[]>(initialOrders as OrderWithItems[])
+  const [orders, setOrders] = useState<OrderWithItems[]>(
+    (initialOrders as OrderWithItems[]).filter(isKitchenOrder)
+  )
   const [menuItems, setMenuItems] = useState<MenuItem[]>(initialMenuItems)
   const [categories, setCategories] = useState<MenuCategory[]>(initialCategories)
   const [menuPanelOpen, setMenuPanelOpen] = useState(false)
@@ -153,9 +163,7 @@ export function KdsClient({
     const fetchOrders = async () => {
       try {
         const data = await api.get<{ orders: OrderWithItems[] }>(`/shops/${shopId}/orders`)
-        const activeOrders = (data.orders ?? []).filter(
-          (o) => o.status !== 'picked_up' && o.status !== 'cancelled'
-        )
+        const activeOrders = (data.orders ?? []).filter(isKitchenOrder)
 
         const currentIds = new Set(activeOrders.map((o) => o.id))
         const hasNewOrder = activeOrders.some((o) => !previousIds.has(o.id))

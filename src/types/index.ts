@@ -1,6 +1,6 @@
 export type ShopRole = 'owner' | 'manager' | 'barista'
 
-export type OrderStatus = 'received' | 'preparing' | 'ready' | 'picked_up' | 'cancelled'
+export type OrderStatus = 'pending_payment' | 'received' | 'preparing' | 'ready' | 'picked_up' | 'cancelled'
 
 export type PaymentStatus = 'pending' | 'succeeded' | 'failed' | 'refunded'
 
@@ -49,6 +49,7 @@ export interface Shop {
   stripe_connect_status: string
   operating_hours: OperatingHours
   slot_duration_minutes: number
+  slot_capacity: number
   prep_time_buffer_minutes: number
   max_days_ahead: number
   estimated_ready_minutes?: number

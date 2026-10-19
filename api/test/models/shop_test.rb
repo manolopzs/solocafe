@@ -79,4 +79,11 @@ class ShopTest < ActiveSupport::TestCase
     assert_equal 1, first_slot[:reserved]
     assert_equal 1, first_slot[:available]
   end
+
+  test "available slots use shop capacity before a slot row exists" do
+    @shop.update!(slot_capacity: 6)
+    wednesday = Date.parse("2026-10-14")
+    slots = @shop.available_slots_for(wednesday)
+    assert slots.all? { |slot| slot[:capacity] == 6 }
+  end
 end

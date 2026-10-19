@@ -15,6 +15,7 @@ import type { OrderStatus } from '@/types'
 export const instant = false
 
 const statusLabels: Record<OrderStatus, string> = {
+  pending_payment: 'Pendiente de pago',
   received: 'Recibido',
   preparing: 'Preparando',
   ready: 'Listo',
@@ -23,6 +24,7 @@ const statusLabels: Record<OrderStatus, string> = {
 }
 
 const statusVariant: Record<OrderStatus, 'default' | 'secondary' | 'outline' | 'success' | 'warning' | 'danger' | 'info'> = {
+  pending_payment: 'outline',
   received: 'warning',
   preparing: 'warning',
   ready: 'success',

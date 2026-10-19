@@ -50,7 +50,7 @@ class ShopsController < ApplicationController
     params.require(:shop).permit(
       :name, :slug, :timezone, :currency, :locale,
       :tax_included, :tax_rate, :address, :brand_color,
-      :slot_duration_minutes, :prep_time_buffer_minutes, :max_days_ahead,
+      :slot_duration_minutes, :slot_capacity, :prep_time_buffer_minutes, :max_days_ahead,
       operating_hours: {}
     )
   end
@@ -71,6 +71,7 @@ class ShopsController < ApplicationController
       status: shop.status,
       operating_hours: shop.operating_hours,
       slot_duration_minutes: shop.slot_duration_minutes,
+      slot_capacity: shop.slot_capacity,
       prep_time_buffer_minutes: shop.prep_time_buffer_minutes,
       max_days_ahead: shop.max_days_ahead
     }

@@ -18,6 +18,7 @@ class Shop < ApplicationRecord
   validates :currency, inclusion: { in: %w[MXN EUR] }
   validates :locale, inclusion: { in: %w[es en] }
   validates :slot_duration_minutes, numericality: { greater_than_or_equal_to: 5 }
+  validates :slot_capacity, numericality: { only_integer: true, greater_than: 0, less_than_or_equal_to: 500 }
   validates :prep_time_buffer_minutes, numericality: { greater_than_or_equal_to: 0 }
   validates :max_days_ahead, numericality: { greater_than_or_equal_to: 1, less_than_or_equal_to: 30 }
 
@@ -94,7 +95,7 @@ class Shop < ApplicationRecord
         time_key = slot_range[:start_time].in_time_zone.strftime("%H:%M")
         slot = existing_slots[time_key]
         reserved_count = slot ? (reservations[slot.id] || 0) : 0
-        capacity = slot ? slot.capacity : 10
+        capacity = slot ? slot.capacity : slot_capacity
 
         {
           start_time: time_key,

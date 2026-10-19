@@ -23,6 +23,7 @@ const DEFAULT_DAY: OperatingHoursDay = { is_open: true, open: '07:00', close: '2
 export function ShopSettingsForm({ shopId, shop }: { shopId: string; shop: Shop }) {
   const [hours, setHours] = useState<OperatingHours>(shop.operating_hours as OperatingHours)
   const [slotDuration, setSlotDuration] = useState(shop.slot_duration_minutes)
+  const [slotCapacity, setSlotCapacity] = useState(shop.slot_capacity)
   const [prepBuffer, setPrepBuffer] = useState(shop.prep_time_buffer_minutes)
   const [maxDaysAhead, setMaxDaysAhead] = useState(shop.max_days_ahead)
   const [saving, setSaving] = useState(false)
@@ -37,6 +38,7 @@ export function ShopSettingsForm({ shopId, shop }: { shopId: string; shop: Shop 
       await updateShopSettings(shopId, {
         operating_hours: hours,
         slot_duration_minutes: slotDuration,
+        slot_capacity: slotCapacity,
         prep_time_buffer_minutes: prepBuffer,
         max_days_ahead: maxDaysAhead,
       })
@@ -113,7 +115,7 @@ export function ShopSettingsForm({ shopId, shop }: { shopId: string; shop: Shop 
           <CardTitle>Configuración de horarios</CardTitle>
           <CardDescription>Ajusta la duración de cada slot y cuántos días adelante pueden pedir.</CardDescription>
         </CardHeader>
-        <CardContent className="grid gap-4 sm:grid-cols-3">
+        <CardContent className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <div>
             <Label htmlFor="slotDuration">Duración de slot (min)</Label>
             <Input
@@ -123,6 +125,18 @@ export function ShopSettingsForm({ shopId, shop }: { shopId: string; shop: Shop 
               max={120}
               value={slotDuration}
               onChange={(e) => setSlotDuration(Number(e.target.value))}
+              className="mt-1.5"
+            />
+          </div>
+          <div>
+            <Label htmlFor="slotCapacity">Pedidos por horario</Label>
+            <Input
+              id="slotCapacity"
+              type="number"
+              min={1}
+              max={500}
+              value={slotCapacity}
+              onChange={(e) => setSlotCapacity(Number(e.target.value))}
               className="mt-1.5"
             />
           </div>

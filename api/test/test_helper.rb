@@ -1,4 +1,6 @@
 ENV["RAILS_ENV"] ||= "test"
+ENV["STRIPE_WEBHOOK_SECRET"] ||= "whsec_test"
+ENV["JWT_SECRET"] ||= "test-secret"
 require_relative "../config/environment"
 require "rails/test_help"
 

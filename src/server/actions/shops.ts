@@ -128,6 +128,7 @@ const shopSettingsSchema = z.object({
     sun: operatingHoursDaySchema,
   }),
   slot_duration_minutes: z.number().int().min(5).max(120),
+  slot_capacity: z.number().int().min(1).max(500),
   prep_time_buffer_minutes: z.number().int().min(0).max(120),
   max_days_ahead: z.number().int().min(1).max(30),
 })
@@ -141,6 +142,7 @@ export async function updateShopSettings(shopId: string, input: ShopSettingsInpu
     shop: {
       operating_hours: parsed.operating_hours,
       slot_duration_minutes: parsed.slot_duration_minutes,
+      slot_capacity: parsed.slot_capacity,
       prep_time_buffer_minutes: parsed.prep_time_buffer_minutes,
       max_days_ahead: parsed.max_days_ahead,
     },
