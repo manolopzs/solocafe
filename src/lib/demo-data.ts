@@ -29,6 +29,7 @@ export const demoShop: Shop = {
   slot_duration_minutes: 15,
   prep_time_buffer_minutes: 10,
   max_days_ahead: 7,
+  estimated_ready_minutes: 8,
   owner_id: null,
   status: 'active',
   created_at: new Date().toISOString(),
