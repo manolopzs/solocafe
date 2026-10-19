@@ -5,6 +5,8 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { createOrder } from '@/server/actions/orders'
 import { getPublicPickupSlots } from '@/server/queries/menu'
+import { api } from '@/lib/api/client'
+import type { FullMenu } from '@/server/queries/menu'
 import { Button } from '@/components/ui/button'
 import { Icon } from '@/components/ui/icon'
 import { Sheet } from '@/components/ui/sheet'
@@ -22,7 +24,7 @@ interface CartLine {
 export function OrderPageClient({
   shop,
   categories,
-  items,
+  items: initialItems,
   modifierGroups,
   modifierOptions,
   itemModifierLinks,
@@ -51,6 +53,7 @@ export function OrderPageClient({
     items: { menu_item_id: string; quantity: number; modifier_option_ids: string[] }[]
   }) => Promise<void> | void
 }) {
+  const [items, setItems] = useState<MenuItem[]>(initialItems)
   const [cart, setCart] = useState<CartLine[]>([])
   const [activeItem, setActiveItem] = useState<MenuItem | null>(null)
   const [selectedModifiers, setSelectedModifiers] = useState<Record<string, string[]>>({})
@@ -290,6 +293,20 @@ export function OrderPageClient({
     window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
   }, [visibleCategories, uncategorizedItems.length])
+
+  useEffect(() => {
+    const refreshMenu = async () => {
+      try {
+        const data = await api.get<FullMenu>(`/public/shops/${shop.id}/menu`, false)
+        setItems(data.items)
+      } catch {
+        // ignore polling errors
+      }
+    }
+
+    const interval = setInterval(refreshMenu, 15000)
+    return () => clearInterval(interval)
+  }, [shop.id])
 
   const formatPrice = (cents: number) => {
     return `${shop.currency} ${(cents / 100).toFixed(2)}`

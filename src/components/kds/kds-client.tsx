@@ -2,11 +2,13 @@
 
 import { useEffect, useState } from 'react'
 import { api } from '@/lib/api/client'
+import { toggleItem86 } from '@/server/actions/menu'
 import { OrderCard } from './order-card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Icon } from '@/components/ui/icon'
-import type { Order, OrderItem, OrderItemModifier } from '@/types'
+import { Sheet } from '@/components/ui/sheet'
+import type { Order, OrderItem, OrderItemModifier, MenuItem, MenuCategory } from '@/types'
 
 interface OrderWithItems extends Order {
   items: (OrderItem & { modifiers: OrderItemModifier[] })[]
@@ -46,15 +48,21 @@ function formatTime(date: Date | null) {
 export function KdsClient({
   shopId,
   initialOrders,
+  initialMenuItems,
   autoPoll = true,
   shopName,
 }: {
   shopId: string
   initialOrders: Order[]
+  initialMenuItems: MenuItem[]
   autoPoll?: boolean
   shopName?: string
 }) {
   const [orders, setOrders] = useState<OrderWithItems[]>(initialOrders as OrderWithItems[])
+  const [menuItems, setMenuItems] = useState<MenuItem[]>(initialMenuItems)
+  const [categories, setCategories] = useState<MenuCategory[]>([])
+  const [menuPanelOpen, setMenuPanelOpen] = useState(false)
+  const [pending86, setPending86] = useState<Set<string>>(new Set())
   const [soundEnabled, setSoundEnabled] = useState(false)
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
   const [isFullscreen, setIsFullscreen] = useState(false)
@@ -83,6 +91,58 @@ export function KdsClient({
       // ignore fullscreen errors
     }
   }
+
+  useEffect(() => {
+    if (!menuPanelOpen) return
+    if (categories.length > 0) return
+
+    api.get<{ categories: MenuCategory[] }>(`/shops/${shopId}/menu_categories`)
+      .then((data) => setCategories(data.categories ?? []))
+      .catch(() => {})
+  }, [menuPanelOpen, categories.length, shopId])
+
+  const handleToggle86 = async (id: string, current: boolean) => {
+    const next = !current
+    setMenuItems((prev) => prev.map((item) => (item.id === id ? { ...item, is_86ed: next } : item)))
+    setPending86((prev) => new Set(prev).add(id))
+    try {
+      await toggleItem86(shopId, id, next)
+    } catch {
+      setMenuItems((prev) => prev.map((item) => (item.id === id ? { ...item, is_86ed: current } : item)))
+    } finally {
+      setPending86((prev) => {
+        const nextSet = new Set(prev)
+        nextSet.delete(id)
+        return nextSet
+      })
+    }
+  }
+
+  const groupedMenu = (() => {
+    const byCategory = new Map<string | null, MenuItem[]>()
+    for (const item of menuItems) {
+      const key = item.category_id
+      const list = byCategory.get(key) ?? []
+      list.push(item)
+      byCategory.set(key, list)
+    }
+
+    const ordered: { key: string | null; name: string; items: MenuItem[] }[] = []
+    for (const category of [...categories].sort((a, b) => a.sort_order - b.sort_order)) {
+      const items = byCategory.get(category.id)
+      if (items) ordered.push({ key: category.id, name: category.name, items })
+    }
+    const uncategorized = byCategory.get(null)
+    if (uncategorized) ordered.push({ key: null, name: 'Otros', items: uncategorized })
+
+    for (const [key, items] of byCategory) {
+      if (key !== null && !ordered.some((g) => g.key === key)) {
+        ordered.push({ key, name: 'Categoria', items })
+      }
+    }
+
+    return ordered
+  })()
 
   useEffect(() => {
     if (!autoPoll) return
@@ -135,6 +195,10 @@ export function KdsClient({
           <span className="text-sm text-muted-foreground">
             Última actualización: {formatTime(lastUpdated)}
           </span>
+          <Button variant="outline" size="sm" onClick={() => setMenuPanelOpen(true)}>
+            <Icon name="menu" className="mr-2 h-4 w-4" />
+            Menu rapido
+          </Button>
           <Button
             variant={soundEnabled ? 'primary' : 'outline'}
             size="sm"
@@ -232,6 +296,52 @@ export function KdsClient({
           </div>
         </>
       )}
+
+      <Sheet
+        open={menuPanelOpen}
+        onClose={() => setMenuPanelOpen(false)}
+        title="Menu rapido"
+        position="right"
+      >
+        <div className="space-y-6">
+          {groupedMenu.length === 0 ? (
+            <p className="text-center text-muted-foreground">No hay productos configurados.</p>
+          ) : (
+            groupedMenu.map((group) => (
+              <div key={group.key ?? 'uncategorized'}>
+                <h3 className="text-sm font-bold uppercase tracking-wide text-muted-foreground">
+                  {group.name}
+                </h3>
+                <ul className="mt-3 space-y-2">
+                  {group.items
+                    .sort((a, b) => a.sort_order - b.sort_order || a.name.localeCompare(b.name))
+                    .map((item) => (
+                      <li
+                        key={item.id}
+                        className="flex items-center justify-between gap-3 rounded-xl border border-border bg-surface p-3"
+                      >
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate font-medium text-foreground">{item.name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {item.is_86ed ? 'Agotado' : 'Disponible'}
+                          </p>
+                        </div>
+                        <Button
+                          variant={item.is_86ed ? 'destructive' : 'outline'}
+                          size="sm"
+                          disabled={pending86.has(item.id)}
+                          onClick={() => handleToggle86(item.id, item.is_86ed)}
+                        >
+                          {item.is_86ed ? 'Agotado' : 'Activo'}
+                        </Button>
+                      </li>
+                    ))}
+                </ul>
+              </div>
+            ))
+          )}
+        </div>
+      </Sheet>
     </div>
   )
 }
