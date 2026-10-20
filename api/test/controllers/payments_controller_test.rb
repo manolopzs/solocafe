@@ -36,9 +36,9 @@ class PaymentsControllerTest < ActionDispatch::IntegrationTest
     @stripe_calls = { create: [], update: [] }
   end
 
-  test "customer phone can start a payment for a pending order" do
+  test "guest access token can start a payment for a pending order" do
     with_stripe do
-      post payments_url, params: { order_id: @order.id, customer_phone: "5551111111", amount_cents: 1 }
+      post payments_url, params: { order_id: @order.id, token: @order.guest_access_token, amount_cents: 1 }
     end
 
     assert_response :success
@@ -52,7 +52,7 @@ class PaymentsControllerTest < ActionDispatch::IntegrationTest
 
   test "rejects a payment without proof of the order" do
     with_stripe do
-      post payments_url, params: { order_id: @order.id }
+      post payments_url, params: { order_id: @order.id, customer_phone: "5551111111" }
     end
 
     assert_response :unauthorized
@@ -64,7 +64,7 @@ class PaymentsControllerTest < ActionDispatch::IntegrationTest
   test "shop member of another tenant cannot pay this order" do
     with_stripe do
       post payments_url,
-        params: { order_id: @order.id, customer_phone: "5559999999" },
+        params: { order_id: @order.id, token: "not-a-real-token" },
         headers: { "Authorization" => "Bearer #{@other_token}" }
     end
 
@@ -86,7 +86,7 @@ class PaymentsControllerTest < ActionDispatch::IntegrationTest
     )
 
     with_stripe do
-      post payments_url, params: { order_id: @order.id, customer_phone: "5551111111", amount_cents: 1 }
+      post payments_url, params: { order_id: @order.id, token: @order.guest_access_token, amount_cents: 1 }
     end
 
     assert_response :unprocessable_entity
@@ -100,7 +100,7 @@ class PaymentsControllerTest < ActionDispatch::IntegrationTest
     @order.update!(status: "cancelled")
 
     with_stripe do
-      post payments_url, params: { order_id: @order.id, customer_phone: "5551111111" }
+      post payments_url, params: { order_id: @order.id, token: @order.guest_access_token }
     end
 
     assert_response :unprocessable_entity
@@ -118,7 +118,9 @@ class PaymentsControllerTest < ActionDispatch::IntegrationTest
     )
 
     with_stripe do
-      post payments_url, params: { order_id: @order.id, customer_phone: "5551111111", amount_cents: 50 }
+      post payments_url,
+        params: { order_id: @order.id, amount_cents: 50 },
+        headers: { "X-Order-Token" => @order.guest_access_token }
     end
 
     assert_response :success

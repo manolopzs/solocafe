@@ -6,7 +6,7 @@ import { getStripe } from '@/lib/stripe/client'
 import { Button } from '@/components/ui/button'
 import { Icon } from '@/components/ui/icon'
 
-function PaymentForm({ orderId }: { orderId: string }) {
+function PaymentForm({ orderId, accessToken }: { orderId: string; accessToken: string }) {
   const stripe = useStripe()
   const elements = useElements()
   const [loading, setLoading] = useState(false)
@@ -29,7 +29,7 @@ function PaymentForm({ orderId }: { orderId: string }) {
     const { error: confirmError } = await stripe.confirmPayment({
       elements,
       confirmParams: {
-        return_url: `${window.location.origin}/checkout/${orderId}/success`,
+        return_url: `${window.location.origin}/checkout/${orderId}/success?token=${encodeURIComponent(accessToken)}`,
       },
     })
 
@@ -68,10 +68,18 @@ function PaymentForm({ orderId }: { orderId: string }) {
   )
 }
 
-export function CheckoutForm({ orderId, clientSecret }: { orderId: string; clientSecret: string }) {
+export function CheckoutForm({
+  orderId,
+  clientSecret,
+  accessToken,
+}: {
+  orderId: string
+  clientSecret: string
+  accessToken: string
+}) {
   return (
     <Elements stripe={getStripe()} options={{ clientSecret }}>
-      <PaymentForm orderId={orderId} />
+      <PaymentForm orderId={orderId} accessToken={accessToken} />
     </Elements>
   )
 }

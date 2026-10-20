@@ -1,4 +1,6 @@
 class ApplicationController < ActionController::API
+  include GuestOrderAccess
+
   before_action :set_current_user
 
   private

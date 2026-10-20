@@ -51,6 +51,7 @@ class ShopsController < ApplicationController
       :name, :slug, :timezone, :currency, :locale,
       :tax_included, :tax_rate, :address, :brand_color,
       :slot_duration_minutes, :slot_capacity, :prep_time_buffer_minutes, :max_days_ahead,
+      :accepting_pickup,
       operating_hours: {}
     )
   end
@@ -66,6 +67,9 @@ class ShopsController < ApplicationController
       tax_included: shop.tax_included,
       tax_rate: shop.tax_rate,
       address: shop.address,
+      lat: shop.lat&.to_f,
+      lng: shop.lng&.to_f,
+      logo_url: shop.logo_url,
       brand_color: shop.brand_color,
       stripe_connect_status: shop.stripe_connect_status,
       status: shop.status,
@@ -73,7 +77,9 @@ class ShopsController < ApplicationController
       slot_duration_minutes: shop.slot_duration_minutes,
       slot_capacity: shop.slot_capacity,
       prep_time_buffer_minutes: shop.prep_time_buffer_minutes,
-      max_days_ahead: shop.max_days_ahead
+      max_days_ahead: shop.max_days_ahead,
+      accepting_pickup: shop.accepting_pickup?,
+      ordering: shop.ordering_payload
     }
   end
 end

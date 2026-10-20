@@ -22,6 +22,18 @@ export interface OperatingHours {
   sun: OperatingHoursDay
 }
 
+export interface ShopOrdering {
+  open_now: boolean
+  accepting_pickup: boolean
+  asap_available: boolean
+  status: 'open' | 'closed' | 'not_accepting'
+  today: {
+    is_open: boolean
+    open: string | null
+    close: string | null
+  }
+}
+
 export interface PickupSlot {
   start_time: string
   end_time: string
@@ -52,6 +64,8 @@ export interface Shop {
   slot_capacity: number
   prep_time_buffer_minutes: number
   max_days_ahead: number
+  accepting_pickup?: boolean
+  ordering?: ShopOrdering
   estimated_ready_minutes?: number
   owner_id: string | null
   status: string
@@ -115,11 +129,23 @@ export interface ItemModifierLink {
   created_at: string
 }
 
+export interface OrderShopSummary {
+  id: string
+  name: string
+  slug: string
+  address: string | null
+  lat: number | null
+  lng: number | null
+  timezone: string
+  directions_url: string | null
+}
+
 export interface Order {
   id: string
   shop_id: string
   shop_name?: string
   shop_slug?: string
+  shop?: OrderShopSummary
   customer_id: string | null
   status: OrderStatus
   payment_status: PaymentStatus
@@ -129,15 +155,65 @@ export interface Order {
   total_cents: number
   currency: string
   pickup_type: PickupType
-  pickup_slot_id: string | null
+  pickup_slot_id?: string | null
   pickup_time: string | null
   customer_name: string | null
-  customer_phone: string | null
+  customer_phone?: string | null
   special_instructions: string | null
   estimated_ready_minutes?: number
+  pickup_window_starts_at?: string | null
+  pickup_window_ends_at?: string | null
+  item_count?: number
+  access_token?: string
   created_at: string
   updated_at: string
   items?: OrderItem[]
+}
+
+export interface UsualOrderItem {
+  menu_item_id: string
+  name: string
+  image_url: string | null
+  quantity: number
+  modifier_option_ids: string[]
+  modifier_names: string[]
+  label: string
+  available: boolean
+  unavailable_reason: string | null
+}
+
+export interface UsualOrder {
+  source_order_id: string
+  times_ordered: number
+  label: string
+  can_reorder: boolean
+  items: UsualOrderItem[]
+}
+
+export interface CartPreviewLine {
+  menu_item_id: string
+  quantity: number
+  modifier_option_ids: string[]
+  name: string | null
+  image_url: string | null
+  available: boolean
+  unavailable_reason: string | null
+  unit_price_cents: number
+  line_total_cents: number
+}
+
+export interface CartPreview {
+  ordering: ShopOrdering
+  estimated_ready_minutes: number
+  pickup_window_starts_at: string
+  pickup_window_ends_at: string
+  subtotal_cents: number
+  tax_cents: number
+  total_cents: number
+  currency: string
+  lines: CartPreviewLine[]
+  can_checkout: boolean
+  checkout_blocked_reason: string | null
 }
 
 export interface OrderItem {

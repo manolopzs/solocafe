@@ -50,12 +50,12 @@ async function request<T>(
   return body as T
 }
 
-export async function apiGet<T>(path: string, withAuth = true): Promise<T> {
-  return request<T>(path, { method: 'GET' }, withAuth)
+export async function apiGet<T>(path: string, withAuth = true, headers?: HeadersInit): Promise<T> {
+  return request<T>(path, { method: 'GET', headers }, withAuth)
 }
 
-export async function apiPost<T>(path: string, body: unknown, withAuth = true): Promise<T> {
-  return request<T>(path, { method: 'POST', body: JSON.stringify(body) }, withAuth)
+export async function apiPost<T>(path: string, body: unknown, withAuth = true, headers?: HeadersInit): Promise<T> {
+  return request<T>(path, { method: 'POST', body: JSON.stringify(body), headers }, withAuth)
 }
 
 export async function apiPatch<T>(path: string, body: unknown, withAuth = true): Promise<T> {

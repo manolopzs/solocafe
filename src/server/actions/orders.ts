@@ -43,11 +43,11 @@ export async function createOrder(input: CreateOrderInput) {
     orderBody.pickup_slot_start_time = parsed.pickup_slot_start_time
   }
 
-  const data = await apiPost<{ order: { id: string } }>(
+  const data = await apiPost<{ order: { id: string; access_token: string } }>(
     `/shops/${parsed.shop_id}/orders`,
     { order: orderBody },
     false
   )
 
-  redirect(`/checkout/${data.order.id}?phone=${encodeURIComponent(parsed.customer_phone)}`)
+  redirect(`/checkout/${data.order.id}?token=${encodeURIComponent(data.order.access_token)}`)
 }

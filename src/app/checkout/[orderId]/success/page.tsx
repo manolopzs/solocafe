@@ -9,13 +9,15 @@ export const instant = false
 
 export default async function CheckoutSuccessPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ orderId: string }>
+  searchParams: Promise<{ token?: string }>
 }) {
   const { orderId } = await params
-  const order = await getOrderWithItems(orderId)
-  if (!order) notFound()
-  const phone = order.customer_phone ?? ''
+  const { token } = await searchParams
+  const order = await getOrderWithItems(orderId, token)
+  if (!order || !token) notFound()
 
   const statusLabels: Record<string, string> = {
     pending_payment: 'Pendiente de pago',
@@ -66,7 +68,7 @@ export default async function CheckoutSuccessPage({
         </Card>
 
         <Button asChild size="lg" className="mt-6 w-full">
-          <Link href={`/order/${orderId}?phone=${encodeURIComponent(phone)}`}>
+          <Link href={`/order/${orderId}?token=${encodeURIComponent(token)}`}>
             Seguir tu pedido
           </Link>
         </Button>

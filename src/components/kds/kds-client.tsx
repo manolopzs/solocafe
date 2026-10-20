@@ -30,7 +30,7 @@ function isKitchenOrder(order: { status: string; payment_status: string }) {
 
 function playBeep() {
   try {
-    const AudioCtx = window.AudioContext || (window as any).webkitAudioContext
+    const AudioCtx = window.AudioContext || (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
     if (!AudioCtx) return
     const ctx = new AudioCtx()
     const osc = ctx.createOscillator()
@@ -86,10 +86,6 @@ export function KdsClient({
     }
     document.addEventListener('fullscreenchange', handleChange)
     return () => document.removeEventListener('fullscreenchange', handleChange)
-  }, [])
-
-  useEffect(() => {
-    setLastUpdated(new Date())
   }, [])
 
   const toggleFullscreen = async () => {
@@ -180,7 +176,8 @@ export function KdsClient({
       }
     }
 
-    const interval = setInterval(fetchOrders, 5000)
+    void fetchOrders()
+    const interval = setInterval(() => void fetchOrders(), 5000)
     return () => clearInterval(interval)
   }, [shopId, soundEnabled, autoPoll])
 

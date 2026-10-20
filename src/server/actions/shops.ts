@@ -131,6 +131,7 @@ const shopSettingsSchema = z.object({
   slot_capacity: z.number().int().min(1).max(500),
   prep_time_buffer_minutes: z.number().int().min(0).max(120),
   max_days_ahead: z.number().int().min(1).max(30),
+  accepting_pickup: z.boolean(),
 })
 
 export type ShopSettingsInput = z.infer<typeof shopSettingsSchema>
@@ -145,6 +146,7 @@ export async function updateShopSettings(shopId: string, input: ShopSettingsInpu
       slot_capacity: parsed.slot_capacity,
       prep_time_buffer_minutes: parsed.prep_time_buffer_minutes,
       max_days_ahead: parsed.max_days_ahead,
+      accepting_pickup: parsed.accepting_pickup,
     },
   })
 

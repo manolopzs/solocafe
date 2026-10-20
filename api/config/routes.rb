@@ -14,6 +14,7 @@ Rails.application.routes.draw do
   get "/shops/:slug", to: "shops#show"
 
   get "/shops/:shop_id/orders/recent", to: "orders#recent", as: :recent_shop_orders
+  get "/shops/:shop_id/orders/usual", to: "orders#usual", as: :usual_shop_order
 
   scope "/shops/:shop_id", as: :shop do
     resources :menu_categories, only: [:index, :create, :update, :destroy]
@@ -30,6 +31,7 @@ Rails.application.routes.draw do
 
   get "/public/shops", to: "public/shops#index"
   get "/public/shops/:shop_id/menu", to: "public/menus#show"
+  post "/public/shops/:shop_id/cart/preview", to: "public/carts#preview"
   get "/public/shops/:shop_id/pickup_slots", to: "public/pickup_slots#index"
   get "/public/orders/:id", to: "orders#show_public"
 
