@@ -16,6 +16,16 @@ class TenantScopedTest < ActiveSupport::TestCase
     )
   end
 
+  test "guest access token finds the order when another shop is current" do
+    Current.shop = @other_shop
+
+    found = Order.locate_by_guest_access_token(@order.guest_access_token)
+
+    assert_equal @order.id, found.id
+  ensure
+    Current.shop = nil
+  end
+
   test "across_shops reads an order when no shop is current" do
     Current.shop = nil
 
