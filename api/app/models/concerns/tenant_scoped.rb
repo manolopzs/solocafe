@@ -25,9 +25,30 @@ module TenantScoped
         nil
       elsif Current.shop
         where(shop_id: Current.shop.id)
+      else
+        raise MissingShop, "#{model.name} requires Current.shop"
       end
     end
 
     validates :shop_id, presence: true
+    validate :shop_matches_current_tenant
+
+    # Rails copies default scope attributes during Model.new. Skip that lookup
+    # when no shop is current so building a record is not treated as a query.
+    def self.scope_attributes
+      return {} unless Current.shop || TenantScoped.system_access?
+
+      super
+    end
+  end
+
+  private
+
+  def shop_matches_current_tenant
+    return if TenantScoped.system_access?
+    return if Current.shop.nil? && (!persisted? || !shop_id_changed?)
+    return if Current.shop && shop_id == Current.shop.id
+
+    errors.add(:shop_id, "does not match the current shop")
   end
 end

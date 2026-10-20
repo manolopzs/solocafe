@@ -30,8 +30,9 @@ class StripeWebhooksControllerTest < ActionDispatch::IntegrationTest
     assert_equal "succeeded", @order.payment.status
     assert_equal "received", @order.status
     assert_equal 1, StripeWebhookEvent.where(stripe_event_id: "evt_1").count
+    Current.shop = @shop
     assert_equal 1, Event.where(order: @order, event_type: "payment_intent.succeeded").count
-    assert_equal 1, Event.unscoped.where(order: @order, event_type: "order.kitchen_new").count
+    assert_equal 1, Event.where(order: @order, event_type: "order.kitchen_new").count
   end
 
   test "duplicate payment success is idempotent and does not skip received" do
@@ -47,8 +48,9 @@ class StripeWebhooksControllerTest < ActionDispatch::IntegrationTest
     @order.reload
     assert_equal "received", @order.status
     assert_equal 1, StripeWebhookEvent.where(stripe_event_id: "evt_1").count
+    Current.shop = @shop
     assert_equal 1, Event.where(order: @order, event_type: "payment_intent.succeeded").count
-    assert_equal 1, Event.unscoped.where(order: @order, event_type: "order.kitchen_new").count
+    assert_equal 1, Event.where(order: @order, event_type: "order.kitchen_new").count
   end
 
   test "a later success event does not move a received order to preparing" do
@@ -66,6 +68,7 @@ class StripeWebhooksControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "payment failure cancels an unpaid order and frees the slot" do
+    Current.shop = @shop
     slot = @shop.pickup_slots.create!(slot_date: Date.current + 3, start_time: "10:00:00", end_time: "10:15:00", capacity: 2)
     SlotReservation.create!(slot: slot, order: @order)
 

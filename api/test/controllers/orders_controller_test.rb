@@ -62,7 +62,8 @@ class OrdersControllerTest < ActionDispatch::IntegrationTest
     patch shop_order_url(@shop, @order), params: { order: { status: "preparing" } }, headers: auth_headers
     assert_response :success
     assert_equal "preparing", @order.reload.status
-    assert_equal 0, Event.unscoped.where(order: @order, event_type: "order.kitchen_new").count
+    Current.shop = @shop
+    assert_equal 0, Event.where(order: @order, event_type: "order.kitchen_new").count
   end
 
   test "kitchen view returns open paid tickets sync policy and shop alerts" do
@@ -118,6 +119,7 @@ class OrdersControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "cancelling an order releases its pickup slot" do
+    Current.shop = @shop
     slot = @shop.pickup_slots.create!(
       slot_date: Date.current + 3,
       start_time: "09:00:00",
@@ -249,6 +251,7 @@ class OrdersControllerTest < ActionDispatch::IntegrationTest
     end
 
     assert_response :created
+    Current.shop = @shop
     created = Order.find(response.parsed_body.dig("order", "id"))
     assert_nil created.customer_id
     assert_equal "5551234567", created.customer_phone

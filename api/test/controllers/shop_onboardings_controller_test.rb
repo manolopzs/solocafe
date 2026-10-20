@@ -48,8 +48,8 @@ class ShopOnboardingsControllerTest < ActionDispatch::IntegrationTest
     assert_equal false, body["shop"]["onboarding"]["hours_confirmed"]
     assert_equal "not_started", body["shop"]["onboarding"]["stripe"]["status"]
     assert_not_includes body["shop"]["onboarding"]["blockers"], "menu"
-    assert MenuItem.unscoped.where(shop_id: shop.id).exists?
-    assert_equal 0, MenuItem.unscoped.where(shop_id: @shop.id).count
+    assert TenantScoped.unscoped_for_system { MenuItem.where(shop_id: shop.id).exists? }
+    assert_equal 0, TenantScoped.unscoped_for_system { MenuItem.where(shop_id: @shop.id).count }
 
     get "/shops/cafe-norte"
     assert_response :not_found
@@ -153,6 +153,7 @@ class ShopOnboardingsControllerTest < ActionDispatch::IntegrationTest
       as: :json
 
     assert_response :not_found
+    Current.shop = @shop
     assert_equal 0, Order.where(shop_id: @shop.id).count
   end
 

@@ -13,13 +13,16 @@ class PickupSlotTest < ActiveSupport::TestCase
       slot_capacity: 1,
       slot_duration_minutes: 15
     )
+    Current.shop = @shop
   end
 
   teardown do
+    Current.shop = @shop
     SlotReservation.where(order_id: Order.where(shop: @shop).select(:id)).delete_all
     Order.where(shop: @shop).delete_all
     PickupSlot.where(shop: @shop).delete_all
     @shop.delete
+    Current.shop = nil
   end
 
   test "only one reservation wins the last seat" do
@@ -28,6 +31,7 @@ class PickupSlotTest < ActiveSupport::TestCase
     threads = 2.times.map do |index|
       Thread.new do
         ActiveRecord::Base.connection_pool.with_connection do
+          Current.shop = @shop
           order = Order.create!(
             shop: @shop,
             status: "pending_payment",

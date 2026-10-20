@@ -15,6 +15,11 @@ class ShopTest < ActiveSupport::TestCase
         "wed" => { "is_open" => true, "open" => "08:00", "close" => "20:00" }
       }
     )
+    Current.shop = @shop
+  end
+
+  teardown do
+    Current.shop = nil
   end
 
   test "defaults operating_hours when blank" do

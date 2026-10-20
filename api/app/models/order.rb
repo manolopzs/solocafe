@@ -73,14 +73,16 @@ class Order < ApplicationRecord
   end
 
   def record_kitchen_arrival!
-    return if Event.unscoped.exists?(order_id: id, event_type: "order.kitchen_new")
+    TenantScoped.unscoped_for_system do
+      return if Event.exists?(order_id: id, event_type: "order.kitchen_new")
 
-    Event.create!(
-      shop: shop,
-      order: self,
-      event_type: "order.kitchen_new",
-      payload: { "to" => "received" }
-    )
+      Event.create!(
+        shop: shop,
+        order: self,
+        event_type: "order.kitchen_new",
+        payload: { "to" => "received" }
+      )
+    end
   end
 
   def apply_failed_payment!

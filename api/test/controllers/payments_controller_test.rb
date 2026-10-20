@@ -70,7 +70,9 @@ class PaymentsControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :unauthorized
     assert_nil @order.reload.payment
-    assert_equal 0, Payment.joins(:order).where(orders: { shop_id: @other_shop.id }).count
+    assert_equal 0, TenantScoped.unscoped_for_system {
+      Payment.joins(:order).where(orders: { shop_id: @other_shop.id }).count
+    }
     assert_empty @stripe_calls[:create]
     assert_empty @stripe_calls[:update]
   end
