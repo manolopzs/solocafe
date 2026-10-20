@@ -83,6 +83,7 @@ class Order < ApplicationRecord
         payload: { "to" => "received" }
       )
     end
+    KitchenPush.enqueue(self)
   end
 
   def apply_failed_payment!
