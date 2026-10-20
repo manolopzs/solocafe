@@ -35,6 +35,9 @@ export function CheckoutSheet({
   onPickupType,
   loading,
   error,
+  rewardText,
+  redeemLoyalty,
+  onRedeemLoyalty,
   onSubmit,
 }: {
   open: boolean
@@ -47,6 +50,9 @@ export function CheckoutSheet({
   onPickupType: (value: 'asap' | 'scheduled') => void
   loading: boolean
   error: string | null
+  rewardText?: string | null
+  redeemLoyalty?: boolean
+  onRedeemLoyalty?: (value: boolean) => void
   onSubmit: (input: {
     customerName: string
     customerPhone: string
@@ -54,6 +60,7 @@ export function CheckoutSheet({
     pickupType: 'asap' | 'scheduled'
     pickupSlotDate?: string
     pickupSlotStartTime?: string
+    redeemLoyalty?: boolean
   }) => void
 }) {
   const [customerName, setCustomerName] = useState(customer?.name ?? '')
@@ -111,6 +118,7 @@ export function CheckoutSheet({
       pickupType,
       pickupSlotDate: pickupType === 'scheduled' ? selectedDate : undefined,
       pickupSlotStartTime: pickupType === 'scheduled' ? selectedSlot?.start_time : undefined,
+      redeemLoyalty,
     })
   }
 
@@ -252,6 +260,21 @@ export function CheckoutSheet({
                 )}
               </div>
             </div>
+          )}
+
+          {rewardText && (
+            <label className="flex items-start gap-3 rounded-xl border border-border bg-surface p-4 text-sm">
+              <input
+                type="checkbox"
+                checked={redeemLoyalty === true}
+                onChange={(event) => onRedeemLoyalty?.(event.target.checked)}
+                className="mt-0.5 h-4 w-4 rounded border-border"
+              />
+              <span>
+                <span className="block font-semibold text-foreground">Canjear recompensa</span>
+                <span className="block text-muted-foreground">{rewardText}. El descuento se calcula al crear el pedido.</span>
+              </span>
+            </label>
           )}
 
           {(localError || error || blockedCopy) && (

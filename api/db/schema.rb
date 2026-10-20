@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_20_150100) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_20_161000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -100,6 +100,22 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_20_150100) do
     t.index ["group_id"], name: "index_item_modifier_links_on_group_id"
     t.index ["item_id", "group_id"], name: "index_item_modifier_links_on_item_id_and_group_id", unique: true
     t.index ["item_id"], name: "index_item_modifier_links_on_item_id"
+  end
+
+  create_table "loyalty_stamps", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "shop_id", null: false
+    t.uuid "customer_id", null: false
+    t.uuid "order_id", null: false
+    t.string "status", default: "earned", null: false
+    t.datetime "reversed_at"
+    t.uuid "redemption_order_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["customer_id"], name: "index_loyalty_stamps_on_customer_id"
+    t.index ["order_id"], name: "index_loyalty_stamps_on_order_id", unique: true
+    t.index ["redemption_order_id"], name: "index_loyalty_stamps_on_redemption_order_id"
+    t.index ["shop_id", "customer_id", "status"], name: "index_loyalty_stamps_on_shop_customer_and_status"
+    t.index ["shop_id"], name: "index_loyalty_stamps_on_shop_id"
   end
 
   create_table "menu_categories", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -206,6 +222,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_20_150100) do
     t.text "special_instructions"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "discount_cents", default: 0, null: false
+    t.boolean "loyalty_redeemed", default: false, null: false
     t.index ["customer_id"], name: "index_orders_on_customer_id"
     t.index ["pickup_slot_id"], name: "index_orders_on_pickup_slot_id"
     t.index ["shop_id"], name: "index_orders_on_shop_id"
@@ -305,6 +323,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_20_150100) do
     t.integer "slot_capacity", default: 10, null: false
     t.boolean "accepting_pickup", default: true, null: false
     t.string "display_font", default: "dm_sans", null: false
+    t.integer "loyalty_stamps_required", default: 10, null: false
+    t.string "loyalty_reward_text", default: "Un artículo gratis", null: false
     t.index ["owner_id"], name: "index_shops_on_owner_id"
     t.index ["slug"], name: "index_shops_on_slug", unique: true
   end
@@ -357,6 +377,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_20_150100) do
   add_foreign_key "events", "shops"
   add_foreign_key "item_modifier_links", "menu_items", column: "item_id"
   add_foreign_key "item_modifier_links", "modifier_groups", column: "group_id"
+  add_foreign_key "loyalty_stamps", "customers"
+  add_foreign_key "loyalty_stamps", "orders"
+  add_foreign_key "loyalty_stamps", "orders", column: "redemption_order_id"
+  add_foreign_key "loyalty_stamps", "shops"
   add_foreign_key "menu_categories", "shops"
   add_foreign_key "menu_items", "menu_categories", column: "category_id"
   add_foreign_key "menu_items", "shops"

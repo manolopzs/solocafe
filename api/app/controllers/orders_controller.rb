@@ -85,6 +85,7 @@ class OrdersController < ApplicationController
         raise ActiveRecord::Rollback
       end
 
+      apply_loyalty_redemption!(order, customer, items)
       reserve_pickup_slot!(order, pickup_slot, pickup_time) if order.pickup_type_scheduled?
       saved = Current.shop.orders.includes(ORDER_INCLUDES).find(order.id)
       render json: { order: order_payload(saved, audience: :guest) }, status: :created
@@ -111,7 +112,10 @@ class OrdersController < ApplicationController
     old_status = order.status
     ActiveRecord::Base.transaction do
       order.update!(status: new_status)
-      order.release_slot! if new_status == "cancelled"
+      if new_status == "cancelled"
+        order.release_slot!
+        LoyaltyStamp.unwind!(order)
+      end
       create_status_event(order, old_status, new_status)
       create_ready_notification(order) if new_status == "ready"
     end
@@ -272,6 +276,21 @@ class OrdersController < ApplicationController
     [ pickup_time, slot ]
   end
 
+  def apply_loyalty_redemption!(order, customer, items)
+    return unless ActiveModel::Type::Boolean.new.cast(order_params[:redeem_loyalty])
+
+    if customer.nil?
+      render json: { error: "loyalty_unavailable" }, status: :unprocessable_entity
+      raise ActiveRecord::Rollback
+    end
+
+    quote = OrderPricing.quote(Current.shop, items)
+    LoyaltyStamp.redeem!(order, customer, quote[:lines])
+  rescue LoyaltyStamp::Unavailable
+    render json: { error: "loyalty_unavailable" }, status: :unprocessable_entity
+    raise ActiveRecord::Rollback
+  end
+
   def reserve_pickup_slot!(order, existing_slot, pickup_time)
     local_time = pickup_time.in_time_zone(Current.shop.timezone)
     PickupSlot.reserve_for!(
@@ -351,7 +370,7 @@ class OrdersController < ApplicationController
   def order_params
     params.require(:order).permit(
       :customer_name, :customer_phone, :special_instructions,
-      :pickup_type, :pickup_slot_date, :pickup_slot_start_time
+      :pickup_type, :pickup_slot_date, :pickup_slot_start_time, :redeem_loyalty
     )
   end
 
@@ -391,6 +410,8 @@ class OrdersController < ApplicationController
       status: order.status,
       payment_status: order.payment_status,
       subtotal_cents: order.subtotal_cents,
+      discount_cents: order.discount_cents,
+      loyalty_redeemed: order.loyalty_redeemed,
       tax_cents: order.tax_cents,
       tip_cents: order.tip_cents,
       total_cents: order.total_cents,
@@ -408,7 +429,8 @@ class OrdersController < ApplicationController
       allowed_transitions: order.allowed_transitions,
       created_at: order.created_at,
       updated_at: order.updated_at,
-      items: order.order_items.map { |order_item| order_item_payload(order_item) }
+      items: order.order_items.map { |order_item| order_item_payload(order_item) },
+      loyalty: order.customer ? LoyaltyStamp.progress_for(order.customer, shop) : nil
     }
 
     if audience == :staff

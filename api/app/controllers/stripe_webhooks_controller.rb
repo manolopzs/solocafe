@@ -39,6 +39,8 @@ class StripeWebhooksController < ApplicationController
       handle_payment_intent_succeeded(event)
     when "payment_intent.payment_failed"
       handle_payment_intent_payment_failed(event)
+    when "charge.refunded"
+      handle_charge_refunded(event)
     when "account.updated"
       handle_account_updated(event)
     when "payment_method.attached"
@@ -100,6 +102,34 @@ class StripeWebhooksController < ApplicationController
       stripe_payment_method = Stripe::PaymentMethod.retrieve(payment_method_id)
       CustomerPaymentMethod.store_for_customer!(customer, stripe_payment_method)
     end
+  end
+
+  def handle_charge_refunded(event)
+    charge = event.data.object
+    return unless ActiveModel::Type::Boolean.new.cast(StripePayload.read(charge, :refunded))
+
+    payment = payment_for_refund(charge)
+    return unless payment
+
+    StripeWebhookEvent.create!(stripe_event_id: event.id, event_type: event.type)
+    order = TenantScoped.unscoped_for_system { Order.lock.find(payment.order_id) }
+    in_order_shop(order) do
+      charge_id = StripePayload.read(charge, :id)
+      payment.update!(status: "refunded", stripe_charge_id: charge_id.presence || payment.stripe_charge_id)
+      order.apply_refund!
+      create_event(order, event.type, charge)
+    end
+  end
+
+  def payment_for_refund(charge)
+    intent_id = StripePayload.read(charge, :payment_intent)
+    charge_id = StripePayload.read(charge, :id)
+    if intent_id.present?
+      payment = Payment.lock.find_by(stripe_payment_intent_id: intent_id)
+      return payment if payment
+    end
+
+    Payment.lock.find_by(stripe_charge_id: charge_id) if charge_id.present?
   end
 
   def handle_payment_intent_payment_failed(event)

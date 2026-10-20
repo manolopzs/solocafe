@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { getOrderWithItems } from '@/server/queries/orders'
 import { formatMoney, formatPickupWindow } from '@/lib/ordering'
 import { Button } from '@/components/ui/button'
+import { StampCard } from '@/components/order/stamp-card'
 import { Card, CardContent } from '@/components/ui/card'
 import { Icon } from '@/components/ui/icon'
 import type { Order, OrderItem, OrderItemModifier, OrderStatus } from '@/types'
@@ -164,6 +165,15 @@ export function OrderStatusClient({
           </Card>
         )}
 
+        {order.loyalty && (
+          <div className="mt-4">
+            <StampCard loyalty={order.loyalty} />
+            {order.loyalty_redeemed && (
+              <p className="mt-2 text-sm text-muted-foreground">Canjeaste tu recompensa en este pedido.</p>
+            )}
+          </div>
+        )}
+
         {order.status === 'pending_payment' && accessToken && (
           <Button asChild size="lg" className="mt-4 w-full">
             <Link href={`/checkout/${order.id}?token=${encodeURIComponent(accessToken)}`}>Completar pago</Link>
@@ -198,7 +208,13 @@ export function OrderStatusClient({
                 </li>
               ))}
             </ul>
-            <div className="mt-5 border-t border-border pt-4">
+            <div className="mt-5 space-y-2 border-t border-border pt-4 text-sm">
+              {(order.discount_cents ?? 0) > 0 && (
+                <div className="flex justify-between text-foreground">
+                  <span>Recompensa</span>
+                  <span>-{formatMoney(order.discount_cents ?? 0, order.currency)}</span>
+                </div>
+              )}
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground">Total</span>
                 <span className="text-lg font-bold text-foreground">{formatMoney(order.total_cents, order.currency)}</span>

@@ -14,12 +14,32 @@ class OrderPricing
     end
 
     subtotal_cents = priced.sum(&:subtotal_cents)
-    tax_cents = (subtotal_cents * shop.tax_rate).round
-    total_cents = shop.tax_included ? subtotal_cents : subtotal_cents + tax_cents
+    totals = total_for(shop, subtotal_cents, 0)
 
     {
       lines: priced,
       subtotal_cents: subtotal_cents,
+      discount_cents: totals[:discount_cents],
+      tax_cents: totals[:tax_cents],
+      total_cents: totals[:total_cents]
+    }
+  end
+
+  def self.free_item_cents(lines)
+    cents = Array(lines).map { |line| line.unit_price_cents.to_i }
+    return 0 if cents.empty?
+
+    cents.min
+  end
+
+  def self.total_for(shop, subtotal_cents, discount_cents)
+    discount_cents = discount_cents.to_i.clamp(0, subtotal_cents)
+    taxable_cents = subtotal_cents - discount_cents
+    tax_cents = (taxable_cents * shop.tax_rate).round
+    total_cents = shop.tax_included ? taxable_cents : taxable_cents + tax_cents
+
+    {
+      discount_cents: discount_cents,
       tax_cents: tax_cents,
       total_cents: total_cents
     }

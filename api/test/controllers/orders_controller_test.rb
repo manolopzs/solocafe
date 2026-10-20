@@ -380,6 +380,96 @@ class OrdersControllerTest < ActionDispatch::IntegrationTest
     assert_operator loaded - baseline, :<=, 4
   end
 
+  test "redeeming a reward discounts the cheapest item on the server" do
+    user = User.create!(email: "redeem@example.com", password: "password123")
+    customer = Customer.create!(user: user, name: "Ana", phone: "5553334444")
+    @shop.update!(loyalty_stamps_required: 1, loyalty_reward_text: "Un café gratis")
+    earn_stamp(customer)
+    cookie = MenuItem.create!(shop: @shop, name: "Galleta", price_cents: 2_000, prep_time_min: 2, is_active: true, is_86ed: false)
+    latte = MenuItem.create!(shop: @shop, name: "Latte", price_cents: 5_000, prep_time_min: 5, is_active: true, is_86ed: false)
+    token = JsonWebToken.encode(user_id: user.id)
+
+    travel_to Time.find_zone(@shop.timezone).local(2026, 10, 20, 10, 0, 0) do
+      post shop_orders_url(@shop),
+        params: {
+          order: {
+            customer_name: "Ana",
+            customer_phone: "5553334444",
+            pickup_type: "asap",
+            redeem_loyalty: true,
+            discount_cents: 1,
+            items: [
+              { menu_item_id: cookie.id, quantity: 2, modifier_option_ids: [] },
+              { menu_item_id: latte.id, quantity: 1, modifier_option_ids: [] }
+            ]
+          }
+        },
+        headers: { "Authorization" => "Bearer #{token}" }
+    end
+
+    assert_response :created
+    body = response.parsed_body["order"]
+    assert_equal 9_000, body["subtotal_cents"]
+    assert_equal 2_000, body["discount_cents"]
+    assert_equal 7_000, body["total_cents"]
+    assert_equal true, body["loyalty_redeemed"]
+    order = TenantScoped.unscoped_for_system { Order.find(body["id"]) }
+    assert_equal 2_000, order.discount_cents
+    assert_equal 7_000, order.total_cents
+  end
+
+  test "a client discount is ignored when the customer cannot redeem" do
+    item = MenuItem.create!(shop: @shop, name: "Latte", price_cents: 4_500, prep_time_min: 5, is_active: true, is_86ed: false)
+    user = User.create!(email: "noredeem@example.com", password: "password123")
+    Customer.create!(user: user, name: "Ana", phone: "5553334455")
+    token = JsonWebToken.encode(user_id: user.id)
+
+    travel_to Time.find_zone(@shop.timezone).local(2026, 10, 20, 10, 0, 0) do
+      post shop_orders_url(@shop),
+        params: asap_order_params(item).deep_merge(order: { redeem_loyalty: true, discount_cents: 4_500 }),
+        headers: { "Authorization" => "Bearer #{token}" }
+    end
+
+    assert_response :unprocessable_entity
+    assert_equal "loyalty_unavailable", response.parsed_body["error"]
+    assert_equal 0, TenantScoped.unscoped_for_system { Order.where(customer_name: "Ana").count }
+  end
+
+  test "stamps earned at another shop cannot be redeemed here" do
+    user = User.create!(email: "traveler-loyalty@example.com", password: "password123")
+    customer = Customer.create!(user: user, name: "Viaje", phone: "5553334466")
+    @shop.update!(loyalty_stamps_required: 1)
+    @other_shop.update!(loyalty_stamps_required: 1)
+    earn_stamp(customer, @other_shop)
+    item = MenuItem.create!(shop: @shop, name: "Latte", price_cents: 4_500, prep_time_min: 5, is_active: true, is_86ed: false)
+    token = JsonWebToken.encode(user_id: user.id)
+
+    travel_to Time.find_zone(@shop.timezone).local(2026, 10, 20, 10, 0, 0) do
+      post shop_orders_url(@shop),
+        params: asap_order_params(item).deep_merge(order: { redeem_loyalty: true }),
+        headers: { "Authorization" => "Bearer #{token}" }
+    end
+
+    assert_response :unprocessable_entity
+    assert_equal "loyalty_unavailable", response.parsed_body["error"]
+  end
+
+  test "cancelling a paid order removes the stamp it earned" do
+    user = User.create!(email: "cancel-loyalty@example.com", password: "password123")
+    customer = Customer.create!(user: user, name: "Ana", phone: "5553334477")
+    order = create_order(@shop)
+    order.update!(customer: customer)
+    LoyaltyStamp.award_paid_order!(order)
+
+    patch shop_order_url(@shop, order), params: { order: { status: "cancelled" } }, headers: auth_headers
+
+    assert_response :success
+    assert_equal "cancelled", order.reload.status
+    Current.shop = @shop
+    assert_equal 0, LoyaltyStamp.where(customer: customer, status: "earned").count
+    assert_equal 1, LoyaltyStamp.where(customer: customer, status: "reversed").count
+  end
+
   private
 
   def auth_headers
@@ -435,6 +525,21 @@ class OrdersControllerTest < ActionDispatch::IntegrationTest
         price_cents: modifier.price_cents
       )
     end
+    order
+  end
+
+  def earn_stamp(customer, shop = @shop)
+    order = Order.create!(
+      shop: shop,
+      customer: customer,
+      status: "pending_payment",
+      payment_status: "pending",
+      subtotal_cents: 1_000,
+      total_cents: 1_000,
+      currency: "MXN",
+      pickup_type: "asap"
+    )
+    order.apply_successful_payment!
     order
   end
 

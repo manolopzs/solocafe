@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { getCurrentCustomer } from '@/server/queries/customers'
+import { getCurrentCustomer, getLoyaltyCards } from '@/server/queries/customers'
 import { getSavedCards } from '@/server/queries/payment-methods'
 import { accountLogoutAction } from '@/server/actions/account-auth'
 import { deleteSavedCard } from '@/server/actions/payment-methods'
@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { StampCard } from '@/components/order/stamp-card'
 import { Icon } from '@/components/ui/icon'
 
 export default async function AccountPage() {
@@ -19,6 +20,8 @@ export default async function AccountPage() {
   if (!customer) {
     redirect('/account/login')
   }
+
+  const loyaltyCards = await getLoyaltyCards()
 
   let savedCards: CustomerPaymentMethod[] = []
   try {
@@ -74,6 +77,17 @@ export default async function AccountPage() {
             </form>
           </CardContent>
         </Card>
+
+        <section className="mt-6 space-y-3">
+          <h2 className="text-lg font-semibold text-foreground">Tus sellos</h2>
+          {loyaltyCards.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              Cada pedido pagado suma un sello en esa cafetería. Cuando completes la tarjeta, puedes canjear un artículo gratis.
+            </p>
+          ) : (
+            loyaltyCards.map((card) => <StampCard key={card.shop_id} loyalty={card} compact />)
+          )}
+        </section>
 
         <Card variant="outline" className="mt-4">
           <CardHeader>

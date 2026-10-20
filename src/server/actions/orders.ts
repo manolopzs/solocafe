@@ -2,6 +2,7 @@
 
 import { redirect } from 'next/navigation'
 import { apiPost } from '@/lib/api/server'
+import type { CartPreview } from '@/types'
 import { z } from 'zod'
 
 const cartItemSchema = z.object({
@@ -18,6 +19,7 @@ const createOrderSchema = z.object({
   pickup_slot_date: z.string().optional(),
   pickup_slot_start_time: z.string().optional(),
   special_instructions: z.string().max(500).optional(),
+  redeem_loyalty: z.boolean().optional(),
   items: z.array(cartItemSchema).min(1),
 })
 
@@ -31,6 +33,7 @@ export async function createOrder(input: CreateOrderInput) {
     customer_phone: parsed.customer_phone,
     pickup_type: parsed.pickup_type,
     special_instructions: parsed.special_instructions,
+    redeem_loyalty: parsed.redeem_loyalty === true,
     items: parsed.items.map((item) => ({
       menu_item_id: item.menu_item_id,
       quantity: item.quantity,
@@ -45,9 +48,21 @@ export async function createOrder(input: CreateOrderInput) {
 
   const data = await apiPost<{ order: { id: string; access_token: string } }>(
     `/shops/${parsed.shop_id}/orders`,
-    { order: orderBody },
-    false
+    { order: orderBody }
   )
 
   redirect(`/checkout/${data.order.id}?token=${encodeURIComponent(data.order.access_token)}`)
+}
+
+export async function previewPublicCart(input: {
+  shopId: string
+  pickupType: 'asap' | 'scheduled'
+  redeemLoyalty: boolean
+  items: { menu_item_id: string; quantity: number; modifier_option_ids: string[] }[]
+}): Promise<CartPreview> {
+  return apiPost<CartPreview>(`/public/shops/${input.shopId}/cart/preview`, {
+    pickup_type: input.pickupType,
+    redeem_loyalty: input.redeemLoyalty,
+    items: input.items,
+  })
 }

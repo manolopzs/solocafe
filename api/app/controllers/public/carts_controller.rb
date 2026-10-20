@@ -9,6 +9,9 @@ module Public
       lines = CartLineCheck.inspect_items(shop, preview_items)
       available_lines = lines.select { |line| line[:available] }
       quote = OrderPricing.quote(shop, available_lines.filter_map { |line| pricing_line(line) })
+      loyalty = loyalty_for(shop)
+      discount_cents = redemption_discount(loyalty, quote)
+      totals = OrderPricing.total_for(shop, quote[:subtotal_cents], discount_cents)
       minutes = PickupEstimate.minutes_for(
         shop: shop,
         lines: available_lines,
@@ -25,8 +28,10 @@ module Public
         pickup_window_starts_at: window[:starts_at]&.iso8601,
         pickup_window_ends_at: window[:ends_at]&.iso8601,
         subtotal_cents: quote[:subtotal_cents],
-        tax_cents: quote[:tax_cents],
-        total_cents: quote[:total_cents],
+        discount_cents: totals[:discount_cents],
+        tax_cents: totals[:tax_cents],
+        total_cents: totals[:total_cents],
+        loyalty: loyalty,
         currency: shop.currency,
         lines: lines.map { |line| public_line(line) },
         can_checkout: reason.nil?,
@@ -35,6 +40,22 @@ module Public
     end
 
     private
+
+    def loyalty_for(shop)
+      return nil unless current_user
+
+      customer = Customer.find_by(user_id: current_user.id)
+      return nil unless customer
+
+      LoyaltyStamp.progress_for(customer, shop)
+    end
+
+    def redemption_discount(loyalty, quote)
+      return 0 unless loyalty && ActiveModel::Type::Boolean.new.cast(params[:redeem_loyalty])
+      return 0 unless loyalty[:can_redeem]
+
+      OrderPricing.free_item_cents(quote[:lines])
+    end
 
     def preview_items
       Array(params[:items]).map do |item|

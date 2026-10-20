@@ -27,6 +27,8 @@ export interface ShopSettingsInput {
   prep_time_buffer_minutes: number
   max_days_ahead: number
   accepting_pickup: boolean
+  loyalty_stamps_required: number
+  loyalty_reward_text: string
 }
 
 export async function updateShopPersonality(shopId: string, slug: string, formData: FormData) {

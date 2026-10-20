@@ -41,6 +41,8 @@ export function ShopSettingsForm({ shopId, shop }: { shopId: string; shop: Shop 
   const [prepBuffer, setPrepBuffer] = useState(shop.prep_time_buffer_minutes)
   const [maxDaysAhead, setMaxDaysAhead] = useState(shop.max_days_ahead)
   const [acceptingPickup, setAcceptingPickup] = useState(shop.accepting_pickup !== false)
+  const [stampsRequired, setStampsRequired] = useState(shop.loyalty_stamps_required ?? 10)
+  const [rewardText, setRewardText] = useState(shop.loyalty_reward_text ?? 'Un artículo gratis')
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
   const [messageTone, setMessageTone] = useState<'ok' | 'error'>('ok')
@@ -64,6 +66,8 @@ export function ShopSettingsForm({ shopId, shop }: { shopId: string; shop: Shop 
         prep_time_buffer_minutes: prepBuffer,
         max_days_ahead: maxDaysAhead,
         accepting_pickup: acceptingPickup,
+        loyalty_stamps_required: stampsRequired,
+        loyalty_reward_text: rewardText.trim(),
       })
       setMessageTone('ok')
       setMessage('Cambios guardados')
@@ -219,6 +223,41 @@ export function ShopSettingsForm({ shopId, shop }: { shopId: string; shop: Shop 
             </div>
             )
           })}
+        </CardContent>
+      </Card>
+
+      <Card variant="outline">
+        <CardHeader>
+          <CardTitle>Tarjeta de sellos</CardTitle>
+          <CardDescription>
+            Cada pedido pagado suma un sello. Cuando el cliente completa la tarjeta, puede canjear un artículo gratis.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <Label htmlFor="stampsRequired">Sellos para la recompensa</Label>
+            <Input
+              id="stampsRequired"
+              type="number"
+              min={1}
+              max={50}
+              value={stampsRequired}
+              onChange={(e) => setStampsRequired(Number(e.target.value))}
+              required
+              className="mt-1.5"
+            />
+          </div>
+          <div>
+            <Label htmlFor="rewardText">Texto de la recompensa</Label>
+            <Input
+              id="rewardText"
+              value={rewardText}
+              maxLength={80}
+              onChange={(e) => setRewardText(e.target.value)}
+              required
+              className="mt-1.5"
+            />
+          </div>
         </CardContent>
       </Card>
 

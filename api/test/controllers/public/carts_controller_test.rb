@@ -61,6 +61,45 @@ class Public::CartsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "closed", response.parsed_body.dig("ordering", "status")
   end
 
+  test "preview applies a loyalty discount only when the customer can redeem" do
+    user = User.create!(email: "preview-loyalty@example.com", password: "password123")
+    customer = Customer.create!(user: user, name: "Ana", phone: "5551212121")
+    @shop.update!(loyalty_stamps_required: 1, loyalty_reward_text: "Un café gratis")
+    order = Order.create!(
+      shop: @shop,
+      customer: customer,
+      status: "pending_payment",
+      payment_status: "pending",
+      subtotal_cents: 1_000,
+      total_cents: 1_000,
+      currency: "MXN",
+      pickup_type: "asap"
+    )
+    order.apply_successful_payment!
+    token = JsonWebToken.encode(user_id: user.id)
+    items = [
+      { menu_item_id: @cookie.id, quantity: 1, modifier_option_ids: [] },
+      { menu_item_id: @latte.id, quantity: 1, modifier_option_ids: [] }
+    ]
+
+    travel_to Time.find_zone(@shop.timezone).local(2026, 10, 20, 10, 0, 0) do
+      post "/public/shops/#{@shop.id}/cart/preview",
+        params: { pickup_type: "asap", redeem_loyalty: true, discount_cents: 9_999, items: items },
+        headers: { "Authorization" => "Bearer #{token}" }
+    end
+
+    assert_response :success
+    assert_equal 2_000, response.parsed_body["discount_cents"]
+    assert_equal 5_000, response.parsed_body["total_cents"]
+    assert_equal true, response.parsed_body.dig("loyalty", "can_redeem")
+
+    post "/public/shops/#{@shop.id}/cart/preview",
+      params: { pickup_type: "asap", redeem_loyalty: true, discount_cents: 9_999, items: items }
+
+    assert_equal 0, response.parsed_body["discount_cents"]
+    assert_nil response.parsed_body["loyalty"]
+  end
+
   test "preview blocks every pickup type when the shop is not accepting orders" do
     @shop.update!(accepting_pickup: false)
 

@@ -427,6 +427,38 @@ class PaymentsControllerTest < ActionDispatch::IntegrationTest
     assert_equal 1, Payment.where(order: @order).count
   end
 
+  test "a fully discounted loyalty order is completed without Stripe" do
+    customer, token = login_customer!
+    @shop.update!(loyalty_stamps_required: 1)
+    earned = Order.create!(
+      shop: @shop,
+      customer: customer,
+      status: "pending_payment",
+      payment_status: "pending",
+      subtotal_cents: 1_000,
+      total_cents: 1_000,
+      currency: "MXN",
+      pickup_type: "asap"
+    )
+    earned.apply_successful_payment!
+    @order.update!(customer: customer, subtotal_cents: 1_800, total_cents: 1_800, discount_cents: 0)
+    LoyaltyStamp.redeem!(@order, customer, [ OrderPricing::Line.new(unit_price_cents: 1_800, quantity: 1, subtotal_cents: 1_800) ])
+
+    post payments_url,
+      params: { order_id: @order.id, amount_cents: 1_800 },
+      headers: bearer(token)
+
+    assert_response :success
+    assert_equal "succeeded", response.parsed_body["status"]
+    assert_nil response.parsed_body["client_secret"]
+    @order.reload
+    assert_equal 0, @order.total_cents
+    assert_equal "succeeded", @order.payment_status
+    assert_equal "received", @order.status
+    assert_equal 0, @order.payment.amount_cents
+    assert_empty @stripe_calls[:create]
+  end
+
   private
 
   def login_customer!
