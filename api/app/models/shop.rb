@@ -13,6 +13,20 @@ class Shop < ApplicationRecord
   has_many :notifications, dependent: :destroy
   has_many :push_devices, dependent: :destroy
   has_many :customer_favorites, dependent: :destroy
+  has_one_attached :hero_photo
+
+  DISPLAY_FONTS = {
+    "dm_sans" => "DM Sans",
+    "fraunces" => "Fraunces",
+    "literata" => "Literata",
+    "newsreader" => "Newsreader",
+    "libre_baskerville" => "Libre Baskerville"
+  }.freeze
+  HEX_COLOR = /\A#[0-9a-f]{6}\z/
+  CREAM_CANVAS = "#fffbf7"
+  WHITE = "#ffffff"
+  MIN_CONTRAST_RATIO = 4.5
+  HERO_MAX_BYTES = 5.megabytes
 
   validates :slug, presence: true, uniqueness: true, format: { with: /\A[a-z0-9-]+\z/ }
   validates :name, presence: true
@@ -23,6 +37,11 @@ class Shop < ApplicationRecord
   validates :prep_time_buffer_minutes, numericality: { greater_than_or_equal_to: 0 }
   validates :max_days_ahead, numericality: { greater_than_or_equal_to: 1, less_than_or_equal_to: 30 }
   validate :operating_hours_are_usable
+  validate :brand_color_is_usable
+  validate :display_font_is_curated
+  validate :acceptable_hero_photo
+
+  before_validation :normalize_brand_color
 
   scope :active, -> { where(status: "active") }
 
@@ -38,6 +57,41 @@ class Shop < ApplicationRecord
     "sat" => { "is_open" => true, "open" => "08:00", "close" => "20:00" },
     "sun" => { "is_open" => true, "open" => "08:00", "close" => "18:00" }
   }.freeze
+
+  def normalize_brand_color
+    self.brand_color = brand_color.to_s.strip.downcase
+  end
+
+  def brand_color_is_usable
+    unless brand_color.match?(HEX_COLOR)
+      errors.add(:base, "El color de marca debe ser un hexadecimal de 6 dígitos, por ejemplo #8c3d25.")
+      return
+    end
+
+    cream = WcagContrast.ratio(brand_color, CREAM_CANVAS)
+    white = WcagContrast.ratio(brand_color, WHITE)
+    return if cream >= MIN_CONTRAST_RATIO && white >= MIN_CONTRAST_RATIO
+
+    errors.add(:base, "El color de marca no alcanza el contraste WCAG AA (4.5:1) sobre el fondo crema ni con texto blanco.")
+  end
+
+  def display_font_is_curated
+    return if DISPLAY_FONTS.key?(display_font)
+
+    errors.add(:base, "La tipografía debe elegirse de la lista.")
+  end
+
+  def acceptable_hero_photo
+    return unless hero_photo.attached?
+
+    blob = hero_photo.blob
+    unless blob.content_type.in?(%w[image/jpeg image/png image/webp])
+      errors.add(:base, "La foto de portada debe ser JPG, PNG o WebP.")
+    end
+    return if blob.byte_size.to_i <= HERO_MAX_BYTES
+
+    errors.add(:base, "La foto de portada debe pesar hasta 5 MB.")
+  end
 
   def operating_hours
     super.presence || DEFAULT_HOURS

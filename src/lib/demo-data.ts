@@ -15,6 +15,9 @@ export const demoShop: Shop = {
   lng: -99.1656,
   logo_url: '/images/logo-placeholder.png',
   brand_color: '#C45D3A',
+  display_font: 'dm_sans',
+  display_font_family: 'DM Sans',
+  hero_photo_url: null,
   stripe_account_id: null,
   stripe_connect_status: 'pending',
   operating_hours: {

@@ -188,6 +188,10 @@ button:focus-visible {
   100% { background-position: 200% 0; }
 }
 
+.shop-display-font {
+  font-family: var(--font-display), var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
 .animate-shimmer {
   background: linear-gradient(90deg, var(--surface) 25%, var(--surface-elevated) 50%, var(--surface) 75%);
   background-size: 200% 100%;

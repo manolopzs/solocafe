@@ -62,6 +62,10 @@ export async function apiPatch<T>(path: string, body: unknown, withAuth = true):
   return request<T>(path, { method: 'PATCH', body: JSON.stringify(body) }, withAuth)
 }
 
+export async function apiForm<T>(path: string, formData: FormData, method: 'POST' | 'PATCH' = 'POST'): Promise<T> {
+  return request<T>(path, { method, body: formData })
+}
+
 export async function apiPut<T>(path: string, body: unknown, withAuth = true): Promise<T> {
   return request<T>(path, { method: 'PUT', body: JSON.stringify(body) }, withAuth)
 }

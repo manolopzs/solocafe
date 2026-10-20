@@ -1,5 +1,7 @@
 module Public
   class ShopsController < ApplicationController
+    include ShopPersonalityPayload
+
     def index
       shops = Shop.active.where.not(lat: nil, lng: nil).order(:name)
 
@@ -19,9 +21,8 @@ module Public
         currency: shop.currency,
         locale: shop.locale,
         lat: shop.lat,
-        lng: shop.lng,
-        brand_color: shop.brand_color
-      }
+        lng: shop.lng
+      }.merge(personality_fields(shop))
     end
   end
 end

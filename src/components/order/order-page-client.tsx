@@ -275,17 +275,12 @@ export function OrderPageClient({
     }
   }
 
-  const brandColor = shop.brand_color || '#c17c5b'
   const sheetsOpen = cartOpen || checkoutOpen
 
   return (
     <div className="min-h-screen bg-background pb-40">
-      <header className="relative overflow-hidden bg-surface">
-        <div
-          className="absolute inset-0 opacity-[0.12]"
-          style={{ background: `linear-gradient(135deg, ${brandColor} 0%, transparent 65%)` }}
-        />
-        <div className="relative mx-auto max-w-3xl px-4 pb-4 pt-5 sm:px-5 sm:pb-5 sm:pt-6">
+      <header className="bg-surface">
+        <div className="mx-auto max-w-3xl px-4 pb-4 pt-5 sm:px-5 sm:pb-5 sm:pt-6">
           <div className="flex items-start justify-between gap-3 sm:gap-4">
             <div className="flex items-start gap-3 sm:gap-4">
               {shop.logo_url ? (
@@ -298,8 +293,8 @@ export function OrderPageClient({
                 </div>
               )}
               <div className="min-w-0 flex-1 pt-0.5 sm:pt-1">
-                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Bienvenido a</p>
-                <h1 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">{shop.name}</h1>
+                <p className="text-xs font-semibold uppercase tracking-wider text-accent">Bienvenido a</p>
+                <h1 className="shop-display-font text-xl font-bold tracking-tight text-foreground sm:text-2xl">{shop.name}</h1>
                 {shop.address && (
                   <p className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground sm:mt-1 sm:text-sm">
                     <Icon name="map-pin" className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
