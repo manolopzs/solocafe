@@ -25,6 +25,17 @@ function settingsError(err: unknown) {
   if (message.includes('hours_invalid')) {
     return 'Revisa el horario: la hora de cierre tiene que ser después de la apertura.'
   }
+  const start = message.indexOf('[')
+  if (start >= 0) {
+    try {
+      const parsed = JSON.parse(message.slice(start))
+      if (Array.isArray(parsed) && parsed.every((item) => typeof item === 'string') && parsed.length > 0) {
+        return parsed.join(' ')
+      }
+    } catch {
+      return 'No se pudieron guardar los cambios. Revisa los datos e intenta de nuevo.'
+    }
+  }
   return 'No se pudieron guardar los cambios. Revisa los datos e intenta de nuevo.'
 }
 
@@ -35,6 +46,8 @@ export function ShopSettingsForm({ shopId, shop }: { shopId: string; shop: Shop 
   const [currency, setCurrency] = useState(shop.currency)
   const [locale, setLocale] = useState(shop.locale)
   const [address, setAddress] = useState(shop.address ?? '')
+  const [lat, setLat] = useState(shop.lat == null ? '' : String(shop.lat))
+  const [lng, setLng] = useState(shop.lng == null ? '' : String(shop.lng))
   const [hours, setHours] = useState<OperatingHours>(shop.operating_hours as OperatingHours)
   const [slotDuration, setSlotDuration] = useState(shop.slot_duration_minutes)
   const [slotCapacity, setSlotCapacity] = useState(shop.slot_capacity)
@@ -58,6 +71,8 @@ export function ShopSettingsForm({ shopId, shop }: { shopId: string; shop: Shop 
         currency,
         locale,
         address,
+        lat: lat.trim() === '' ? null : Number(lat),
+        lng: lng.trim() === '' ? null : Number(lng),
         operating_hours: hours,
         slot_duration_minutes: slotDuration,
         slot_capacity: slotCapacity,
@@ -150,6 +165,39 @@ export function ShopSettingsForm({ shopId, shop }: { shopId: string; shop: Shop 
               className="mt-1.5 block w-full resize-none rounded-xl border border-warm-200 bg-paper px-4 py-3 text-sm text-foreground focus:border-terracotta-400 focus:outline-none focus:ring-2 focus:ring-terracotta-400/20"
             />
           </div>
+          <div>
+            <Label htmlFor="lat">Latitud</Label>
+            <Input
+              id="lat"
+              type="number"
+              inputMode="decimal"
+              step="any"
+              min={-90}
+              max={90}
+              value={lat}
+              onChange={(e) => setLat(e.target.value)}
+              placeholder="19.432608"
+              className="mt-1.5"
+            />
+          </div>
+          <div>
+            <Label htmlFor="lng">Longitud</Label>
+            <Input
+              id="lng"
+              type="number"
+              inputMode="decimal"
+              step="any"
+              min={-180}
+              max={180}
+              value={lng}
+              onChange={(e) => setLng(e.target.value)}
+              placeholder="-99.133209"
+              className="mt-1.5"
+            />
+          </div>
+          <p className="sm:col-span-2 text-sm text-muted-foreground">
+            Opcional. Con estas coordenadas tu cafetería se ordena por cercanía en Explorar.
+          </p>
         </CardContent>
       </Card>
 

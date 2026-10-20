@@ -91,6 +91,9 @@ export default async function Home() {
             <Button asChild variant="outline" size="lg" className="w-full bg-surface-elevated sm:w-auto">
               <Link href="/demo">Ver demo</Link>
             </Button>
+            <Button asChild variant="ghost" size="lg" className="w-full sm:w-auto">
+              <Link href="/explore">Explorar cafeterías</Link>
+            </Button>
           </div>
         </div>
       </section>

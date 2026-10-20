@@ -59,7 +59,7 @@ class ShopsController < ApplicationController
     day = %i[is_open open close]
     params.require(:shop).permit(
       :name, :slug, :timezone, :currency, :locale,
-      :tax_included, :tax_rate, :address, :brand_color, :display_font,
+      :tax_included, :tax_rate, :address, :lat, :lng, :brand_color, :display_font,
       :hero_photo, :remove_hero_photo,
       :slot_duration_minutes, :slot_capacity, :prep_time_buffer_minutes, :max_days_ahead,
       :accepting_pickup,

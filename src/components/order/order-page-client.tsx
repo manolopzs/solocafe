@@ -16,6 +16,7 @@ import { CheckoutSheet } from '@/components/order/checkout-sheet'
 import { ItemSheet } from '@/components/order/item-sheet'
 import { ProductCard } from '@/components/order/product-card'
 import { ShopStatusBadge, ShopStatusBanner } from '@/components/order/shop-status'
+import { ShopSwitcher } from '@/components/order/shop-switcher'
 import { UsualOrderButton } from '@/components/order/usual-order-button'
 import { useCartPreview } from '@/components/order/hooks/use-cart-preview'
 import { useCategorySpy } from '@/components/order/hooks/use-category-spy'
@@ -294,7 +295,12 @@ export function OrderPageClient({
               )}
               <div className="min-w-0 flex-1 pt-0.5 sm:pt-1">
                 <p className="text-xs font-semibold uppercase tracking-wider text-accent">Bienvenido a</p>
-                <h1 className="shop-display-font text-xl font-bold tracking-tight text-foreground sm:text-2xl">{shop.name}</h1>
+                <div className="flex min-w-0 items-center gap-0.5">
+                  <h1 className="shop-display-font min-w-0 truncate text-xl font-bold tracking-tight text-foreground sm:text-2xl">
+                    {shop.name}
+                  </h1>
+                  <ShopSwitcher shop={{ slug: shop.slug, name: shop.name }} />
+                </div>
                 {shop.address && (
                   <p className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground sm:mt-1 sm:text-sm">
                     <Icon name="map-pin" className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
