@@ -1,5 +1,6 @@
 'use server'
 
+import { redirect } from 'next/navigation'
 import { apiPost } from '@/lib/api/server'
 import type { PaymentAttempt } from '@/types'
 
@@ -50,6 +51,24 @@ export async function payWithSavedCard(
     true,
     orderTokenHeaders(accessToken)
   )
+}
+
+export async function completeFreeOrder(orderId: string, accessToken: string) {
+  const data = await apiPost<{ status?: string }>(
+    '/payments',
+    {
+      order_id: orderId,
+      token: accessToken,
+    },
+    true,
+    orderTokenHeaders(accessToken)
+  )
+
+  if (data.status !== 'succeeded') {
+    throw new Error('No pudimos confirmar el pedido.')
+  }
+
+  redirect(`/order/${orderId}?token=${encodeURIComponent(accessToken)}`)
 }
 
 export async function syncPayment(orderId: string, accessToken?: string): Promise<PaymentAttempt> {

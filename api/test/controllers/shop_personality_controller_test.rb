@@ -175,6 +175,29 @@ class ShopPersonalityControllerTest < ActionDispatch::IntegrationTest
     assert @other.reload.hero_photo.attached?
   end
 
+  test "owner configures the stamp card without changing another shop" do
+    patch "/shops/#{@shop.id}",
+      params: { shop: { loyalty_stamps_required: 8, loyalty_reward_text: "Un croissant" } },
+      headers: auth_headers
+
+    assert_response :success
+    body = response.parsed_body["shop"]
+    assert_equal 8, body["loyalty_stamps_required"]
+    assert_equal "Un croissant", body["loyalty_reward_text"]
+    assert_equal 8, @shop.reload.loyalty_stamps_required
+    assert_equal 10, @other.reload.loyalty_stamps_required
+    assert_equal "Un artículo gratis", @other.loyalty_reward_text
+  end
+
+  test "blank reward text is rejected" do
+    patch "/shops/#{@shop.id}",
+      params: { shop: { loyalty_reward_text: "   " } },
+      headers: auth_headers
+
+    assert_response :unprocessable_entity
+    assert_equal "Un artículo gratis", @shop.reload.loyalty_reward_text
+  end
+
   private
 
   def auth_headers

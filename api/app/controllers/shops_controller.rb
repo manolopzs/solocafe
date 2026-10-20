@@ -62,7 +62,7 @@ class ShopsController < ApplicationController
       :tax_included, :tax_rate, :address, :lat, :lng, :brand_color, :display_font,
       :hero_photo, :remove_hero_photo,
       :slot_duration_minutes, :slot_capacity, :prep_time_buffer_minutes, :max_days_ahead,
-      :accepting_pickup,
+      :accepting_pickup, :loyalty_stamps_required, :loyalty_reward_text,
       operating_hours: { mon: day, tue: day, wed: day, thu: day, fri: day, sat: day, sun: day }
     )
   end
@@ -99,6 +99,8 @@ class ShopsController < ApplicationController
       prep_time_buffer_minutes: shop.prep_time_buffer_minutes,
       max_days_ahead: shop.max_days_ahead,
       accepting_pickup: shop.accepting_pickup?,
+      loyalty_stamps_required: shop.loyalty_stamps_required,
+      loyalty_reward_text: shop.loyalty_reward_text,
       ordering: shop.ordering_payload
     }.merge(personality_fields(shop))
     payload[:onboarding] = ShopOnboarding.snapshot(shop) if include_onboarding

@@ -13,6 +13,7 @@ class Shop < ApplicationRecord
   has_many :notifications, dependent: :destroy
   has_many :push_devices, dependent: :destroy
   has_many :customer_favorites, dependent: :destroy
+  has_many :loyalty_stamps, dependent: :destroy
   has_one_attached :hero_photo
 
   DISPLAY_FONTS = {
@@ -37,12 +38,20 @@ class Shop < ApplicationRecord
   validates :slot_capacity, numericality: { only_integer: true, greater_than: 0, less_than_or_equal_to: 500 }
   validates :prep_time_buffer_minutes, numericality: { greater_than_or_equal_to: 0 }
   validates :max_days_ahead, numericality: { greater_than_or_equal_to: 1, less_than_or_equal_to: 30 }
+  validates :loyalty_stamps_required, numericality: {
+    only_integer: true,
+    greater_than: 0,
+    less_than_or_equal_to: 50,
+    message: "debe ser un entero entre 1 y 50"
+  }
+  validates :loyalty_reward_text, presence: { message: "no puede estar vacío" }, length: { maximum: 80 }
   validate :operating_hours_are_usable
   validate :brand_color_is_usable
   validate :display_font_is_curated
   validate :acceptable_hero_photo
 
   before_validation :normalize_brand_color
+  before_validation :normalize_loyalty_reward_text
 
   scope :active, -> { where(status: "active") }
 
@@ -88,6 +97,10 @@ class Shop < ApplicationRecord
 
   def normalize_brand_color
     self.brand_color = brand_color.to_s.strip.downcase
+  end
+
+  def normalize_loyalty_reward_text
+    self.loyalty_reward_text = loyalty_reward_text.to_s.strip
   end
 
   def brand_color_is_usable

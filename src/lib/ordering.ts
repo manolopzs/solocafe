@@ -32,6 +32,7 @@ export function orderErrorCopy(message: string) {
     return 'Un producto ya no está disponible.'
   }
   if (message.includes('modifier_unavailable')) return 'Una opción ya no está disponible.'
+  if (message.includes('loyalty_unavailable')) return 'Aún no puedes canjear esa recompensa.'
   if (message.includes('full')) return 'Ese horario ya está lleno.'
   if (message.includes('outside operating hours')) return 'Ese horario está fuera del horario de la cafetería.'
   return 'No pudimos crear el pedido. Inténtalo de nuevo.'

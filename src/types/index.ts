@@ -88,6 +88,8 @@ export interface Shop {
   slot_capacity: number
   prep_time_buffer_minutes: number
   max_days_ahead: number
+  loyalty_stamps_required?: number
+  loyalty_reward_text?: string
   accepting_pickup?: boolean
   ordering?: ShopOrdering
   estimated_ready_minutes?: number
@@ -175,6 +177,9 @@ export interface Order {
   status: OrderStatus
   payment_status: PaymentStatus
   subtotal_cents: number
+  discount_cents?: number
+  loyalty_redeemed?: boolean
+  loyalty?: LoyaltyProgress | null
   tax_cents: number
   tip_cents: number
   total_cents: number
@@ -234,9 +239,11 @@ export interface CartPreview {
   pickup_window_starts_at: string
   pickup_window_ends_at: string
   subtotal_cents: number
+  discount_cents?: number
   tax_cents: number
   total_cents: number
   currency: string
+  loyalty?: LoyaltyProgress | null
   lines: CartPreviewLine[]
   can_checkout: boolean
   checkout_blocked_reason: string | null
@@ -272,6 +279,16 @@ export interface Payment {
   status: PaymentStatus
   created_at: string
   updated_at: string
+}
+
+export interface LoyaltyProgress {
+  shop_id: string
+  shop_name: string
+  shop_slug: string
+  stamps: number
+  stamps_required: number
+  reward_text: string
+  can_redeem: boolean
 }
 
 export interface Customer {

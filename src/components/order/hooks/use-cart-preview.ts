@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { api } from '@/lib/api/client'
+import { previewPublicCart } from '@/server/actions/orders'
 import type { CartPreview } from '@/types'
 import type { StoredCartLine } from './use-shop-cart'
 
@@ -9,12 +9,13 @@ export function useCartPreview(
   shopId: string,
   lines: StoredCartLine[],
   pickupType: 'asap' | 'scheduled',
-  enabled: boolean
+  enabled: boolean,
+  redeemLoyalty = false
 ) {
   const [preview, setPreview] = useState<CartPreview | null>(null)
   const [settledKey, setSettledKey] = useState<string | null>(null)
   const lineKey = JSON.stringify(lines)
-  const requestKey = `${shopId}|${pickupType}|${lineKey}`
+  const requestKey = `${shopId}|${pickupType}|${lineKey}|${redeemLoyalty ? 'redeem' : 'keep'}`
 
   useEffect(() => {
     if (!enabled) return
@@ -22,18 +23,16 @@ export function useCartPreview(
 
     const run = async () => {
       try {
-        const data = await api.post<CartPreview>(
-          `/public/shops/${shopId}/cart/preview`,
-          {
-            pickup_type: pickupType,
-            items: lines.map((line) => ({
-              menu_item_id: line.itemId,
-              quantity: line.quantity,
-              modifier_option_ids: line.modifierIds,
-            })),
-          },
-          false
-        )
+        const data = await previewPublicCart({
+          shopId,
+          pickupType,
+          redeemLoyalty,
+          items: lines.map((line) => ({
+            menu_item_id: line.itemId,
+            quantity: line.quantity,
+            modifier_option_ids: line.modifierIds,
+          })),
+        })
         if (cancelled) return
         setPreview(data)
         setSettledKey(requestKey)
@@ -50,9 +49,13 @@ export function useCartPreview(
       cancelled = true
       clearInterval(interval)
     }
-  }, [enabled, lineKey, lines, pickupType, requestKey, shopId])
+  }, [enabled, lineKey, lines, pickupType, redeemLoyalty, requestKey, shopId])
 
-  if (!enabled) return { preview: null, loading: false }
+  if (!enabled) return { preview: null, loyalty: null, loading: false }
   const fresh = settledKey === requestKey
-  return { preview: fresh ? preview : null, loading: !fresh }
+  return {
+    preview: fresh ? preview : null,
+    loyalty: preview?.loyalty ?? null,
+    loading: !fresh,
+  }
 }

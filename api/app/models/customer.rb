@@ -3,6 +3,7 @@ class Customer < ApplicationRecord
   has_many :orders, dependent: :nullify
   has_many :customer_favorites, dependent: :destroy
   has_many :customer_payment_methods, dependent: :destroy
+  has_many :loyalty_stamps, dependent: :destroy
 
   validates :phone, presence: true, if: -> { user_id.blank? }
   validates :stripe_customer_id, uniqueness: true, allow_nil: true

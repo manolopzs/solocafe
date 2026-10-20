@@ -6,6 +6,11 @@ class PaymentsController < ApplicationController
   def create
     return if performed?
 
+    if @order.total_cents.zero?
+      complete_loyalty_checkout!
+      return
+    end
+
     if Current.shop.stripe_account_id.blank?
       render json: { error: "Shop is not connected to Stripe" }, status: :unprocessable_entity
       return
@@ -153,6 +158,22 @@ class PaymentsController < ApplicationController
       metadata[:save_card] = "false"
     end
     metadata
+  end
+
+  def complete_loyalty_checkout!
+    unless @order.loyalty_redeemed?
+      render json: { error: "Order cannot accept payment" }, status: :unprocessable_entity
+      return
+    end
+
+    Payment.find_or_initialize_by(order: @order).update!(
+      amount_cents: 0,
+      currency: @order.currency,
+      platform_fee_cents: 0,
+      status: "succeeded"
+    )
+    @order.apply_successful_payment! unless @order.payment_status_succeeded?
+    render json: { status: "succeeded", client_secret: nil }
   end
 
   def charge_saved_card

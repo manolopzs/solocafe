@@ -66,6 +66,10 @@ class Order < ApplicationRecord
     attributes[:status] = "received" if entering_kitchen
     update!(attributes)
     record_kitchen_arrival! if entering_kitchen
+    return unless entering_kitchen
+
+    LoyaltyStamp.award_paid_order!(self)
+    LoyaltyStamp.fulfill_redemption!(self)
   end
 
   def allowed_transitions
@@ -94,7 +98,18 @@ class Order < ApplicationRecord
       attributes[:status] = "cancelled"
     end
     update!(attributes)
-    release_slot! if status_cancelled?
+    return unless status_cancelled?
+
+    release_slot!
+    LoyaltyStamp.unwind!(self)
+    update!(loyalty_redeemed: false) if loyalty_redeemed?
+  end
+
+  def apply_refund!
+    return unless payment_status_succeeded? || payment_status_refunded?
+
+    update!(payment_status: "refunded") unless payment_status_refunded?
+    LoyaltyStamp.unwind!(self)
   end
 
   def release_slot!

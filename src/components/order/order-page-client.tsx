@@ -71,6 +71,7 @@ export function OrderPageClient({
     pickup_slot_date?: string
     pickup_slot_start_time?: string
     special_instructions: string
+    redeem_loyalty?: boolean
     items: { menu_item_id: string; quantity: number; modifier_option_ids: string[] }[]
   }) => Promise<void> | void
 }) {
@@ -86,11 +87,19 @@ export function OrderPageClient({
   const [notice, setNotice] = useState<string | null>(null)
   const [cartOpen, setCartOpen] = useState(() => (reorderLines?.length ?? 0) > 0)
   const [checkoutOpen, setCheckoutOpen] = useState(false)
+  const [redeemLoyalty, setRedeemLoyalty] = useState(false)
   const [addedItemId, setAddedItemId] = useState<string | null>(null)
   const ordering = menuOrdering ?? shop.ordering
   const pickupType: 'asap' | 'scheduled' =
     ordering && !ordering.asap_available && ordering.accepting_pickup ? 'scheduled' : (pickupChoice ?? 'asap')
-  const { preview, loading: previewLoading } = useCartPreview(shop.id, cart.lines, pickupType, livePreview)
+  const { preview, loyalty, loading: previewLoading } = useCartPreview(
+    shop.id,
+    cart.lines,
+    pickupType,
+    livePreview,
+    redeemLoyalty
+  )
+  const canRedeem = loyalty?.can_redeem === true
   const liveOrdering = preview?.ordering ?? ordering
 
   useEffect(() => {
@@ -250,6 +259,7 @@ export function OrderPageClient({
     pickupType: 'asap' | 'scheduled'
     pickupSlotDate?: string
     pickupSlotStartTime?: string
+    redeemLoyalty?: boolean
   }) => {
     setLoading(true)
     setError(null)
@@ -261,6 +271,7 @@ export function OrderPageClient({
       pickup_slot_date: input.pickupSlotDate,
       pickup_slot_start_time: input.pickupSlotStartTime,
       special_instructions: input.specialInstructions,
+      redeem_loyalty: input.redeemLoyalty === true && canRedeem,
       items: cart.lines.map((line) => ({
         menu_item_id: line.itemId,
         quantity: line.quantity,
@@ -271,6 +282,7 @@ export function OrderPageClient({
       if (onCreateOrder) await onCreateOrder(payload)
       else await createOrder(payload)
     } catch (err) {
+      if (isNextRedirect(err)) throw err
       setLoading(false)
       setError(orderErrorCopy(err instanceof Error ? err.message : ''))
     }
@@ -480,6 +492,9 @@ export function OrderPageClient({
         onPickupType={setPickupChoice}
         loading={loading}
         error={error}
+        rewardText={canRedeem ? loyalty?.reward_text : null}
+        redeemLoyalty={redeemLoyalty && canRedeem}
+        onRedeemLoyalty={setRedeemLoyalty}
         onSubmit={(input) => void handleSubmit(input)}
       />
 
@@ -492,6 +507,15 @@ export function OrderPageClient({
         />
       )}
     </div>
+  )
+}
+
+function isNextRedirect(error: unknown) {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'digest' in error &&
+    String((error as { digest?: string }).digest).startsWith('NEXT_REDIRECT')
   )
 }
 

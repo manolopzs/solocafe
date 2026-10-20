@@ -325,6 +325,57 @@ class StripeWebhooksControllerTest < ActionDispatch::IntegrationTest
     assert_equal 0, CustomerPaymentMethod.where(customer: other).count
   end
 
+  test "payment success earns one stamp and a retry does not earn another" do
+    customer = Customer.create!(name: "Ana", phone: "5551112222", user: User.create!(email: "stamp-webhook@example.com", password: "password123"))
+    @order.update!(customer: customer)
+    event = build_event("payment_intent.succeeded", "pi_123", "ch_123", "evt_stamp")
+
+    2.times do
+      with_stripe_webhook(event) do
+        post webhooks_stripe_url, params: event.as_json.to_json, headers: { "Content-Type" => "application/json" }
+      end
+      assert_response :success
+    end
+
+    Current.shop = @shop
+    assert_equal 1, LoyaltyStamp.where(customer: customer, order: @order, status: "earned").count
+  end
+
+  test "a full refund removes the stamp and a repeated refund stays removed" do
+    customer = Customer.create!(name: "Ana", phone: "5551113333", user: User.create!(email: "refund-webhook@example.com", password: "password123"))
+    @order.update!(customer: customer, status: "received", payment_status: "succeeded")
+    @order.payment.update!(status: "succeeded")
+    LoyaltyStamp.award_paid_order!(@order)
+    other_shop = Shop.create!(name: "Cafe C", slug: "cafe-c-refund", currency: "MXN", owner: @owner)
+    other = Order.create!(
+      shop: other_shop,
+      status: "received",
+      payment_status: "succeeded",
+      subtotal_cents: 500,
+      total_cents: 500,
+      currency: "MXN",
+      pickup_type: "asap"
+    )
+    event = refund_event("evt_refund")
+    later = refund_event("evt_refund_later")
+
+    [ event, later ].each do |payload|
+      with_stripe_webhook(payload) do
+        post webhooks_stripe_url, params: payload.as_json.to_json, headers: { "Content-Type" => "application/json" }
+      end
+      assert_response :success
+    end
+
+    @order.reload
+    assert_equal "refunded", @order.payment_status
+    assert_equal "refunded", @order.payment.status
+    assert_equal "succeeded", other.reload.payment_status
+    assert_equal "received", other.status
+    Current.shop = @shop
+    assert_equal 0, LoyaltyStamp.where(customer: customer, status: "earned").count
+    assert_equal 1, LoyaltyStamp.where(customer: customer, status: "reversed").count
+  end
+
   test "rejects invalid signature" do
     error = Stripe::SignatureVerificationError.new("bad", "sig")
 
@@ -353,6 +404,22 @@ class StripeWebhooksControllerTest < ActionDispatch::IntegrationTest
 
   def to_event(hash)
     OpenStruct.new(hash.transform_values { |v| v.is_a?(Hash) ? OpenStruct.new(v.transform_values { |vv| vv.is_a?(Hash) ? OpenStruct.new(vv) : vv }) : v })
+  end
+
+  def refund_event(event_id)
+    to_event({
+      "id" => event_id,
+      "type" => "charge.refunded",
+      "data" => {
+        "object" => {
+          "id" => "ch_123",
+          "payment_intent" => "pi_123",
+          "refunded" => true,
+          "amount" => 1000,
+          "amount_refunded" => 1000
+        }
+      }
+    })
   end
 
   def build_saved_card_event(customer)

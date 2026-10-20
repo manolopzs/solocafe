@@ -14,6 +14,10 @@ class CustomersController < ApplicationController
     end
   end
 
+  def loyalty
+    render json: { cards: LoyaltyStamp.cards_for(current_customer) }
+  end
+
   def orders
     customer = current_customer
     orders = TenantScoped.unscoped_for_system do

@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import { getOrderWithItems } from '@/server/queries/orders'
 import { getCurrentCustomer } from '@/server/queries/customers'
 import { getSavedCards } from '@/server/queries/payment-methods'
-import { createPaymentIntent } from '@/server/actions/payments'
+import { completeFreeOrder, createPaymentIntent } from '@/server/actions/payments'
 import { CheckoutForm } from '@/components/order/checkout-form'
 import { formatMoney, formatPickupWindow } from '@/lib/ordering'
 import type { CustomerPaymentMethod } from '@/types'
@@ -58,7 +58,19 @@ export default async function CheckoutPage({ params, searchParams }: CheckoutPag
       savedCards = []
     }
   }
-  const clientSecret = await createPaymentIntent(orderId, token)
+  const complimentary = order.total_cents === 0
+  let clientSecret: string | null = null
+  let paymentSetupError: string | null = null
+  if (!complimentary) {
+    try {
+      clientSecret = await createPaymentIntent(orderId, token)
+    } catch (error) {
+      const message = error instanceof Error ? error.message : ''
+      paymentSetupError = message.includes('not connected to Stripe')
+        ? 'Esta cafetería todavía no puede cobrar con tarjeta.'
+        : 'No pudimos preparar el pago. Inténtalo de nuevo.'
+    }
+  }
   const eta =
     order.pickup_window_starts_at && order.pickup_window_ends_at
       ? formatPickupWindow(
@@ -131,6 +143,12 @@ export default async function CheckoutPage({ params, searchParams }: CheckoutPag
                 <span>Subtotal</span>
                 <span>{formatMoney(order.subtotal_cents, order.currency)}</span>
               </div>
+              {(order.discount_cents ?? 0) > 0 && (
+                <div className="flex justify-between text-foreground">
+                  <span>Recompensa</span>
+                  <span>-{formatMoney(order.discount_cents ?? 0, order.currency)}</span>
+                </div>
+              )}
               {order.tax_cents > 0 && (
                 <div className="flex justify-between text-muted-foreground">
                   <span>Impuestos</span>
@@ -161,13 +179,28 @@ export default async function CheckoutPage({ params, searchParams }: CheckoutPag
             <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Pago</p>
           </div>
           <CardContent className="p-5 sm:p-6">
-            <CheckoutForm
-              orderId={orderId}
-              clientSecret={clientSecret}
-              accessToken={token}
-              savedCards={savedCards}
-              canSaveCard={canSaveCard}
-            />
+            {complimentary ? (
+              <form action={completeFreeOrder.bind(null, orderId, token)} className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  Este pedido queda cubierto por tu recompensa. No hace falta pagar.
+                </p>
+                <Button type="submit" size="lg" className="w-full">
+                  Confirmar pedido
+                </Button>
+              </form>
+            ) : paymentSetupError || !clientSecret ? (
+              <p className="text-sm text-danger">
+                {paymentSetupError ?? 'No pudimos preparar el pago. Inténtalo de nuevo.'}
+              </p>
+            ) : (
+              <CheckoutForm
+                orderId={orderId}
+                clientSecret={clientSecret}
+                accessToken={token}
+                savedCards={savedCards}
+                canSaveCard={canSaveCard}
+              />
+            )}
           </CardContent>
         </Card>
       </div>

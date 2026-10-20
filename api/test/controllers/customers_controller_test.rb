@@ -105,6 +105,44 @@ class CustomersControllerTest < ActionDispatch::IntegrationTest
     assert_empty orders
   end
 
+  test "loyalty cards count stamps per shop and hide another customer" do
+    customer = Customer.create!(user: @user, name: "María", phone: "+525555555555")
+    other_user = User.create!(email: "other-loyalty@example.com", password: "password123", role: :customer)
+    other_customer = Customer.create!(user: other_user, name: "Luis", phone: "+525555555556")
+    other_shop = Shop.create!(name: "Cafe B", slug: "cafe-b-loyalty", currency: "MXN", loyalty_stamps_required: 4, loyalty_reward_text: "Galleta gratis")
+    @shop.update!(loyalty_stamps_required: 3, loyalty_reward_text: "Café gratis")
+    paid = ->(person, shop) {
+      order = Order.create!(
+        shop: shop,
+        customer: person,
+        status: "pending_payment",
+        payment_status: "pending",
+        subtotal_cents: 1_000,
+        total_cents: 1_000,
+        currency: "MXN",
+        pickup_type: "asap"
+      )
+      order.apply_successful_payment!
+    }
+    2.times { paid.call(customer, @shop) }
+    paid.call(customer, other_shop)
+    paid.call(other_customer, @shop)
+
+    get "/customers/me/loyalty", headers: auth_headers
+
+    assert_response :success
+    cards = response.parsed_body["cards"]
+    assert_equal [ @shop.name, other_shop.name ], cards.map { |card| card["shop_name"] }
+    home = cards.find { |card| card["shop_id"] == @shop.id }
+    away = cards.find { |card| card["shop_id"] == other_shop.id }
+    assert_equal 2, home["stamps"]
+    assert_equal 3, home["stamps_required"]
+    assert_equal "Café gratis", home["reward_text"]
+    assert_equal false, home["can_redeem"]
+    assert_equal 1, away["stamps"]
+    assert_equal 4, away["stamps_required"]
+  end
+
   private
 
   def auth_headers
