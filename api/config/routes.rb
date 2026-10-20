@@ -33,6 +33,7 @@ Rails.application.routes.draw do
     get "/analytics/summary", to: "analytics#summary"
   end
 
+  get "/public/pricing", to: "public/pricing#show"
   get "/public/shops", to: "public/shops#index"
   get "/public/shops/:shop_id/menu", to: "public/menus#show"
   post "/public/shops/:shop_id/cart/preview", to: "public/carts#preview"

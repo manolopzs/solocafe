@@ -1,10 +1,47 @@
+import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Icon, type IconName } from "@/components/ui/icon";
+import { Icon } from "@/components/ui/icon";
 import { Card } from "@/components/ui/card";
 import { MobileNav } from "@/components/landing/mobile-nav";
+import { env } from "@/lib/env";
 
-export default function Home() {
+type PricingTier = {
+  name: string;
+  monthly_price_cents: number;
+  included_orders: number;
+  overage_per_order_cents: number;
+};
+
+type PublicPricing = {
+  platform_fee_percent: number;
+  tiers: PricingTier[];
+};
+
+const shots = [
+  {
+    src: "/product/pedido.jpg",
+    alt: "Pantalla de pedido del cliente en el celular",
+    title: "Pedido",
+    text: "El cliente elige, paga y recoge.",
+  },
+  {
+    src: "/product/cocina.jpg",
+    alt: "Pantalla de cocina con pedidos en curso",
+    title: "Cocina",
+    text: "La barra ve cada pedido pagado.",
+  },
+  {
+    src: "/product/panel.jpg",
+    alt: "Panel de la cafetería con el resumen del día",
+    title: "Panel",
+    text: "Ventas, menú y código QR en un lugar.",
+  },
+];
+
+export default async function Home() {
+  const pricing = await loadPublicPricing();
+
   return (
     <main className="flex flex-1 flex-col">
       <nav className="sticky top-0 z-50 border-b border-border bg-background/90 px-6 py-4 backdrop-blur-md">
@@ -35,9 +72,9 @@ export default function Home() {
         </div>
       </nav>
 
-      <section className="relative overflow-hidden bg-[#f0f4f8] px-6 pt-16 pb-12 sm:pt-24 sm:pb-16">
-        <div className="relative mx-auto max-w-5xl text-center">
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-border bg-background px-4 py-1.5 text-sm text-muted-foreground shadow-xs">
+      <section className="bg-background px-6 pt-16 pb-12 sm:pt-24 sm:pb-16">
+        <div className="mx-auto max-w-5xl text-center">
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-border bg-surface px-4 py-1.5 text-sm text-muted-foreground shadow-xs">
             <Icon name="coffee" className="h-4 w-4 text-accent" />
             <span>Conectamos personas y lugares en el momento presente</span>
           </div>
@@ -51,89 +88,41 @@ export default function Home() {
             <Button asChild size="lg" className="w-full sm:w-auto">
               <Link href="/auth/signup">Empieza gratis</Link>
             </Button>
-            <Button asChild variant="outline" size="lg" className="w-full bg-background sm:w-auto">
+            <Button asChild variant="outline" size="lg" className="w-full bg-surface-elevated sm:w-auto">
               <Link href="/demo">Ver demo</Link>
             </Button>
           </div>
         </div>
       </section>
 
-      <section id="plataforma" className="bg-[#f0f4f8] px-6 pb-20 sm:pb-28">
+      <section id="plataforma" className="bg-surface px-6 py-20 sm:py-28">
         <div className="mx-auto max-w-6xl">
           <div className="mb-12 text-center">
             <h2 className="font-sans text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
               Pedidos, cocina y pago en un solo flujo
             </h2>
             <p className="mx-auto mt-3 max-w-2xl text-muted-foreground">
-              Solo Cafe conecta a tus clientes con tu cafetería: ordenan por adelantado, tú recibes el pedido en la cocina y el pago va directo a tu cuenta.
+              Capturas del producto en marcha: el pedido del cliente, la cocina y el panel de la cafetería.
             </p>
           </div>
-
-          <div className="relative hidden items-stretch gap-4 lg:flex">
-            <SidePanel
-              label="Cafetería"
-              title="Recibe y gestiona pedidos"
-              description="Dashboard, KDS y QR en un solo lugar."
-              mockup={<DashboardMockup />}
-            />
-
-            <div className="flex flex-1 flex-col justify-center">
-              <div className="rounded-2xl border border-border bg-background p-6 shadow-sm">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-                    <Icon name="coffee" className="h-6 w-6" />
-                  </div>
-                  <div>
-                    <h3 className="font-sans text-lg font-semibold text-foreground">Solo Cafe</h3>
-                    <p className="text-sm text-muted-foreground">Plataforma de pedidos</p>
-                  </div>
+          <div className="grid gap-6 lg:grid-cols-3">
+            {shots.map((shot) => (
+              <figure key={shot.src} className="overflow-hidden rounded-2xl border border-border bg-surface-elevated shadow-sm">
+                <div className="relative h-96 bg-surface">
+                  <Image
+                    src={shot.src}
+                    alt={shot.alt}
+                    fill
+                    sizes="(min-width: 1024px) 30vw, 100vw"
+                    className="object-contain"
+                  />
                 </div>
-                <div className="mt-5 space-y-3">
-                  <PlatformFeature icon="store" text="Tu propia página de pedidos" />
-                  <PlatformFeature icon="credit-card" text="Pagos directos a tu cuenta" />
-                  <PlatformFeature icon="utensils" text="KDS en tiempo real" />
-                </div>
-              </div>
-              <div className="relative mt-4 flex items-center justify-center">
-                <div className="absolute left-0 right-0 top-1/2 -z-10 h-px border-t-2 border-dashed border-border" />
-                <div className="h-3 w-3 rounded-full border-2 border-border bg-background" />
-              </div>
-            </div>
-
-            <SidePanel
-              label="Clientes"
-              title="Ordenan desde su celular"
-              description="Pagan por adelantado y recogen sin filas."
-              mockup={<PhoneMockup />}
-            />
-          </div>
-
-          <div className="grid gap-6 lg:hidden">
-            <div className="rounded-2xl border border-border bg-background p-6 shadow-sm">
-              <div className="flex items-center justify-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-                  <Icon name="coffee" className="h-6 w-6" />
-                </div>
-                <div>
-                  <h3 className="font-sans text-lg font-semibold text-foreground">Solo Cafe</h3>
-                  <p className="text-sm text-muted-foreground">Plataforma de pedidos</p>
-                </div>
-              </div>
-            </div>
-            <div className="grid gap-6 sm:grid-cols-2">
-              <SidePanel
-                label="Cafetería"
-                title="Recibe y gestiona pedidos"
-                description="Dashboard, KDS y QR en un solo lugar."
-                mockup={<DashboardMockup />}
-              />
-              <SidePanel
-                label="Clientes"
-                title="Ordenan desde su celular"
-                description="Pagan por adelantado y recogen sin filas."
-                mockup={<PhoneMockup />}
-              />
-            </div>
+                <figcaption className="px-5 py-4">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-accent">{shot.title}</p>
+                  <p className="mt-1 text-sm text-foreground">{shot.text}</p>
+                </figcaption>
+              </figure>
+            ))}
           </div>
         </div>
       </section>
@@ -161,15 +150,27 @@ export default function Home() {
             </div>
           </div>
           <div className="flex justify-center">
-            <PhoneMockupLarge />
+            <Image
+              src="/product/pedido.jpg"
+              alt="Pedido de un cliente en la página de la cafetería"
+              width={390}
+              height={844}
+              className="h-auto w-full max-w-sm rounded-[2rem] border border-border shadow-lg"
+            />
           </div>
         </div>
       </section>
 
-      <section id="cafeterias" className="bg-[#f8fafc] px-6 py-20 sm:py-28">
+      <section id="cafeterias" className="bg-surface px-6 py-20 sm:py-28">
         <div className="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-2">
-          <div className="order-2 flex justify-center lg:order-1">
-            <DashboardMockupLarge />
+          <div className="order-2 lg:order-1">
+            <Image
+              src="/product/panel.jpg"
+              alt="Resumen del día en el panel de la cafetería"
+              width={1100}
+              height={760}
+              className="h-auto w-full rounded-2xl border border-border shadow-lg"
+            />
           </div>
           <div className="order-1 lg:order-2">
             <p className="text-sm font-semibold uppercase tracking-wider text-accent">Para tu cafetería</p>
@@ -202,7 +203,7 @@ export default function Home() {
             ))}
           </div>
           <blockquote className="mt-6 font-sans text-2xl font-medium leading-relaxed text-foreground sm:text-3xl">
-            {'"Dejamos de depender de los apps de delivery. Ahora vendemos directo, conocemos a nuestros clientes y el dinero llega a nuestra cuenta desde el primer día."'}
+            «Dejamos de depender de los apps de delivery. Ahora vendemos directo, conocemos a nuestros clientes y el dinero llega a nuestra cuenta desde el primer día.»
           </blockquote>
           <div className="mt-6 flex items-center justify-center gap-3">
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-surface font-semibold text-foreground">
@@ -216,34 +217,17 @@ export default function Home() {
         </div>
       </section>
 
-      <section id="precios" className="bg-[#f8fafc] px-6 py-20 sm:py-28">
+      <section id="precios" className="bg-surface px-6 py-20 sm:py-28">
         <div className="mx-auto max-w-5xl">
           <div className="text-center">
             <h2 className="font-sans text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-              Un precio justo para lanzarnos juntos
+              Precios
             </h2>
             <p className="mt-4 text-muted-foreground">
-              En lanzamiento trabajamos con una comisión simbólica. A escala, 1% a 3% por transacción más una tarifa mensual de servicio.
+              Lo que publica la API. Sin cifras añadidas en esta página.
             </p>
           </div>
-          <div className="mt-14 grid gap-6 sm:grid-cols-2">
-            <PricingCard
-              name="Lanzamiento"
-              description="Para la primera cafetería que prueba Solo Cafe"
-              fee="Simbólico"
-              volume="Comisión reducida por pedido"
-              highlighted
-            />
-            <PricingCard
-              name="Escala"
-              description="Cuando crecemos juntos"
-              fee="1% - 3%"
-              volume="Por transacción + tarifa mensual"
-            />
-          </div>
-          <p className="mt-6 text-center text-sm text-muted-foreground">
-            No incluye costos de procesamiento de Stripe. Sin contrato.
-          </p>
+          <PricingSection pricing={pricing} />
         </div>
       </section>
 
@@ -288,34 +272,80 @@ export default function Home() {
   );
 }
 
-function PlatformFeature({ icon, text }: { icon: IconName; text: string }) {
+async function loadPublicPricing(): Promise<PublicPricing | null> {
+  try {
+    const response = await fetch(`${env.NEXT_PUBLIC_API_URL}/public/pricing`, {
+      next: { revalidate: 60 },
+    });
+    if (!response.ok) return null;
+
+    const data = (await response.json()) as Partial<PublicPricing>;
+    if (!Array.isArray(data.tiers)) return null;
+
+    return {
+      platform_fee_percent: typeof data.platform_fee_percent === "number" ? data.platform_fee_percent : Number.NaN,
+      tiers: data.tiers.filter(isPricingTier),
+    };
+  } catch {
+    return null;
+  }
+}
+
+function isPricingTier(value: unknown): value is PricingTier {
+  if (!value || typeof value !== "object") return false;
+  const tier = value as Partial<PricingTier>;
   return (
-    <div className="flex items-center gap-3 rounded-xl border border-border bg-surface px-4 py-3">
-      <Icon name={icon} className="h-5 w-5 text-accent" />
-      <span className="text-sm font-medium text-foreground">{text}</span>
-    </div>
+    typeof tier.name === "string" &&
+    typeof tier.monthly_price_cents === "number" &&
+    typeof tier.included_orders === "number" &&
+    typeof tier.overage_per_order_cents === "number"
   );
 }
 
-function SidePanel({
-  label,
-  title,
-  description,
-  mockup,
-}: {
-  label: string;
-  title: string;
-  description: string;
-  mockup: React.ReactNode;
-}) {
+function PricingSection({ pricing }: { pricing: PublicPricing | null }) {
+  if (!pricing || pricing.tiers.length === 0) {
+    return (
+      <Card className="mx-auto mt-14 max-w-2xl p-8 text-center">
+        <p className="text-xs font-semibold uppercase tracking-wider text-accent">Marcador</p>
+        <h3 className="mt-3 font-sans text-2xl font-semibold text-foreground">Precios por publicar</h3>
+        <p className="mt-3 text-muted-foreground">
+          Marcador de precios. La API no devolvió planes activos, así que esta sección no muestra cifras.
+        </p>
+      </Card>
+    );
+  }
+
   return (
-    <Card className="flex flex-1 flex-col items-center p-6 text-center">
-      <div className="mb-5 w-full">{mockup}</div>
-      <p className="text-xs font-semibold uppercase tracking-wider text-accent">{label}</p>
-      <h3 className="mt-2 font-sans text-lg font-semibold text-foreground">{title}</h3>
-      <p className="mt-1 text-sm text-muted-foreground">{description}</p>
-    </Card>
+    <>
+      <div className={`mt-14 grid gap-6 ${pricing.tiers.length > 1 ? "sm:grid-cols-2" : "mx-auto max-w-md"}`}>
+        {pricing.tiers.map((tier) => (
+          <Card key={tier.name} className="p-6">
+            <h3 className="font-sans text-lg font-semibold text-foreground">{tier.name}</h3>
+            <p className="mt-4 text-3xl font-bold text-foreground">
+              {formatCents(tier.monthly_price_cents)}
+              <span className="text-base font-medium text-muted-foreground"> al mes</span>
+            </p>
+            <ul className="mt-4 space-y-2 text-sm text-foreground">
+              <li>{tier.included_orders} pedidos incluidos</li>
+              <li>{formatCents(tier.overage_per_order_cents)} por pedido extra</li>
+            </ul>
+            <Button asChild className="mt-6 w-full">
+              <Link href="/auth/signup">Empezar gratis</Link>
+            </Button>
+          </Card>
+        ))}
+      </div>
+      {Number.isFinite(pricing.platform_fee_percent) && (
+        <p className="mt-6 text-center text-sm text-muted-foreground">
+          Comisión de plataforma: {String(pricing.platform_fee_percent)}%. Los montos del plan salen de centavos guardados en la API y no traen moneda.
+        </p>
+      )}
+    </>
   );
+}
+
+function formatCents(cents: number) {
+  return (cents / 100).toFixed(2);
 }
 
 function BenefitItem({ text }: { text: string }) {
@@ -326,288 +356,5 @@ function BenefitItem({ text }: { text: string }) {
       </div>
       <span className="text-foreground">{text}</span>
     </li>
-  );
-}
-
-function DashboardMockup() {
-  return (
-    <div className="w-full overflow-hidden rounded-xl border border-border bg-background shadow-sm">
-      <div className="flex items-center gap-1.5 border-b border-border bg-surface px-3 py-2">
-        <div className="h-2 w-2 rounded-full bg-red-400" />
-        <div className="h-2 w-2 rounded-full bg-amber-400" />
-        <div className="h-2 w-2 rounded-full bg-green-400" />
-      </div>
-      <div className="p-3">
-        <div className="mb-3 grid grid-cols-3 gap-2">
-          <div className="rounded-lg bg-surface p-2">
-            <p className="text-[0.6rem] text-muted-foreground">Ventas</p>
-            <p className="text-sm font-semibold text-foreground">$4,230</p>
-          </div>
-          <div className="rounded-lg bg-surface p-2">
-            <p className="text-[0.6rem] text-muted-foreground">Pedidos</p>
-            <p className="text-sm font-semibold text-foreground">86</p>
-          </div>
-          <div className="rounded-lg bg-surface p-2">
-            <p className="text-[0.6rem] text-muted-foreground">Ticket</p>
-            <p className="text-sm font-semibold text-foreground">$49</p>
-          </div>
-        </div>
-        <div className="space-y-2">
-          <div className="flex items-center justify-between rounded-lg bg-surface p-2">
-            <div className="flex items-center gap-2">
-              <div className="h-5 w-5 rounded-full bg-amber-100" />
-              <div>
-                <p className="text-[0.65rem] font-medium text-foreground">Cappuccino · María</p>
-                <p className="text-[0.6rem] text-muted-foreground">12:34</p>
-              </div>
-            </div>
-            <span className="rounded-full bg-amber-100 px-1.5 py-0.5 text-[0.55rem] font-medium text-amber-700">Prep</span>
-          </div>
-          <div className="flex items-center justify-between rounded-lg bg-surface p-2">
-            <div className="flex items-center gap-2">
-              <div className="h-5 w-5 rounded-full bg-green-100" />
-              <div>
-                <p className="text-[0.65rem] font-medium text-foreground">Latte · Juan</p>
-                <p className="text-[0.6rem] text-muted-foreground">12:31</p>
-              </div>
-            </div>
-            <span className="rounded-full bg-green-100 px-1.5 py-0.5 text-[0.55rem] font-medium text-green-700">Listo</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function PhoneMockup() {
-  return (
-    <div className="mx-auto w-full max-w-[10rem] overflow-hidden rounded-[1.5rem] border-[5px] border-border bg-background shadow-lg">
-      <div className="flex items-center justify-center bg-surface py-1.5">
-        <div className="h-1 w-10 rounded-full bg-border" />
-      </div>
-      <div className="p-2.5">
-        <div className="mb-2 rounded-lg bg-gradient-to-br from-amber-100 to-amber-50 p-2">
-          <p className="text-[0.6rem] text-muted-foreground">Bienvenido a</p>
-          <p className="text-xs font-semibold text-foreground">Café de la Esquina</p>
-        </div>
-        <div className="space-y-2">
-          <div className="flex items-center gap-2 rounded-lg bg-surface p-1.5">
-            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-amber-700 to-amber-500" />
-            <div className="flex-1">
-              <p className="text-[0.65rem] font-medium text-foreground">Cappuccino</p>
-              <p className="text-[0.6rem] text-muted-foreground">MXN 55.00</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 rounded-lg bg-surface p-1.5">
-            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-stone-600 to-stone-400" />
-            <div className="flex-1">
-              <p className="text-[0.65rem] font-medium text-foreground">Latte Vainilla</p>
-              <p className="text-[0.6rem] text-muted-foreground">MXN 62.00</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function PhoneMockupLarge() {
-  return (
-    <div className="w-full max-w-[18rem] overflow-hidden rounded-[2.25rem] border-[7px] border-border bg-background shadow-2xl">
-      <div className="flex items-center justify-center bg-surface py-2.5">
-        <div className="h-1.5 w-16 rounded-full bg-border" />
-      </div>
-      <div className="p-4">
-        <div className="mb-4 flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-surface text-foreground">
-            <Icon name="store" className="h-6 w-6" />
-          </div>
-          <div>
-            <p className="text-xs text-muted-foreground">Bienvenido a</p>
-            <h3 className="font-sans text-base font-semibold text-foreground">Café de la Esquina</h3>
-          </div>
-        </div>
-        <div className="mb-4 flex gap-2">
-          <span className="rounded-full bg-green-100 px-2.5 py-1 text-xs font-medium text-green-700">Abierto</span>
-          <span className="rounded-full bg-surface px-2.5 py-1 text-xs font-medium text-foreground">Para recoger</span>
-        </div>
-        <div className="mb-4 flex gap-2 overflow-x-auto no-scrollbar">
-          <span className="shrink-0 rounded-full bg-foreground px-3 py-1 text-xs font-medium text-primary-foreground">Bebidas calientes</span>
-          <span className="shrink-0 rounded-full bg-surface px-3 py-1 text-xs font-medium text-foreground">Bebidas frías</span>
-          <span className="shrink-0 rounded-full bg-surface px-3 py-1 text-xs font-medium text-foreground">Panadería</span>
-        </div>
-        <p className="mb-3 font-sans text-sm font-semibold text-foreground">Bebidas calientes</p>
-        <div className="space-y-3">
-          <div className="flex items-center gap-3 rounded-xl bg-surface p-3">
-            <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-gradient-to-br from-amber-800 via-amber-600 to-amber-400" />
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-foreground">Cappuccino</p>
-              <p className="text-xs text-muted-foreground truncate">Espresso doble con leche vaporizada</p>
-              <p className="mt-1 text-sm font-semibold text-foreground">MXN 55.00</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3 rounded-xl bg-surface p-3">
-            <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-gradient-to-br from-stone-700 via-stone-500 to-stone-300" />
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-foreground">Latte Vainilla</p>
-              <p className="text-xs text-muted-foreground truncate">Café suave con un toque de vainilla</p>
-              <p className="mt-1 text-sm font-semibold text-foreground">MXN 62.00</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3 rounded-xl bg-surface p-3">
-            <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-gradient-to-br from-orange-900 via-amber-800 to-amber-600" />
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-foreground">Americano</p>
-              <p className="text-xs text-muted-foreground truncate">Espresso con agua caliente</p>
-              <p className="mt-1 text-sm font-semibold text-foreground">MXN 42.00</p>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div className="p-4 pt-0">
-        <div className="rounded-xl bg-foreground py-3 text-center text-sm font-semibold text-primary-foreground">
-          Ver pedido · MXN 0.00
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function DashboardMockupLarge() {
-  return (
-    <div className="w-full max-w-[32rem] overflow-hidden rounded-xl border border-border bg-background shadow-2xl">
-      <div className="flex items-center gap-1.5 border-b border-border bg-surface px-3 py-2">
-        <div className="h-2.5 w-2.5 rounded-full bg-red-400" />
-        <div className="h-2.5 w-2.5 rounded-full bg-amber-400" />
-        <div className="h-2.5 w-2.5 rounded-full bg-green-400" />
-        <div className="ml-3 h-4 flex-1 rounded bg-border" />
-      </div>
-      <div className="flex">
-        <div className="w-14 border-r border-border bg-surface py-4">
-          <div className="mx-auto mb-3 flex h-6 w-6 items-center justify-center rounded bg-border text-[0.6rem] text-muted-foreground">
-            <Icon name="store" className="h-3.5 w-3.5" />
-          </div>
-          <div className="mx-auto mb-3 flex h-6 w-6 items-center justify-center rounded bg-border text-[0.6rem] text-muted-foreground">
-            <Icon name="receipt" className="h-3.5 w-3.5" />
-          </div>
-          <div className="mx-auto flex h-6 w-6 items-center justify-center rounded bg-border text-[0.6rem] text-muted-foreground">
-            <Icon name="settings" className="h-3.5 w-3.5" />
-          </div>
-        </div>
-        <div className="flex-1 p-4">
-          <div className="mb-4 flex items-center justify-between">
-            <h3 className="font-sans text-base font-semibold text-foreground">Panel de control</h3>
-            <div className="h-7 w-7 rounded-full bg-border" />
-          </div>
-          <div className="mb-4 grid grid-cols-3 gap-3">
-            <div className="rounded-lg bg-surface p-3">
-              <p className="text-xs text-muted-foreground">Ventas hoy</p>
-              <p className="mt-1 font-sans text-lg font-semibold text-foreground">$4,230</p>
-            </div>
-            <div className="rounded-lg bg-surface p-3">
-              <p className="text-xs text-muted-foreground">Pedidos</p>
-              <p className="mt-1 font-sans text-lg font-semibold text-foreground">86</p>
-            </div>
-            <div className="rounded-lg bg-surface p-3">
-              <p className="text-xs text-muted-foreground">Ticket promedio</p>
-              <p className="mt-1 font-sans text-lg font-semibold text-foreground">$49</p>
-            </div>
-          </div>
-          <div className="mb-4 rounded-lg bg-surface p-3">
-            <p className="mb-2 text-xs font-medium text-foreground">Pedidos activos</p>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between rounded-lg bg-background p-2">
-                <div className="flex items-center gap-2">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-100 text-amber-700">
-                    <Icon name="clock" className="h-4 w-4" />
-                  </div>
-                  <div>
-                    <p className="text-xs font-semibold text-foreground">Cappuccino · María R.</p>
-                    <p className="text-[0.65rem] text-muted-foreground">Recibido hace 2 min</p>
-                  </div>
-                </div>
-                <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[0.6rem] font-medium text-amber-700">Preparando</span>
-              </div>
-              <div className="flex items-center justify-between rounded-lg bg-background p-2">
-                <div className="flex items-center gap-2">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-100 text-green-700">
-                    <Icon name="check" className="h-4 w-4" />
-                  </div>
-                  <div>
-                    <p className="text-xs font-semibold text-foreground">Latte Vainilla · Juan P.</p>
-                    <p className="text-[0.65rem] text-muted-foreground">Recibido hace 5 min</p>
-                  </div>
-                </div>
-                <span className="rounded-full bg-green-100 px-2 py-0.5 text-[0.6rem] font-medium text-green-700">Listo</span>
-              </div>
-              <div className="flex items-center justify-between rounded-lg bg-background p-2">
-                <div className="flex items-center gap-2">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-blue-700">
-                    <Icon name="receipt" className="h-4 w-4" />
-                  </div>
-                  <div>
-                    <p className="text-xs font-semibold text-foreground">Americano · Ana L.</p>
-                    <p className="text-[0.65rem] text-muted-foreground">Recibido hace 8 min</p>
-                  </div>
-                </div>
-                <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[0.6rem] font-medium text-blue-700">Recibido</span>
-              </div>
-            </div>
-          </div>
-          <div className="rounded-lg bg-surface p-3">
-            <p className="mb-2 text-xs font-medium text-foreground">Horas pico</p>
-            <div className="flex items-end gap-2">
-              <div className="w-4 rounded-sm bg-border" style={{ height: '2.5rem' }} />
-              <div className="w-4 rounded-sm bg-border" style={{ height: '3.5rem' }} />
-              <div className="w-4 rounded-sm bg-accent" style={{ height: '5rem' }} />
-              <div className="w-4 rounded-sm bg-border" style={{ height: '4rem' }} />
-              <div className="w-4 rounded-sm bg-border" style={{ height: '3rem' }} />
-              <div className="w-4 rounded-sm bg-border" style={{ height: '2rem' }} />
-              <div className="w-4 rounded-sm bg-border" style={{ height: '1.5rem' }} />
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function PricingCard({
-  name,
-  description,
-  fee,
-  volume,
-  highlighted,
-}: {
-  name: string;
-  description: string;
-  fee: string;
-  volume: string;
-  highlighted?: boolean;
-}) {
-  return (
-    <Card
-      className={`relative p-6 transition-shadow hover:shadow-md ${
-        highlighted
-          ? "border-accent bg-accent/5 ring-1 ring-accent"
-          : "border-border"
-      }`}
-    >
-      {highlighted && (
-        <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-accent px-3 py-0.5 text-xs font-medium text-accent-foreground">
-          Más popular
-        </span>
-      )}
-      <h3 className="font-sans text-lg font-semibold text-foreground">{name}</h3>
-      <p className="text-sm text-muted-foreground">{description}</p>
-      <div className="mt-4">
-        <span className="text-3xl font-bold text-foreground">{fee}</span>
-        <span className="text-muted-foreground"> / por pedido</span>
-      </div>
-      <p className="mt-2 text-sm text-muted-foreground">{volume}</p>
-      <Button asChild className="mt-6 w-full" variant={highlighted ? "primary" : "outline"}>
-        <Link href="/auth/signup">Elegir plan</Link>
-      </Button>
-    </Card>
   );
 }
