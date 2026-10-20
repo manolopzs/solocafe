@@ -72,7 +72,7 @@ class StripeWebhooksControllerTest < ActionDispatch::IntegrationTest
     slot = @shop.pickup_slots.create!(slot_date: Date.current + 3, start_time: "10:00:00", end_time: "10:15:00", capacity: 2)
     SlotReservation.create!(slot: slot, order: @order)
 
-    event = build_event("payment_intent.payment_failed", "pi_123", nil, "evt_fail")
+    event = build_event("payment_intent.payment_failed", "pi_123", nil, "evt_fail", status: "canceled")
     with_stripe_webhook(event) do
       post webhooks_stripe_url, params: event.as_json.to_json, headers: { "Content-Type" => "application/json" }
     end
@@ -89,7 +89,7 @@ class StripeWebhooksControllerTest < ActionDispatch::IntegrationTest
     @order.update!(status: "received", payment_status: "succeeded")
     @order.payment.update!(status: "succeeded")
 
-    event = build_event("payment_intent.payment_failed", "pi_123", nil, "evt_fail_paid")
+    event = build_event("payment_intent.payment_failed", "pi_123", nil, "evt_fail_paid", status: "requires_payment_method")
     with_stripe_webhook(event) do
       post webhooks_stripe_url, params: event.as_json.to_json, headers: { "Content-Type" => "application/json" }
     end
@@ -379,27 +379,404 @@ class StripeWebhooksControllerTest < ActionDispatch::IntegrationTest
   test "rejects invalid signature" do
     error = Stripe::SignatureVerificationError.new("bad", "sig")
 
-    with_stripe_webhook(->(*_args) { raise error }) do
-      post webhooks_stripe_url, params: "{}", headers: { "Content-Type" => "application/json" }
+    logs = capture_rails_logs do
+      with_stripe_webhook(->(*_args) { raise error }) do
+        post webhooks_stripe_url, params: "{}", headers: { "Content-Type" => "application/json" }
+      end
     end
 
     assert_response :bad_request
+    assert_match(/stripe.webhook.signature_failed/, logs)
+  end
+
+  test "payment_intent.canceled cancels an unpaid order and frees the slot" do
+    Current.shop = @shop
+    slot = @shop.pickup_slots.create!(slot_date: Date.current + 4, start_time: "11:00:00", end_time: "11:15:00", capacity: 2)
+    SlotReservation.create!(slot: slot, order: @order)
+
+    event = build_event("payment_intent.canceled", "pi_123", nil, "evt_canceled", status: "canceled")
+    with_stripe_webhook(event) do
+      post webhooks_stripe_url, params: event.as_json.to_json, headers: { "Content-Type" => "application/json" }
+    end
+
+    assert_response :success
+    @order.reload
+    assert_equal "cancelled", @order.status
+    assert_equal "failed", @order.payment_status
+    assert_equal "failed", @order.payment.status
+    assert_nil @order.slot_reservation
+  end
+
+  test "card declined keeps the order payable and logs the failure" do
+    Current.shop = @shop
+    slot = @shop.pickup_slots.create!(slot_date: Date.current + 5, start_time: "12:00:00", end_time: "12:15:00", capacity: 2)
+    SlotReservation.create!(slot: slot, order: @order)
+    event = build_event(
+      "payment_intent.payment_failed",
+      "pi_123",
+      "ch_declined",
+      "evt_declined",
+      status: "requires_payment_method",
+      last_payment_error: { "code" => "card_declined", "decline_code" => "generic_decline" }
+    )
+
+    logs = capture_rails_logs do
+      with_stripe_webhook(event) do
+        post webhooks_stripe_url, params: event.as_json.to_json, headers: { "Content-Type" => "application/json" }
+      end
+    end
+
+    assert_response :success
+    @order.reload
+    assert_equal "pending_payment", @order.status
+    assert_equal "pending", @order.payment_status
+    assert_equal "failed", @order.payment.status
+    assert @order.slot_reservation
+    assert_match(/"event":"payment.attempt_failed"/, logs)
+    assert_match(/card_declined/, logs)
+  end
+
+  test "3DS failure keeps the order payable" do
+    event = build_event(
+      "payment_intent.payment_failed",
+      "pi_123",
+      nil,
+      "evt_3ds_fail",
+      status: "requires_payment_method",
+      last_payment_error: { "code" => "payment_intent_authentication_failure" }
+    )
+
+    with_stripe_webhook(event) do
+      post webhooks_stripe_url, params: event.as_json.to_json, headers: { "Content-Type" => "application/json" }
+    end
+
+    assert_response :success
+    @order.reload
+    assert_equal "pending_payment", @order.status
+    assert_equal "pending", @order.payment_status
+    assert_equal "failed", @order.payment.status
+  end
+
+  test "3DS required does not fulfill the order and a later success does" do
+    customer = Customer.create!(name: "Ana", phone: "5553334444", user: User.create!(email: "3ds-webhook@example.com", password: "password123"))
+    @order.update!(customer: customer)
+    requires_action = build_event("payment_intent.requires_action", "pi_123", nil, "evt_action", status: "requires_action")
+    succeeded = build_event("payment_intent.succeeded", "pi_123", "ch_3ds", "evt_3ds_ok", status: "succeeded")
+
+    with_stripe_webhook(requires_action) do
+      post webhooks_stripe_url, params: requires_action.as_json.to_json, headers: { "Content-Type" => "application/json" }
+    end
+    assert_response :success
+    assert_equal "pending_payment", @order.reload.status
+    assert_equal "pending", @order.payment.status
+
+    with_stripe_webhook(succeeded) do
+      post webhooks_stripe_url, params: succeeded.as_json.to_json, headers: { "Content-Type" => "application/json" }
+    end
+
+    assert_response :success
+    @order.reload
+    assert_equal "received", @order.status
+    assert_equal "succeeded", @order.payment_status
+    assert_equal "ch_3ds", @order.payment.stripe_charge_id
+    Current.shop = @shop
+    assert_equal 1, LoyaltyStamp.where(customer: customer, order: @order, status: "earned").count
+  end
+
+  test "success after a card decline fulfills the order once" do
+    customer = Customer.create!(name: "Ana", phone: "5553334455", user: User.create!(email: "decline-then-ok@example.com", password: "password123"))
+    @order.update!(customer: customer)
+    declined = build_event("payment_intent.payment_failed", "pi_123", nil, "evt_soft_fail", status: "requires_payment_method")
+    succeeded = build_event("payment_intent.succeeded", "pi_123", "ch_retry", "evt_retry_ok")
+
+    [ declined, succeeded, succeeded ].each do |payload|
+      with_stripe_webhook(payload) do
+        post webhooks_stripe_url, params: payload.as_json.to_json, headers: { "Content-Type" => "application/json" }
+      end
+      assert_response :success
+    end
+
+    @order.reload
+    assert_equal "received", @order.status
+    assert_equal "succeeded", @order.payment_status
+    Current.shop = @shop
+    assert_equal 1, LoyaltyStamp.where(customer: customer, order: @order, status: "earned").count
+  end
+
+  test "a refund that arrives before success does not leave the order paid" do
+    Current.shop = @shop
+    customer = Customer.create!(name: "Ana", phone: "5553334466", user: User.create!(email: "refund-first@example.com", password: "password123"))
+    @order.update!(customer: customer)
+    slot = @shop.pickup_slots.create!(slot_date: Date.current + 6, start_time: "13:00:00", end_time: "13:15:00", capacity: 2)
+    SlotReservation.create!(slot: slot, order: @order)
+    refund = refund_event("evt_refund_early")
+    success = build_event("payment_intent.succeeded", "pi_123", "ch_123", "evt_success_late")
+
+    [ refund, success ].each do |payload|
+      with_stripe_webhook(payload) do
+        post webhooks_stripe_url, params: payload.as_json.to_json, headers: { "Content-Type" => "application/json" }
+      end
+      assert_response :success
+    end
+
+    @order.reload
+    assert_equal "refunded", @order.payment_status
+    assert_equal "refunded", @order.payment.status
+    assert_not_equal "received", @order.status
+    assert_nil @order.slot_reservation
+    Current.shop = @shop
+    assert_equal 0, LoyaltyStamp.where(customer: customer, status: "earned").count
+  end
+
+  test "a full refund can be matched when the payment intent is expanded" do
+    @order.update!(status: "received", payment_status: "succeeded")
+    @order.payment.update!(status: "succeeded")
+    event = to_event({
+      "id" => "evt_refund_expanded",
+      "type" => "charge.refunded",
+      "data" => {
+        "object" => {
+          "id" => "ch_expanded",
+          "payment_intent" => { "id" => "pi_123" },
+          "refunded" => true,
+          "amount" => 1000,
+          "amount_refunded" => 1000
+        }
+      }
+    })
+
+    with_stripe_webhook(event) do
+      post webhooks_stripe_url, params: event.as_json.to_json, headers: { "Content-Type" => "application/json" }
+    end
+
+    assert_response :success
+    assert_equal "refunded", @order.reload.payment_status
+    assert_equal "refunded", @order.payment.status
+  end
+
+  test "a refund without a payment intent uses the charge stored at success" do
+    success = build_event("payment_intent.succeeded", "pi_123", "ch_stored", "evt_store_charge")
+    with_stripe_webhook(success) do
+      post webhooks_stripe_url, params: success.as_json.to_json, headers: { "Content-Type" => "application/json" }
+    end
+    assert_equal "ch_stored", @order.reload.payment.stripe_charge_id
+
+    refund = to_event({
+      "id" => "evt_refund_charge_only",
+      "type" => "charge.refunded",
+      "data" => {
+        "object" => {
+          "id" => "ch_stored",
+          "refunded" => true,
+          "amount" => 1000,
+          "amount_refunded" => 1000
+        }
+      }
+    })
+    with_stripe_webhook(refund) do
+      post webhooks_stripe_url, params: refund.as_json.to_json, headers: { "Content-Type" => "application/json" }
+    end
+
+    assert_response :success
+    assert_equal "refunded", @order.reload.payment_status
+  end
+
+  test "a partial refund does not reverse stamps" do
+    customer = Customer.create!(name: "Ana", phone: "5553334477", user: User.create!(email: "partial-refund@example.com", password: "password123"))
+    @order.update!(customer: customer, status: "received", payment_status: "succeeded")
+    @order.payment.update!(status: "succeeded")
+    LoyaltyStamp.award_paid_order!(@order)
+    event = to_event({
+      "id" => "evt_partial",
+      "type" => "charge.refunded",
+      "data" => {
+        "object" => {
+          "id" => "ch_partial",
+          "payment_intent" => "pi_123",
+          "refunded" => true,
+          "amount" => 1000,
+          "amount_refunded" => 100
+        }
+      }
+    })
+
+    with_stripe_webhook(event) do
+      post webhooks_stripe_url, params: event.as_json.to_json, headers: { "Content-Type" => "application/json" }
+    end
+
+    assert_response :success
+    assert_equal "succeeded", @order.reload.payment_status
+    assert_equal "succeeded", @order.payment.status
+    Current.shop = @shop
+    assert_equal 1, LoyaltyStamp.where(customer: customer, status: "earned").count
+    assert_equal 1, StripeWebhookEvent.where(stripe_event_id: "evt_partial").count
+  end
+
+  test "success with the server application fee fulfills the order" do
+    previous = ENV["PLATFORM_FEE_PERCENT"]
+    ENV["PLATFORM_FEE_PERCENT"] = "10"
+    event = build_event("payment_intent.succeeded", "pi_123", "ch_fee_ok", "evt_fee_ok", application_fee_amount: 100)
+
+    with_stripe_webhook(event) do
+      post webhooks_stripe_url, params: event.as_json.to_json, headers: { "Content-Type" => "application/json" }
+    end
+
+    assert_response :success
+    assert_equal "received", @order.reload.status
+    assert_equal "succeeded", @order.payment_status
+  ensure
+    if previous.nil?
+      ENV.delete("PLATFORM_FEE_PERCENT")
+    else
+      ENV["PLATFORM_FEE_PERCENT"] = previous
+    end
+  end
+
+  test "success with the wrong amount does not mark the order paid" do
+    event = build_event("payment_intent.succeeded", "pi_123", "ch_low", "evt_low", amount: 50)
+    logs = capture_rails_logs do
+      with_stripe_webhook(event) do
+        post webhooks_stripe_url, params: event.as_json.to_json, headers: { "Content-Type" => "application/json" }
+      end
+    end
+
+    assert_response :success
+    @order.reload
+    assert_equal "pending_payment", @order.status
+    assert_equal "pending", @order.payment_status
+    assert_equal "pending", @order.payment.status
+    assert_equal 1, StripeWebhookEvent.where(stripe_event_id: "evt_low").count
+    assert_match(/payment.amount_mismatch/, logs)
+  end
+
+  test "success with the wrong application fee does not mark the order paid" do
+    previous = ENV["PLATFORM_FEE_PERCENT"]
+    ENV["PLATFORM_FEE_PERCENT"] = "10"
+    event = build_event("payment_intent.succeeded", "pi_123", "ch_fee", "evt_fee", application_fee_amount: 1)
+
+    with_stripe_webhook(event) do
+      post webhooks_stripe_url, params: event.as_json.to_json, headers: { "Content-Type" => "application/json" }
+    end
+
+    assert_response :success
+    assert_equal "pending_payment", @order.reload.status
+    assert_equal "pending", @order.payment_status
+  ensure
+    if previous.nil?
+      ENV.delete("PLATFORM_FEE_PERCENT")
+    else
+      ENV["PLATFORM_FEE_PERCENT"] = previous
+    end
+  end
+
+  test "a connected account webhook cannot update another shops payment" do
+    other = Shop.create!(name: "Cafe B", slug: "cafe-b-account", currency: "MXN", stripe_account_id: "acct_other", owner: @owner)
+    other_order = Order.create!(
+      shop: other,
+      status: "pending_payment",
+      payment_status: "pending",
+      subtotal_cents: 2500,
+      total_cents: 2500,
+      currency: "MXN",
+      pickup_type: "asap"
+    )
+    Payment.create!(order: other_order, amount_cents: 2500, currency: "MXN", status: "pending", stripe_payment_intent_id: "pi_other_acct")
+    event = build_event("payment_intent.succeeded", "pi_123", "ch_123", "evt_foreign", account: "acct_other")
+
+    logs = capture_rails_logs do
+      with_stripe_webhook(event) do
+        post webhooks_stripe_url, params: event.as_json.to_json, headers: { "Content-Type" => "application/json" }
+      end
+    end
+
+    assert_response :success
+    assert_equal "pending_payment", @order.reload.status
+    assert_equal "pending", @order.payment.status
+    assert_equal "pending_payment", other_order.reload.status
+    assert_equal "pending", other_order.payment.status
+    assert_match(/payment.tenant_mismatch/, logs)
+  end
+
+  test "a direct charge webhook for the orders shop still fulfills it" do
+    @order.payment.update!(stripe_account_id: "acct_123")
+    event = build_event("payment_intent.succeeded", "pi_123", "ch_direct", "evt_direct_ok", account: "acct_123")
+
+    with_stripe_webhook(event) do
+      post webhooks_stripe_url, params: event.as_json.to_json, headers: { "Content-Type" => "application/json" }
+    end
+
+    assert_response :success
+    assert_equal "received", @order.reload.status
+    assert_equal "succeeded", @order.payment_status
+  end
+
+  test "metadata for another shop does not retarget the payment" do
+    other = Shop.create!(name: "Cafe Meta", slug: "cafe-meta", currency: "MXN", stripe_account_id: "acct_meta", owner: @owner)
+    other_order = Order.create!(
+      shop: other,
+      status: "pending_payment",
+      payment_status: "pending",
+      subtotal_cents: 2500,
+      total_cents: 2500,
+      currency: "MXN",
+      pickup_type: "asap"
+    )
+    Payment.create!(order: other_order, amount_cents: 2500, currency: "MXN", status: "pending", stripe_payment_intent_id: "pi_meta")
+    event = build_event(
+      "payment_intent.succeeded",
+      "pi_123",
+      "ch_meta",
+      "evt_meta",
+      metadata: { "order_id" => other_order.id, "shop_id" => other.id }
+    )
+
+    with_stripe_webhook(event) do
+      post webhooks_stripe_url, params: event.as_json.to_json, headers: { "Content-Type" => "application/json" }
+    end
+
+    assert_response :success
+    assert_equal "received", @order.reload.status
+    assert_equal "pending_payment", other_order.reload.status
+    assert_equal "pending", other_order.payment.status
+  end
+
+  test "a webhook for an unknown payment is left for Stripe to retry" do
+    event = build_event("payment_intent.succeeded", "pi_missing", "ch_missing", "evt_missing", amount: 1000)
+
+    logs = capture_rails_logs do
+      with_stripe_webhook(event) do
+        post webhooks_stripe_url, params: event.as_json.to_json, headers: { "Content-Type" => "application/json" }
+      end
+    end
+
+    assert_response :conflict
+    assert_equal 0, StripeWebhookEvent.where(stripe_event_id: "evt_missing").count
+    assert_equal "pending_payment", @order.reload.status
+    assert_match(/stripe.webhook.payment_not_ready/, logs)
   end
 
   private
 
-  def build_event(type, payment_intent_id, charge_id, event_id = "evt_1")
-    to_event({
+  def build_event(type, payment_intent_id, charge_id, event_id = "evt_1", status: nil, amount: nil, currency: "mxn", account: nil, metadata: nil, application_fee_amount: :omit, last_payment_error: nil)
+    resolved_status = status
+    resolved_status = "succeeded" if resolved_status.nil? && type == "payment_intent.succeeded"
+    object = {
+      "id" => payment_intent_id,
+      "metadata" => metadata || { "order_id" => @order.id, "shop_id" => @shop.id },
+      "latest_charge" => charge_id,
+      "amount" => amount.nil? ? @order.total_cents : amount,
+      "currency" => currency
+    }
+    object["status"] = resolved_status if resolved_status.present?
+    object["application_fee_amount"] = application_fee_amount unless application_fee_amount == :omit
+    object["last_payment_error"] = last_payment_error if last_payment_error
+    payload = {
       "id" => event_id,
       "type" => type,
-      "data" => {
-        "object" => {
-          "id" => payment_intent_id,
-          "metadata" => { "order_id" => @order.id },
-          "latest_charge" => charge_id
-        }
-      }
-    })
+      "data" => { "object" => object }
+    }
+    payload["account"] = account if account.present?
+    to_event(payload)
   end
 
   def to_event(hash)
@@ -429,8 +806,12 @@ class StripeWebhooksControllerTest < ActionDispatch::IntegrationTest
       "data" => {
         "object" => {
           "id" => "pi_123",
+          "amount" => @order.total_cents,
+          "currency" => "mxn",
+          "status" => "succeeded",
           "metadata" => {
             "order_id" => @order.id,
+            "shop_id" => @shop.id,
             "save_card" => "true",
             "customer_id" => customer.id
           },

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js'
 import { getStripe } from '@/lib/stripe/client'
+import { STRIPE_NOT_CONFIGURED_MESSAGE } from '@/lib/stripe/keys'
 import { payWithSavedCard, syncPayment, syncSaveCard } from '@/server/actions/payments'
 import { cardExpiry, cardTitle } from '@/lib/cards'
 import type { CustomerPaymentMethod } from '@/types'
@@ -213,12 +214,17 @@ export function CheckoutForm({
   savedCards?: CustomerPaymentMethod[]
   canSaveCard?: boolean
 }) {
+  const stripePromise = getStripe()
+  if (!stripePromise) {
+    return <p className="text-sm text-danger">{STRIPE_NOT_CONFIGURED_MESSAGE}</p>
+  }
+
   return (
     <div className="space-y-6">
       {canSaveCard && savedCards.length > 0 && (
         <SavedCardList orderId={orderId} accessToken={accessToken} savedCards={savedCards} />
       )}
-      <Elements stripe={getStripe()} options={{ clientSecret }}>
+      <Elements stripe={stripePromise} options={{ clientSecret }}>
         <PaymentForm orderId={orderId} accessToken={accessToken} canSaveCard={canSaveCard} />
       </Elements>
     </div>

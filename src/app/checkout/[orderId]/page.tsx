@@ -1,9 +1,11 @@
 import Link from 'next/link'
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import { getOrderWithItems } from '@/server/queries/orders'
 import { getCurrentCustomer } from '@/server/queries/customers'
 import { getSavedCards } from '@/server/queries/payment-methods'
 import { completeFreeOrder, createPaymentIntent } from '@/server/actions/payments'
+import { checkoutPaymentMessage, isConfiguredStripeKey, STRIPE_NOT_CONFIGURED_MESSAGE } from '@/lib/stripe/keys'
+import { env } from '@/lib/env'
 import { CheckoutForm } from '@/components/order/checkout-form'
 import { formatMoney, formatPickupWindow } from '@/lib/ordering'
 import type { CustomerPaymentMethod } from '@/types'
@@ -61,15 +63,26 @@ export default async function CheckoutPage({ params, searchParams }: CheckoutPag
   const complimentary = order.total_cents === 0
   let clientSecret: string | null = null
   let paymentSetupError: string | null = null
+  let paymentAlreadyCaptured = false
   if (!complimentary) {
-    try {
-      clientSecret = await createPaymentIntent(orderId, token)
-    } catch (error) {
-      const message = error instanceof Error ? error.message : ''
-      paymentSetupError = message.includes('not connected to Stripe')
-        ? 'Esta cafetería todavía no puede cobrar con tarjeta.'
-        : 'No pudimos preparar el pago. Inténtalo de nuevo.'
+    if (!isConfiguredStripeKey(env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY, 'publishable')) {
+      paymentSetupError = STRIPE_NOT_CONFIGURED_MESSAGE
+    } else {
+      try {
+        const payment = await createPaymentIntent(orderId, token)
+        if (payment.status === 'succeeded') {
+          paymentAlreadyCaptured = true
+        } else {
+          clientSecret = payment.client_secret
+        }
+      } catch (error) {
+        paymentSetupError = checkoutPaymentMessage(error)
+      }
     }
+  }
+
+  if (paymentAlreadyCaptured) {
+    redirect(`/order/${orderId}?token=${encodeURIComponent(token)}`)
   }
   const eta =
     order.pickup_window_starts_at && order.pickup_window_ends_at

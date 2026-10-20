@@ -227,7 +227,8 @@ class PaymentsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "https://cafe.example/return", charge[0][:return_url]
     assert_nil charge[0][:transfer_data]
     assert_nil charge[0][:on_behalf_of]
-    assert_equal({ stripe_account: "acct_a" }, charge[1])
+    assert_equal "acct_a", charge[1][:stripe_account]
+    assert_match(/\Adirect-pi-#{@order.id}-/, charge[1][:idempotency_key])
 
     @order.reload
     assert_equal "received", @order.status
@@ -459,6 +460,194 @@ class PaymentsControllerTest < ActionDispatch::IntegrationTest
     assert_empty @stripe_calls[:create]
   end
 
+  test "platform payment intents are created with an idempotency key" do
+    with_stripe do
+      post payments_url, params: { order_id: @order.id, token: @order.guest_access_token }
+    end
+
+    assert_response :success
+    options = @stripe_calls[:create].last[1]
+    assert_kind_of Hash, options
+    assert_match(/\Aplatform-pi-#{@order.id}-/, options[:idempotency_key])
+  end
+
+  test "client supplied application fee is ignored" do
+    previous = ENV["PLATFORM_FEE_PERCENT"]
+    ENV["PLATFORM_FEE_PERCENT"] = "10"
+
+    with_stripe do
+      post payments_url, params: {
+        order_id: @order.id,
+        token: @order.guest_access_token,
+        amount_cents: 1,
+        application_fee_amount: 1
+      }
+    end
+
+    assert_response :success
+    assert_equal 180, @stripe_calls[:create].last[0][:application_fee_amount]
+    assert_equal 1800, @stripe_calls[:create].last[0][:amount]
+    assert_equal 180, @order.reload.payment.platform_fee_cents
+  ensure
+    if previous.nil?
+      ENV.delete("PLATFORM_FEE_PERCENT")
+    else
+      ENV["PLATFORM_FEE_PERCENT"] = previous
+    end
+  end
+
+  test "checkout reports stripe as not configured when the secret is a placeholder" do
+    previous = ENV["STRIPE_SECRET_KEY"]
+    ENV["STRIPE_SECRET_KEY"] = "sk_test_placeholder"
+
+    logs = capture_rails_logs do
+      with_stripe do
+        post payments_url, params: { order_id: @order.id, token: @order.guest_access_token }
+      end
+    end
+
+    assert_response :service_unavailable
+    assert_equal "stripe_not_configured", response.parsed_body["error"]
+    assert_empty @stripe_calls[:create]
+    assert_nil @order.reload.payment
+    assert_match(/payment.stripe_not_configured/, logs)
+  ensure
+    ENV["STRIPE_SECRET_KEY"] = previous
+  end
+
+  test "a free loyalty order still completes when Stripe keys are placeholders" do
+    previous = ENV["STRIPE_SECRET_KEY"]
+    ENV["STRIPE_SECRET_KEY"] = "sk_test_placeholder"
+    @order.update!(total_cents: 0, subtotal_cents: 0, loyalty_redeemed: true)
+
+    post payments_url, params: { order_id: @order.id, token: @order.guest_access_token }
+
+    assert_response :success
+    assert_equal "succeeded", response.parsed_body["status"]
+    assert_equal "received", @order.reload.status
+    assert_empty @stripe_calls[:create]
+  ensure
+    ENV["STRIPE_SECRET_KEY"] = previous
+  end
+
+  test "a succeeded platform intent is fulfilled instead of charging a saved card" do
+    customer, token = login_customer!
+    customer.update!(stripe_customer_id: "cus_platform")
+    card = save_card!(customer)
+    Payment.create!(
+      order: @order,
+      amount_cents: 1800,
+      currency: "MXN",
+      status: "pending",
+      stripe_payment_intent_id: "pi_platform"
+    )
+    @stripe_calls[:retrieve_status] = "succeeded"
+    @stripe_calls[:retrieve_amount] = 1800
+
+    with_saved_card_stripe(status: "succeeded") do
+      post payments_url,
+        params: { order_id: @order.id, payment_method_id: card.id, return_url: "https://cafe.example/return" },
+        headers: bearer(token)
+    end
+
+    assert_response :success
+    assert_equal "succeeded", response.parsed_body["status"]
+    assert_empty @stripe_calls[:clone]
+    assert_empty @stripe_calls[:direct_create]
+    assert_empty @stripe_calls[:cancel]
+    assert_equal "received", @order.reload.status
+    assert_equal "pi_platform", @order.payment.stripe_payment_intent_id
+  end
+
+  test "repeating checkout fulfills an intent Stripe already captured" do
+    Payment.create!(
+      order: @order,
+      amount_cents: 1800,
+      currency: "MXN",
+      status: "pending",
+      stripe_payment_intent_id: "pi_existing"
+    )
+    @stripe_calls[:retrieve_status] = "succeeded"
+    @stripe_calls[:retrieve_amount] = 1800
+
+    with_stripe do
+      post payments_url, params: { order_id: @order.id, token: @order.guest_access_token, amount_cents: 1 }
+    end
+
+    assert_response :success
+    assert_equal "succeeded", response.parsed_body["status"]
+    assert_empty @stripe_calls[:create]
+    assert_empty @stripe_calls[:update]
+    assert_equal "received", @order.reload.status
+    assert_equal "succeeded", @order.payment_status
+  end
+
+  test "sync of a canceled intent cancels the unpaid order" do
+    Payment.create!(
+      order: @order,
+      amount_cents: 1800,
+      currency: "MXN",
+      status: "pending",
+      stripe_payment_intent_id: "pi_sync"
+    )
+    @stripe_calls[:retrieve_status] = "canceled"
+
+    with_stripe do
+      post "/payments/sync", params: { order_id: @order.id, token: @order.guest_access_token }
+    end
+
+    assert_response :success
+    assert_equal "failed", response.parsed_body["status"]
+    assert_equal "cancelled", @order.reload.status
+    assert_equal "failed", @order.payment_status
+    assert_equal "failed", @order.payment.status
+  end
+
+  test "sync of a declined card leaves the order payable" do
+    Payment.create!(
+      order: @order,
+      amount_cents: 1800,
+      currency: "MXN",
+      status: "pending",
+      stripe_payment_intent_id: "pi_sync"
+    )
+    @stripe_calls[:retrieve_status] = "requires_payment_method"
+
+    with_stripe do
+      post "/payments/sync", params: { order_id: @order.id, token: @order.guest_access_token }
+    end
+
+    assert_response :success
+    assert_equal "failed", response.parsed_body["status"]
+    assert_equal "pending_payment", @order.reload.status
+    assert_equal "pending", @order.payment_status
+    assert_equal "failed", @order.payment.status
+  end
+
+  test "sync does not fulfill an intent whose amount does not match the order" do
+    Payment.create!(
+      order: @order,
+      amount_cents: 1800,
+      currency: "MXN",
+      status: "pending",
+      stripe_payment_intent_id: "pi_sync"
+    )
+    @stripe_calls[:retrieve_status] = "succeeded"
+    @stripe_calls[:retrieve_amount] = 50
+
+    logs = capture_rails_logs do
+      with_stripe do
+        post "/payments/sync", params: { order_id: @order.id, token: @order.guest_access_token }
+      end
+    end
+
+    assert_response :unprocessable_entity
+    assert_equal "payment_amount_mismatch", response.parsed_body["error"]
+    assert_equal "pending_payment", @order.reload.status
+    assert_equal "pending", @order.payment_status
+    assert_match(/payment.amount_mismatch/, logs)
+  end
+
   private
 
   def login_customer!
@@ -487,6 +676,7 @@ class PaymentsControllerTest < ActionDispatch::IntegrationTest
     intent = OpenStruct.new(id: "pi_new", client_secret: "secret_test", status: "requires_payment_method")
     original_create = Stripe::PaymentIntent.method(:create)
     original_update = Stripe::PaymentIntent.method(:update)
+    original_retrieve = Stripe::PaymentIntent.method(:retrieve)
     calls = @stripe_calls
     Stripe::PaymentIntent.define_singleton_method(:create) do |*args|
       calls[:create] << args
@@ -496,10 +686,23 @@ class PaymentsControllerTest < ActionDispatch::IntegrationTest
       calls[:update] << args
       intent
     end
+    Stripe::PaymentIntent.define_singleton_method(:retrieve) do |id, *args|
+      calls[:retrieve] ||= []
+      calls[:retrieve] << [ id, args ]
+      OpenStruct.new(
+        id: id,
+        client_secret: "secret_test",
+        status: calls[:retrieve_status] || "requires_payment_method",
+        amount: calls.key?(:retrieve_amount) ? calls[:retrieve_amount] : 1800,
+        currency: "mxn",
+        application_fee_amount: calls[:retrieve_fee]
+      )
+    end
     yield
   ensure
     Stripe::PaymentIntent.define_singleton_method(:create, original_create)
     Stripe::PaymentIntent.define_singleton_method(:update, original_update)
+    Stripe::PaymentIntent.define_singleton_method(:retrieve, original_retrieve)
   end
 
   def with_platform_customer
@@ -533,7 +736,14 @@ class PaymentsControllerTest < ActionDispatch::IntegrationTest
     Stripe::PaymentIntent.define_singleton_method(:create) do |*args|
       if args[1].is_a?(Hash) && args[1][:stripe_account].present?
         calls[:direct_create] << args
-        OpenStruct.new(id: "pi_saved", client_secret: "secret_saved", status: status)
+        OpenStruct.new(
+          id: "pi_saved",
+          client_secret: "secret_saved",
+          status: status,
+          amount: args[0][:amount],
+          currency: args[0][:currency],
+          application_fee_amount: args[0][:application_fee_amount]
+        )
       else
         calls[:create] << args
         OpenStruct.new(id: "pi_new", client_secret: "secret_test", status: "requires_payment_method")
@@ -545,7 +755,14 @@ class PaymentsControllerTest < ActionDispatch::IntegrationTest
     end
     Stripe::PaymentIntent.define_singleton_method(:retrieve) do |id, *args|
       calls[:retrieve] << [ id, args ]
-      OpenStruct.new(id: id, client_secret: "secret_saved", status: calls[:retrieve_status] || "requires_action")
+      OpenStruct.new(
+        id: id,
+        client_secret: "secret_saved",
+        status: calls[:retrieve_status] || "requires_action",
+        amount: calls.key?(:retrieve_amount) ? calls[:retrieve_amount] : 1800,
+        currency: "mxn",
+        application_fee_amount: calls[:retrieve_fee]
+      )
     end
     yield
   ensure

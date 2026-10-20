@@ -11,6 +11,9 @@ class PaymentsController < ApplicationController
       return
     end
 
+    ensure_stripe_configured!
+    return if performed?
+
     if Current.shop.stripe_account_id.blank?
       render json: { error: "Shop is not connected to Stripe" }, status: :unprocessable_entity
       return
@@ -22,10 +25,21 @@ class PaymentsController < ApplicationController
     end
 
     payment_intent = create_or_update_payment_intent
-    find_or_create_payment!(payment_intent)
+    if payment_intent.status == "succeeded" && !StripeCharges.matches_order?(payment_intent, @order)
+      render json: { error: "payment_amount_mismatch" }, status: :unprocessable_entity
+      return
+    end
+
+    payment = find_or_create_payment!(payment_intent)
+    if payment_intent.status == "succeeded"
+      apply_intent_status!(payment, payment_intent)
+      render json: { status: "succeeded", client_secret: payment_intent.client_secret }
+      return
+    end
 
     render json: { client_secret: payment_intent.client_secret }
   rescue Stripe::StripeError => e
+    log_stripe_error(e)
     render json: { error: e.message }, status: :bad_gateway
   rescue ActiveRecord::RecordInvalid => e
     render json: { errors: [ e.message ] }, status: :unprocessable_entity
@@ -40,10 +54,16 @@ class PaymentsController < ApplicationController
       return
     end
 
+    ensure_stripe_configured!
+    return if performed?
+
     options = {}
     options[:stripe_account] = payment.stripe_account_id if payment.stripe_account_id.present?
     intent = Stripe::PaymentIntent.retrieve(payment.stripe_payment_intent_id, options)
-    apply_intent_status!(payment, intent)
+    unless apply_intent_status!(payment, intent)
+      render json: { error: "payment_amount_mismatch" }, status: :unprocessable_entity
+      return
+    end
 
     render json: {
       status: client_status(intent.status),
@@ -51,6 +71,7 @@ class PaymentsController < ApplicationController
       stripe_account_id: payment.stripe_account_id
     }
   rescue Stripe::StripeError => e
+    log_stripe_error(e)
     render json: { error: e.message }, status: :bad_gateway
   end
 
@@ -137,16 +158,25 @@ class PaymentsController < ApplicationController
     end
 
     if existing_payment_intent_id.present?
+      existing_intent = Stripe::PaymentIntent.retrieve(existing_payment_intent_id)
+      return existing_intent if existing_intent.status == "succeeded"
+      return create_platform_intent(attributes) if existing_intent.status == "canceled"
+
       Stripe::PaymentIntent.update(existing_payment_intent_id, attributes)
     else
-      Stripe::PaymentIntent.create(
-        attributes.merge(
-          automatic_payment_methods: { enabled: true },
-          transfer_data: { destination: Current.shop.stripe_account_id },
-          on_behalf_of: Current.shop.stripe_account_id
-        )
-      )
+      create_platform_intent(attributes)
     end
+  end
+
+  def create_platform_intent(attributes)
+    Stripe::PaymentIntent.create(
+      attributes.merge(
+        automatic_payment_methods: { enabled: true },
+        transfer_data: { destination: Current.shop.stripe_account_id },
+        on_behalf_of: Current.shop.stripe_account_id
+      ),
+      { idempotency_key: "platform-pi-#{@order.id}-#{@order.total_cents}-#{application_fee_amount}-#{save_card_requested?}" }
+    )
   end
 
   def payment_metadata(save_card)
@@ -202,13 +232,17 @@ class PaymentsController < ApplicationController
     end
 
     existing = @order.payment
-    if reusable_direct_charge?(existing)
-      intent = Stripe::PaymentIntent.retrieve(
-        existing.stripe_payment_intent_id,
-        { stripe_account: existing.stripe_account_id }
-      )
-      if %w[succeeded requires_action processing requires_confirmation].include?(intent.status)
-        apply_intent_status!(existing, intent)
+    if existing&.stripe_payment_intent_id.present?
+      intent = retrieve_existing_intent(existing)
+      if reuse_existing_intent?(existing, intent)
+        if intent.status == "succeeded"
+          unless apply_intent_status!(existing, intent)
+            render json: { error: "payment_amount_mismatch" }, status: :unprocessable_entity
+            return
+          end
+        else
+          apply_intent_status!(existing, intent)
+        end
         render json: saved_card_payload(intent, existing.stripe_account_id)
         return
       end
@@ -238,38 +272,84 @@ class PaymentsController < ApplicationController
           save_card: "false"
         }
       },
-      { stripe_account: Current.shop.stripe_account_id }
+      {
+        stripe_account: Current.shop.stripe_account_id,
+        idempotency_key: "direct-pi-#{@order.id}-#{payment_method.id}-#{@order.total_cents}-#{application_fee_amount}"
+      }
     )
+    if intent.status == "succeeded" && !StripeCharges.matches_order?(intent, @order)
+      render json: { error: "payment_amount_mismatch" }, status: :unprocessable_entity
+      return
+    end
+
     payment = find_or_create_payment!(intent, stripe_account_id: Current.shop.stripe_account_id)
     apply_intent_status!(payment, intent)
     render json: saved_card_payload(intent, Current.shop.stripe_account_id)
   end
 
-  def reusable_direct_charge?(payment)
-    payment&.stripe_account_id.present? && payment.stripe_payment_intent_id.present? && !payment.status_succeeded?
+  def retrieve_existing_intent(payment)
+    options = {}
+    options[:stripe_account] = payment.stripe_account_id if payment.stripe_account_id.present?
+    Stripe::PaymentIntent.retrieve(payment.stripe_payment_intent_id, options)
+  end
+
+  def reuse_existing_intent?(payment, intent)
+    return true if intent.status == "succeeded"
+    return false if payment.stripe_account_id.blank?
+
+    %w[requires_action processing requires_confirmation].include?(intent.status)
   end
 
   def cancel_platform_intent!(payment)
     return if payment.nil?
     return if payment.stripe_account_id.present?
     return if payment.stripe_payment_intent_id.blank?
-    return unless payment.status_pending?
+    return if payment.status_succeeded? || payment.status_refunded?
 
     Stripe::PaymentIntent.cancel(payment.stripe_payment_intent_id)
   rescue Stripe::StripeError
-    nil
+    PaymentLog.warn(
+      "payment.cancel_failed",
+      order_id: @order.id,
+      shop_id: @order.shop_id,
+      payment_intent_id: payment.stripe_payment_intent_id
+    )
   end
 
   def apply_intent_status!(payment, intent)
     case intent.status
     when "succeeded"
-      payment.update!(status: "succeeded", stripe_payment_intent_id: intent.id)
+      return false unless StripeCharges.matches_order?(intent, @order)
+      return true if payment.status_refunded? || @order.payment_status_refunded? || @order.status_cancelled?
+
+      charge_id = StripeCharges.id_of(StripePayload.read(intent, :latest_charge))
+      attributes = { status: "succeeded", stripe_payment_intent_id: intent.id }
+      attributes[:stripe_charge_id] = charge_id if charge_id.present?
+      payment.update!(attributes)
       @order.apply_successful_payment! unless @order.payment_status_succeeded?
     when "canceled"
-      payment.update!(status: "failed", stripe_payment_intent_id: intent.id) unless payment.status_succeeded?
+      return true if payment.status_succeeded? || payment.status_refunded?
+      return true if @order.payment_status_succeeded? || @order.payment_status_refunded?
+
+      payment.update!(status: "failed", stripe_payment_intent_id: intent.id)
+      @order.apply_failed_payment!
+    when "requires_payment_method"
+      return true if payment.status_succeeded? || payment.status_refunded?
+
+      payment.update!(status: "failed", stripe_payment_intent_id: intent.id)
+      PaymentLog.warn(
+        "payment.attempt_failed",
+        order_id: @order.id,
+        shop_id: @order.shop_id,
+        payment_intent_id: intent.id,
+        stripe_status: intent.status
+      )
     else
-      payment.update!(status: "pending", stripe_payment_intent_id: intent.id) unless payment.status_succeeded?
+      return true if payment.status_succeeded? || payment.status_refunded?
+
+      payment.update!(status: "pending", stripe_payment_intent_id: intent.id)
     end
+    true
   end
 
   def saved_card_payload(intent, stripe_account_id)
@@ -312,8 +392,24 @@ class PaymentsController < ApplicationController
   end
 
   def application_fee_amount
-    percent = ENV.fetch("PLATFORM_FEE_PERCENT", "0").to_f
-    (@order.total_cents * percent / 100.0).round
+    StripeFees.application_fee_cents(@order.total_cents)
+  end
+
+  def ensure_stripe_configured!
+    return if StripeConfig.configured?
+
+    PaymentLog.error("payment.stripe_not_configured", order_id: @order&.id, shop_id: Current.shop&.id)
+    render json: { error: "stripe_not_configured" }, status: :service_unavailable
+  end
+
+  def log_stripe_error(error)
+    PaymentLog.error(
+      "payment.stripe_error",
+      order_id: @order&.id,
+      shop_id: Current.shop&.id,
+      error_class: error.class.name,
+      stripe_code: error.respond_to?(:code) ? error.code : nil
+    )
   end
 
   def map_stripe_status(stripe_status)
