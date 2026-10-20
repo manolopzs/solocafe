@@ -61,6 +61,8 @@ class Order < ApplicationRecord
   end
 
   def apply_successful_payment!
+    return if payment_status_refunded? || status_cancelled?
+
     entering_kitchen = status_pending_payment? && can_transition_to?("received")
     attributes = { payment_status: "succeeded" }
     attributes[:status] = "received" if entering_kitchen
@@ -106,10 +108,18 @@ class Order < ApplicationRecord
   end
 
   def apply_refund!
-    return unless payment_status_succeeded? || payment_status_refunded?
+    return if payment_status_refunded?
 
-    update!(payment_status: "refunded") unless payment_status_refunded?
-    LoyaltyStamp.unwind!(self)
+    pending = status_pending_payment?
+    update!(payment_status: "refunded")
+    if pending && can_transition_to?("cancelled")
+      update!(status: "cancelled")
+      release_slot!
+      LoyaltyStamp.unwind!(self)
+      update!(loyalty_redeemed: false) if loyalty_redeemed?
+    else
+      LoyaltyStamp.unwind!(self)
+    end
   end
 
   def release_slot!

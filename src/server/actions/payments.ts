@@ -9,7 +9,7 @@ function orderTokenHeaders(accessToken?: string) {
 }
 
 export async function createPaymentIntent(orderId: string, accessToken?: string) {
-  const data = await apiPost<{ client_secret: string }>(
+  return apiPost<{ client_secret: string | null; status?: string }>(
     '/payments',
     {
       order_id: orderId,
@@ -18,7 +18,6 @@ export async function createPaymentIntent(orderId: string, accessToken?: string)
     false,
     orderTokenHeaders(accessToken)
   )
-  return data.client_secret
 }
 
 export async function syncSaveCard(orderId: string, accessToken: string, saveCard: boolean) {

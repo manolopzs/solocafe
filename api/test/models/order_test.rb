@@ -88,6 +88,29 @@ class OrderTest < ActiveSupport::TestCase
     TenantScoped.unscoped_for_system { Event.where(order: order, event_type: "order.kitchen_new").count }
   end
 
+  test "a refund recorded before payment does not enter the kitchen later" do
+    owner = User.create!(email: "refund-order@example.com", password: "password123")
+    shop = Shop.create!(name: "Cafe Refund", slug: "cafe-refund-order", currency: "MXN", owner: owner)
+    order = Order.create!(
+      shop: shop,
+      status: "pending_payment",
+      payment_status: "pending",
+      subtotal_cents: 1000,
+      total_cents: 1000,
+      currency: "MXN",
+      pickup_type: "asap"
+    )
+
+    order.apply_refund!
+    assert_equal "refunded", order.payment_status
+    assert_equal "cancelled", order.status
+
+    order.apply_successful_payment!
+    assert_equal "cancelled", order.reload.status
+    assert_equal "refunded", order.payment_status
+    assert_equal 0, kitchen_events(order)
+  end
+
   test "terminal states cannot transition" do
     assert_not Order.new(status: "picked_up").can_transition_to?("received")
     assert_not Order.new(status: "cancelled").can_transition_to?("preparing")
