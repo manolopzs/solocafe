@@ -16,6 +16,10 @@
 !/log/.keep
 !/tmp/.keep
 
+# Active Storage files stay on the local disk service.
+/storage/*
+!/storage/.keep
+
 # Ignore pidfiles, but keep the directory.
 /tmp/pids/*
 !/tmp/pids/

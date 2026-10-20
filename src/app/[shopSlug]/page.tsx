@@ -6,6 +6,8 @@ import { getShopFavorites } from '@/server/queries/favorites'
 import { getRecentOrders } from '@/server/queries/recentOrders'
 import { getUsualOrder } from '@/server/queries/orders'
 import { OrderPageClient } from '@/components/order/order-page-client'
+import { ShopHero } from '@/components/shop/shop-hero'
+import { displayFontFamily } from '@/lib/display-fonts'
 import type { Order, UsualOrder } from '@/types'
 
 export const instant = false
@@ -42,19 +44,28 @@ export default async function PublicOrderPage({
   const reorderCount = reorderOrder?.items?.reduce((sum, item) => sum + item.quantity, 0) ?? 0
 
   return (
-    <OrderPageClient
-      shop={shop}
-      categories={menu.categories}
-      items={menu.items}
-      modifierGroups={menu.modifierGroups}
-      modifierOptions={menu.modifierOptions}
-      itemModifierLinks={menu.itemModifierLinks}
-      customer={customer}
-      reorderOrder={reorderOrder}
-      reorderCount={reorderCount}
-      favoriteIds={favoriteIds}
-      recentOrders={recentOrders}
-      usualOrder={usualOrder}
-    />
+    <div
+      style={{
+        ['--accent' as string]: shop.brand_color,
+        ['--ring' as string]: shop.brand_color,
+        ['--font-display' as string]: displayFontFamily(shop.display_font),
+      }}
+    >
+      <ShopHero name={shop.name} heroPhotoUrl={shop.hero_photo_url} />
+      <OrderPageClient
+        shop={shop}
+        categories={menu.categories}
+        items={menu.items}
+        modifierGroups={menu.modifierGroups}
+        modifierOptions={menu.modifierOptions}
+        itemModifierLinks={menu.itemModifierLinks}
+        customer={customer}
+        reorderOrder={reorderOrder}
+        reorderCount={reorderCount}
+        favoriteIds={favoriteIds}
+        recentOrders={recentOrders}
+        usualOrder={usualOrder}
+      />
+    </div>
   )
 }

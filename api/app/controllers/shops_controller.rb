@@ -1,4 +1,6 @@
 class ShopsController < ApplicationController
+  include ShopPersonalityPayload
+
   before_action :authenticate_user!, except: [:show]
 
   def index
@@ -40,7 +42,11 @@ class ShopsController < ApplicationController
     end
 
     Current.shop = shop
-    if shop.update(shop_params)
+    attrs = shop_params
+    remove_hero = ActiveModel::Type::Boolean.new.cast(attrs.delete(:remove_hero_photo))
+
+    if shop.update(attrs)
+      shop.hero_photo.purge if remove_hero && attrs[:hero_photo].blank? && shop.hero_photo.attached?
       render json: { shop: shop_payload(shop, include_onboarding: true) }
     else
       render json: { errors: shop.errors.full_messages }, status: :unprocessable_entity
@@ -53,7 +59,8 @@ class ShopsController < ApplicationController
     day = %i[is_open open close]
     params.require(:shop).permit(
       :name, :slug, :timezone, :currency, :locale,
-      :tax_included, :tax_rate, :address, :brand_color,
+      :tax_included, :tax_rate, :address, :brand_color, :display_font,
+      :hero_photo, :remove_hero_photo,
       :slot_duration_minutes, :slot_capacity, :prep_time_buffer_minutes, :max_days_ahead,
       :accepting_pickup,
       operating_hours: { mon: day, tue: day, wed: day, thu: day, fri: day, sat: day, sun: day }
@@ -84,7 +91,6 @@ class ShopsController < ApplicationController
       lat: shop.lat&.to_f,
       lng: shop.lng&.to_f,
       logo_url: shop.logo_url,
-      brand_color: shop.brand_color,
       stripe_connect_status: shop.stripe_connect_status,
       status: shop.status,
       operating_hours: shop.operating_hours,
@@ -94,7 +100,7 @@ class ShopsController < ApplicationController
       max_days_ahead: shop.max_days_ahead,
       accepting_pickup: shop.accepting_pickup?,
       ordering: shop.ordering_payload
-    }
+    }.merge(personality_fields(shop))
     payload[:onboarding] = ShopOnboarding.snapshot(shop) if include_onboarding
     payload
   end

@@ -4,6 +4,7 @@ import { getShopById } from '@/server/queries/shops'
 import { connectStripeAccount, syncStripeStatus } from '@/server/actions/stripe-connect'
 import type { ShopOnboarding } from '@/types'
 import { ShopSettingsForm } from '@/components/dashboard/shop-settings-form'
+import { ShopPersonalityForm } from '@/components/dashboard/shop-personality-form'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -71,9 +72,11 @@ export default async function SettingsPage({
       <div>
         <h1 className="font-serif text-2xl font-semibold tracking-tight text-foreground">Ajustes</h1>
         <p className="mt-1 text-muted-foreground">
-          Configura pagos y datos de tu cafeteria.
+          Configura la personalidad, los pagos y los datos de tu cafetería.
         </p>
       </div>
+
+      <ShopPersonalityForm shopId={shopId} shop={shop} />
 
       {stripeParam === 'connected' && (
         <div className="rounded-xl border border-terracotta-200 bg-cream px-4 py-3 text-sm text-terracotta-800">

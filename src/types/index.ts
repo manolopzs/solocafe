@@ -78,6 +78,9 @@ export interface Shop {
   lng: number | null
   logo_url: string | null
   brand_color: string
+  display_font: string
+  display_font_family: string
+  hero_photo_url: string | null
   stripe_account_id: string | null
   stripe_connect_status: string
   operating_hours: OperatingHours
