@@ -24,6 +24,7 @@ Rails.application.routes.draw do
       resources :modifier_options, only: [:index, :create, :update, :destroy]
     end
     resources :orders, only: [:index, :create, :show, :update]
+    resources :push_devices, only: [:index, :create, :destroy]
     resources :favorites, only: [:index, :create, :destroy], controller: "customer_favorites", param: :menu_item_id
     post "/stripe/connect", to: "stripe_connect#create"
     post "/stripe/status", to: "stripe_connect#status"

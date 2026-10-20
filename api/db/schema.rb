@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_20_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_20_130100) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -194,6 +194,22 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_20_120000) do
     t.index ["shop_id"], name: "index_pickup_slots_on_shop_id"
   end
 
+  create_table "push_devices", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "shop_id", null: false
+    t.uuid "user_id"
+    t.string "platform", null: false
+    t.string "endpoint"
+    t.string "p256dh"
+    t.string "auth_key"
+    t.string "token"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["shop_id", "endpoint"], name: "index_push_devices_on_shop_and_endpoint", unique: true, where: "(endpoint IS NOT NULL)"
+    t.index ["shop_id", "token"], name: "index_push_devices_on_shop_and_token", unique: true, where: "(token IS NOT NULL)"
+    t.index ["shop_id"], name: "index_push_devices_on_shop_id"
+    t.index ["user_id"], name: "index_push_devices_on_user_id"
+  end
+
   create_table "shop_members", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.uuid "shop_id", null: false
     t.uuid "user_id", null: false
@@ -309,6 +325,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_20_120000) do
   add_foreign_key "orders", "shops"
   add_foreign_key "payments", "orders"
   add_foreign_key "pickup_slots", "shops"
+  add_foreign_key "push_devices", "shops"
+  add_foreign_key "push_devices", "users"
   add_foreign_key "shop_members", "shops"
   add_foreign_key "shop_members", "users"
   add_foreign_key "shop_subscriptions", "shops"

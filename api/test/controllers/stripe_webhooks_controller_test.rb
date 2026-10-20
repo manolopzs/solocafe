@@ -31,6 +31,7 @@ class StripeWebhooksControllerTest < ActionDispatch::IntegrationTest
     assert_equal "received", @order.status
     assert_equal 1, StripeWebhookEvent.where(stripe_event_id: "evt_1").count
     assert_equal 1, Event.where(order: @order, event_type: "payment_intent.succeeded").count
+    assert_equal 1, Event.unscoped.where(order: @order, event_type: "order.kitchen_new").count
   end
 
   test "duplicate payment success is idempotent and does not skip received" do
@@ -47,6 +48,7 @@ class StripeWebhooksControllerTest < ActionDispatch::IntegrationTest
     assert_equal "received", @order.status
     assert_equal 1, StripeWebhookEvent.where(stripe_event_id: "evt_1").count
     assert_equal 1, Event.where(order: @order, event_type: "payment_intent.succeeded").count
+    assert_equal 1, Event.unscoped.where(order: @order, event_type: "order.kitchen_new").count
   end
 
   test "a later success event does not move a received order to preparing" do

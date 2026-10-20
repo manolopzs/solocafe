@@ -37,6 +37,11 @@ class OrdersController < ApplicationController
   end
 
   def index
+    if params[:view] == "kitchen"
+      render_kitchen
+      return
+    end
+
     orders = Current.shop.orders.includes(ORDER_INCLUDES).order(created_at: :desc)
     if params[:status].present?
       orders = orders.where(status: params[:status])
@@ -279,6 +284,51 @@ class OrdersController < ApplicationController
     )
   end
 
+  def render_kitchen
+    since = parsed_since
+    return if performed?
+
+    server_time = Time.current
+    orders = Current.shop.orders.kitchen.includes(ORDER_INCLUDES).order(created_at: :asc).to_a
+
+    render json: {
+      orders: serialize_orders(orders, audience: :staff),
+      sync: KdsSync.snapshot(server_time),
+      alerts: kitchen_alerts(since, server_time, orders.map(&:id))
+    }
+  end
+
+  def parsed_since
+    return nil if params[:since].blank?
+
+    parsed = Time.zone.parse(params[:since].to_s)
+    if parsed.nil?
+      render json: { errors: [ "since is not a valid time" ] }, status: :unprocessable_entity
+      return nil
+    end
+
+    parsed
+  rescue ArgumentError
+    render json: { errors: [ "since is not a valid time" ] }, status: :unprocessable_entity
+    nil
+  end
+
+  def kitchen_alerts(since, server_time, order_ids)
+    return [] if since.nil? || order_ids.empty?
+
+    Current.shop.events
+      .where(event_type: "order.kitchen_new", order_id: order_ids)
+      .where("created_at > ? AND created_at <= ?", since, server_time)
+      .order(:created_at)
+      .map do |event|
+        {
+          order_id: event.order_id,
+          event_type: event.event_type,
+          created_at: event.created_at.iso8601(6)
+        }
+      end
+  end
+
   def create_status_event(order, from_status, to_status)
     Current.shop.events.create!(
       order: order,
@@ -355,6 +405,7 @@ class OrdersController < ApplicationController
       pickup_window_ends_at: window[:ends_at]&.iso8601,
       item_count: order.order_items.sum { |order_item| order_item.quantity },
       shop: shop_snippet(shop),
+      allowed_transitions: order.allowed_transitions,
       created_at: order.created_at,
       updated_at: order.updated_at,
       items: order.order_items.map { |order_item| order_item_payload(order_item) }

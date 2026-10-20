@@ -179,6 +179,7 @@ export const demoOrders: (Order & { items: (OrderItem & { modifiers: OrderItemMo
     customer_name: 'Maria Gonzalez',
     customer_phone: '+52 55 1234 5678',
     special_instructions: 'Sin azucar, por favor.',
+    allowed_transitions: ['preparing', 'cancelled'],
     created_at: new Date(Date.now() - 2 * 60000).toISOString(),
     updated_at: new Date().toISOString(),
     items: [
@@ -223,6 +224,7 @@ export const demoOrders: (Order & { items: (OrderItem & { modifiers: OrderItemMo
     customer_name: 'Carlos Ruiz',
     customer_phone: '+52 55 9876 5432',
     special_instructions: null,
+    allowed_transitions: ['ready', 'cancelled'],
     created_at: new Date(Date.now() - 8 * 60000).toISOString(),
     updated_at: new Date().toISOString(),
     items: [
@@ -255,6 +257,7 @@ export const demoOrders: (Order & { items: (OrderItem & { modifiers: OrderItemMo
     customer_name: 'Ana Torres',
     customer_phone: '+52 55 4567 8901',
     special_instructions: null,
+    allowed_transitions: ['picked_up'],
     created_at: new Date(Date.now() - 15 * 60000).toISOString(),
     updated_at: new Date().toISOString(),
     items: [

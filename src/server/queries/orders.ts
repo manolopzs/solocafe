@@ -47,6 +47,31 @@ export async function getUsualOrder(shopId: string): Promise<UsualOrder | null> 
   }
 }
 
+export async function getKitchenBoard(shopId: string): Promise<{
+  orders: Order[]
+  sync: {
+    server_time: string
+    poll_interval_ms: number
+    retry_delays_ms: number[]
+    vapid_public_key: string | null
+  } | null
+}> {
+  try {
+    const data = await apiGet<{
+      orders: Order[]
+      sync: {
+        server_time: string
+        poll_interval_ms: number
+        retry_delays_ms: number[]
+        vapid_public_key: string | null
+      }
+    }>(`/shops/${shopId}/orders?view=kitchen`)
+    return { orders: data.orders ?? [], sync: data.sync ?? null }
+  } catch {
+    return { orders: [], sync: null }
+  }
+}
+
 export async function getShopOrders(shopId: string, status?: string): Promise<Order[]> {
   try {
     const query = status ? `?status=${encodeURIComponent(status)}` : ''

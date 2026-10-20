@@ -4,8 +4,11 @@ class Order < ApplicationRecord
   belongs_to :customer, optional: true
   belongs_to :pickup_slot, optional: true
   has_many :order_items, dependent: :destroy
+  has_many :events, dependent: :destroy
   has_one :payment, dependent: :destroy
   has_one :slot_reservation, dependent: :destroy
+
+  scope :kitchen, -> { where(status: KITCHEN_STATUSES, payment_status: KITCHEN_PAYMENT_STATUSES) }
 
   validates :subtotal_cents, presence: true, numericality: { greater_than_or_equal_to: 0 }
   validates :total_cents, presence: true, numericality: { greater_than_or_equal_to: 0 }
@@ -32,6 +35,9 @@ class Order < ApplicationRecord
     scheduled: "scheduled"
   }, prefix: true
 
+  KITCHEN_STATUSES = %w[received preparing ready].freeze
+  KITCHEN_PAYMENT_STATUSES = %w[succeeded refunded].freeze
+
   def self.state_machine
     {
       "pending_payment" => %w[received cancelled],
@@ -55,11 +61,26 @@ class Order < ApplicationRecord
   end
 
   def apply_successful_payment!
+    entering_kitchen = status_pending_payment? && can_transition_to?("received")
     attributes = { payment_status: "succeeded" }
-    if status_pending_payment? && can_transition_to?("received")
-      attributes[:status] = "received"
-    end
+    attributes[:status] = "received" if entering_kitchen
     update!(attributes)
+    record_kitchen_arrival! if entering_kitchen
+  end
+
+  def allowed_transitions
+    self.class.state_machine.fetch(status, []).select { |next_status| staff_can_transition_to?(next_status) }
+  end
+
+  def record_kitchen_arrival!
+    return if Event.unscoped.exists?(order_id: id, event_type: "order.kitchen_new")
+
+    Event.create!(
+      shop: shop,
+      order: self,
+      event_type: "order.kitchen_new",
+      payload: { "to" => "received" }
+    )
   end
 
   def apply_failed_payment!

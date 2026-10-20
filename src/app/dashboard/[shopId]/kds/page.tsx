@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 import { getShopById } from '@/server/queries/shops'
-import { getShopOrders } from '@/server/queries/orders'
+import { getKitchenBoard } from '@/server/queries/orders'
 import { getFullMenu } from '@/server/queries/menu'
 import { KdsClient } from '@/components/kds/kds-client'
 
@@ -15,13 +15,14 @@ export default async function KdsPage({
   const shop = await getShopById(shopId)
   if (!shop) notFound()
 
-  const [orders, menu] = await Promise.all([getShopOrders(shopId), getFullMenu(shopId)])
+  const [board, menu] = await Promise.all([getKitchenBoard(shopId), getFullMenu(shopId)])
 
   return (
     <KdsClient
       shopId={shopId}
       shopName={shop.name}
-      initialOrders={orders}
+      initialOrders={board.orders}
+      initialSync={board.sync}
       initialMenuItems={menu.items}
       initialCategories={menu.categories}
     />
