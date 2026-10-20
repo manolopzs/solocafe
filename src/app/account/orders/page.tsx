@@ -8,6 +8,7 @@ import { Icon } from '@/components/ui/icon'
 import type { Order } from '@/types'
 
 const statusLabels: Record<string, string> = {
+  pending_payment: 'Pendiente de pago',
   received: 'Recibido',
   preparing: 'Preparando',
   ready: 'Listo',
@@ -16,6 +17,7 @@ const statusLabels: Record<string, string> = {
 }
 
 const statusVariant: Record<string, 'default' | 'secondary' | 'success' | 'danger' | 'warning'> = {
+  pending_payment: 'secondary',
   received: 'secondary',
   preparing: 'warning',
   ready: 'success',

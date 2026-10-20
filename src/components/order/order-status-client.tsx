@@ -9,6 +9,7 @@ import { Icon } from '@/components/ui/icon'
 import type { Order, OrderStatus, OrderItem, OrderItemModifier } from '@/types'
 
 const statusLabels: Record<OrderStatus, string> = {
+  pending_payment: 'Pendiente de pago',
   received: 'Recibido',
   preparing: 'Preparando',
   ready: 'Listo',
@@ -98,22 +99,26 @@ export function OrderStatusClient({
             <Icon name={order.status === 'ready' || order.status === 'picked_up' ? 'check' : 'clock'} className="h-8 w-8" />
           </div>
           <h1 className="mt-5 font-serif text-2xl font-semibold text-foreground">
-            {order.status === 'ready'
-              ? 'Tu pedido está listo'
-              : order.status === 'picked_up'
-                ? 'Pedido entregado'
-                : order.status === 'cancelled'
-                  ? 'Pedido cancelado'
-                  : 'Preparando tu pedido'}
+            {order.status === 'pending_payment'
+              ? 'Pago pendiente'
+              : order.status === 'ready'
+                ? 'Tu pedido está listo'
+                : order.status === 'picked_up'
+                  ? 'Pedido entregado'
+                  : order.status === 'cancelled'
+                    ? 'Pedido cancelado'
+                    : 'Preparando tu pedido'}
           </h1>
           <p className="mt-2 text-muted-foreground">
-            {order.status === 'ready'
-              ? 'Pasa a recogerlo a la barra.'
-              : order.status === 'picked_up'
-                ? 'Gracias por tu compra.'
-                : order.status === 'cancelled'
-                  ? 'Tu pedido fue cancelado.'
-                  : 'Te avisaremos en esta página cuando esté listo.'}
+            {order.status === 'pending_payment'
+              ? 'Completa el pago para que la cocina reciba tu pedido.'
+              : order.status === 'ready'
+                ? 'Pasa a recogerlo a la barra.'
+                : order.status === 'picked_up'
+                  ? 'Gracias por tu compra.'
+                  : order.status === 'cancelled'
+                    ? 'Tu pedido fue cancelado.'
+                    : 'Te avisaremos en esta página cuando esté listo.'}
           </p>
         </div>
 

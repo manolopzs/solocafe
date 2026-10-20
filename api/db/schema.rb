@@ -10,10 +10,22 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_13_141202) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_19_223000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
+
+  create_table "customer_favorites", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "customer_id", null: false
+    t.uuid "shop_id", null: false
+    t.uuid "menu_item_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["customer_id", "shop_id", "menu_item_id"], name: "index_customer_favorites_uniqueness", unique: true
+    t.index ["customer_id"], name: "index_customer_favorites_on_customer_id"
+    t.index ["menu_item_id"], name: "index_customer_favorites_on_menu_item_id"
+    t.index ["shop_id"], name: "index_customer_favorites_on_shop_id"
+  end
 
   create_table "customers", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.uuid "user_id"
@@ -136,7 +148,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_13_141202) do
   create_table "orders", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.uuid "shop_id", null: false
     t.uuid "customer_id"
-    t.string "status", default: "received", null: false
+    t.string "status", default: "pending_payment", null: false
     t.string "payment_status", default: "pending", null: false
     t.integer "subtotal_cents", null: false
     t.integer "tax_cents", default: 0, null: false
@@ -178,6 +190,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_13_141202) do
     t.integer "capacity", default: 10, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["shop_id", "slot_date", "start_time"], name: "index_pickup_slots_on_shop_date_and_start", unique: true
     t.index ["shop_id"], name: "index_pickup_slots_on_shop_id"
   end
 
@@ -229,6 +242,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_13_141202) do
     t.string "status", default: "active", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "slot_capacity", default: 10, null: false
     t.index ["owner_id"], name: "index_shops_on_owner_id"
     t.index ["slug"], name: "index_shops_on_slug", unique: true
   end
@@ -240,6 +254,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_13_141202) do
     t.datetime "updated_at", null: false
     t.index ["order_id"], name: "index_slot_reservations_on_order_id", unique: true
     t.index ["slot_id"], name: "index_slot_reservations_on_slot_id"
+  end
+
+  create_table "stripe_webhook_events", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "stripe_event_id", null: false
+    t.string "event_type", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["stripe_event_id"], name: "index_stripe_webhook_events_on_stripe_event_id", unique: true
   end
 
   create_table "subscription_tiers", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -262,6 +284,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_13_141202) do
     t.index ["email"], name: "index_users_on_email", unique: true
   end
 
+  add_foreign_key "customer_favorites", "customers"
+  add_foreign_key "customer_favorites", "menu_items"
+  add_foreign_key "customer_favorites", "shops"
   add_foreign_key "customers", "users"
   add_foreign_key "events", "orders"
   add_foreign_key "events", "shops"

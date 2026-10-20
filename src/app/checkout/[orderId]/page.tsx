@@ -60,7 +60,7 @@ export default async function CheckoutPage({ params, searchParams }: CheckoutPag
     )
   }
 
-  const clientSecret = await createPaymentIntent(orderId)
+  const clientSecret = await createPaymentIntent(orderId, phone || order.customer_phone || '')
   const eta = pickupEta(order)
 
   return (

@@ -9,11 +9,13 @@ class StripeWebhooksController < ApplicationController
       ENV.fetch("STRIPE_WEBHOOK_SECRET")
     )
 
-    case event.type
-    when "payment_intent.succeeded"
-      handle_payment_intent_succeeded(event.data.object)
-    when "payment_intent.payment_failed"
-      handle_payment_intent_payment_failed(event.data.object)
+    if StripeWebhookEvent.exists?(stripe_event_id: event.id)
+      render json: { received: true }
+      return
+    end
+
+    ActiveRecord::Base.transaction(requires_new: true) do
+      process_event(event)
     end
 
     render json: { received: true }
@@ -21,32 +23,54 @@ class StripeWebhooksController < ApplicationController
     render json: { error: e.message }, status: :bad_request
   rescue Stripe::StripeError => e
     render json: { error: e.message }, status: :bad_gateway
+  rescue ActiveRecord::RecordNotUnique
+    render json: { received: true }
+  rescue ActiveRecord::RecordInvalid => e
+    raise unless e.record.is_a?(StripeWebhookEvent)
+
+    render json: { received: true }
   end
 
   private
 
-  def handle_payment_intent_succeeded(payment_intent)
-    payment = Payment.find_by(stripe_payment_intent_id: payment_intent.id)
-    return unless payment
-
-    payment.update!(status: "succeeded")
-    order = payment.order
-    order.update!(payment_status: "succeeded")
-    order.update!(status: "preparing") if order.can_transition_to?("preparing")
-
-    create_event(order, "payment_intent.succeeded", payment_intent)
+  def process_event(event)
+    case event.type
+    when "payment_intent.succeeded"
+      handle_payment_intent_succeeded(event)
+    when "payment_intent.payment_failed"
+      handle_payment_intent_payment_failed(event)
+    else
+      StripeWebhookEvent.create!(stripe_event_id: event.id, event_type: event.type)
+    end
   end
 
-  def handle_payment_intent_payment_failed(payment_intent)
-    payment = Payment.find_by(stripe_payment_intent_id: payment_intent.id)
+  def handle_payment_intent_succeeded(event)
+    payment_intent = event.data.object
+    payment = Payment.lock.find_by(stripe_payment_intent_id: payment_intent.id)
     return unless payment
 
-    payment.update!(status: "failed")
-    order = payment.order
-    order.update!(payment_status: "failed")
-    order.update!(status: "cancelled") if order.can_transition_to?("cancelled")
+    StripeWebhookEvent.create!(stripe_event_id: event.id, event_type: event.type)
 
-    create_event(order, "payment_intent.payment_failed", payment_intent)
+    order = Order.unscoped.lock.find(payment.order_id)
+    payment.update!(status: "succeeded")
+    order.apply_successful_payment!
+    create_event(order, event.type, payment_intent)
+  end
+
+  def handle_payment_intent_payment_failed(event)
+    payment_intent = event.data.object
+    payment = Payment.lock.find_by(stripe_payment_intent_id: payment_intent.id)
+    return unless payment
+
+    StripeWebhookEvent.create!(stripe_event_id: event.id, event_type: event.type)
+    return if payment.status_succeeded?
+
+    order = Order.unscoped.lock.find(payment.order_id)
+    return if order.payment_status_succeeded?
+
+    payment.update!(status: "failed")
+    order.apply_failed_payment!
+    create_event(order, event.type, payment_intent)
   end
 
   def create_event(order, type, object)

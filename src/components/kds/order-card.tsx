@@ -9,6 +9,7 @@ import { Icon } from '@/components/ui/icon'
 import type { Order, OrderItem } from '@/types'
 
 const statusLabels: Record<string, string> = {
+  pending_payment: 'Pendiente de pago',
   received: 'Recibido',
   preparing: 'Preparando',
   ready: 'Listo',

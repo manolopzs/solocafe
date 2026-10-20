@@ -3,7 +3,7 @@ class MenuItem < ApplicationRecord
 
   belongs_to :category, class_name: "MenuCategory", optional: true
   has_many :item_modifier_links, dependent: :destroy
-  has_many :modifier_groups, through: :item_modifier_links
+  has_many :modifier_groups, through: :item_modifier_links, source: :group
   has_many :order_items, dependent: :restrict_with_error
   has_many :customer_favorites, dependent: :destroy
 

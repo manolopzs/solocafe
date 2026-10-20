@@ -27,6 +27,7 @@ export const demoShop: Shop = {
     sun: { is_open: true, open: '08:00', close: '18:00' },
   },
   slot_duration_minutes: 15,
+  slot_capacity: 10,
   prep_time_buffer_minutes: 10,
   max_days_ahead: 7,
   estimated_ready_minutes: 8,

@@ -29,7 +29,12 @@ class OrdersController < ApplicationController
 
   def index
     orders = Current.shop.orders.order(created_at: :desc)
-    orders = orders.where(status: params[:status]) if params[:status].present?
+    if params[:status].present?
+      orders = orders.where(status: params[:status])
+    else
+      orders = orders.where.not(status: "pending_payment")
+    end
+    orders = orders.where(payment_status: %w[succeeded refunded]) unless params[:status] == "pending_payment"
     render json: { orders: orders.map { |order| order_payload(order) } }
   end
 
@@ -60,13 +65,16 @@ class OrdersController < ApplicationController
       customer = find_or_build_customer
       order = build_order(customer, items, pickup_time)
 
-      if order.save
-        reserve_pickup_slot(order, pickup_slot, pickup_time) if order.pickup_type_scheduled?
-        render json: { order: order_payload(order) }, status: :created
-      else
+      unless order.save
         render json: { errors: order.errors.full_messages }, status: :unprocessable_entity
         raise ActiveRecord::Rollback
       end
+
+      reserve_pickup_slot!(order, pickup_slot, pickup_time) if order.pickup_type_scheduled?
+      render json: { order: order_payload(order.reload) }, status: :created
+    rescue PickupSlot::CapacityExceeded
+      render json: { errors: [ "Selected pickup slot is full" ] }, status: :unprocessable_entity
+      raise ActiveRecord::Rollback
     end
   end
 
@@ -79,19 +87,19 @@ class OrdersController < ApplicationController
       return
     end
 
-    unless order.can_transition_to?(new_status)
+    unless order.staff_can_transition_to?(new_status)
       render json: { errors: ["Cannot transition from #{order.status} to #{new_status}"] }, status: :unprocessable_entity
       return
     end
 
     old_status = order.status
-    if order.update(status: new_status)
+    ActiveRecord::Base.transaction do
+      order.update!(status: new_status)
+      order.release_slot! if new_status == "cancelled"
       create_status_event(order, old_status, new_status)
       create_ready_notification(order) if new_status == "ready"
-      render json: { order: order_payload(order) }
-    else
-      render json: { errors: order.errors.full_messages }, status: :unprocessable_entity
     end
+    render json: { order: order_payload(order) }
   rescue ActiveRecord::RecordNotFound
     render json: { error: "Order not found" }, status: :not_found
   end
@@ -132,7 +140,7 @@ class OrdersController < ApplicationController
         return nil
       end
 
-      modifier_ids = Array(item_data[:modifier_option_ids]).map(&:to_s)
+      modifier_ids = Array(item_data[:modifier_option_ids]).map(&:to_s).reject(&:blank?)
       invalid_modifier_id = modifier_ids.find do |moid|
         !menu_item.modifier_groups.joins(:modifier_options).exists?(modifier_options: { id: moid })
       end
@@ -172,7 +180,7 @@ class OrdersController < ApplicationController
   def build_order(customer, items, pickup_time)
     order = Current.shop.orders.build(
       customer: customer,
-      status: "received",
+      status: "pending_payment",
       payment_status: "pending",
       currency: Current.shop.currency,
       pickup_type: order_params[:pickup_type] || "asap",
@@ -262,7 +270,7 @@ class OrdersController < ApplicationController
       return [ nil, nil ]
     end
 
-    slot = Current.shop.pickup_slots.find_by(slot_date: slot_date, start_time: time_string + ":00")
+    slot = Current.shop.pickup_slots.find_by(slot_date: slot_date, start_time: pickup_time)
     if slot && SlotReservation.where(slot_id: slot.id).count >= slot.capacity
       render json: { errors: ["Selected pickup slot is full"] }, status: :unprocessable_entity
       return [ nil, nil ]
@@ -271,18 +279,16 @@ class OrdersController < ApplicationController
     [ pickup_time, slot ]
   end
 
-  def reserve_pickup_slot(order, existing_slot, pickup_time)
-    slot = existing_slot || Time.use_zone(Current.shop.timezone) do
-      Current.shop.pickup_slots.create!(
-        slot_date: pickup_time.to_date,
-        start_time: pickup_time.in_time_zone.strftime("%H:%M:%S"),
-        end_time: (pickup_time + Current.shop.slot_duration_minutes.minutes).in_time_zone.strftime("%H:%M:%S"),
-        capacity: 10
-      )
-    end
-
-    order.update!(pickup_slot: slot, pickup_time: pickup_time)
-    SlotReservation.create!(slot: slot, order: order)
+  def reserve_pickup_slot!(order, existing_slot, pickup_time)
+    local_time = pickup_time.in_time_zone(Current.shop.timezone)
+    PickupSlot.reserve_for!(
+      shop: Current.shop,
+      slot_date: existing_slot&.slot_date || local_time.to_date,
+      start_time: existing_slot&.start_time || local_time.strftime("%H:%M:%S"),
+      end_time: existing_slot&.end_time || (local_time + Current.shop.slot_duration_minutes.minutes).strftime("%H:%M:%S"),
+      order: order,
+      pickup_time: pickup_time
+    )
   end
 
   def create_status_event(order, from_status, to_status)

@@ -18,6 +18,7 @@ export default async function CheckoutSuccessPage({
   const phone = order.customer_phone ?? ''
 
   const statusLabels: Record<string, string> = {
+    pending_payment: 'Pendiente de pago',
     received: 'Recibido',
     preparing: 'Preparando',
     ready: 'Listo',

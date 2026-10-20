@@ -1,6 +1,16 @@
 require "test_helper"
 
 class OrderTest < ActiveSupport::TestCase
+  test "pending payment comes before received" do
+    order = Order.new(status: "pending_payment")
+
+    assert order.can_transition_to?("received")
+    assert order.can_transition_to?("cancelled")
+    assert_not order.can_transition_to?("preparing")
+    assert_not order.staff_can_transition_to?("received")
+    assert order.staff_can_transition_to?("cancelled")
+  end
+
   test "valid status transitions" do
     order = Order.new(status: "received")
 

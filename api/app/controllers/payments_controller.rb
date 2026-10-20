@@ -1,5 +1,7 @@
 class PaymentsController < ApplicationController
   before_action :set_order!
+  before_action :authorize_payer!
+  before_action :ensure_payable!
 
   def create
     if Current.shop.stripe_account_id.blank?
@@ -14,7 +16,7 @@ class PaymentsController < ApplicationController
   rescue Stripe::StripeError => e
     render json: { error: e.message }, status: :bad_gateway
   rescue ActiveRecord::RecordInvalid => e
-    render json: { errors: [e.message] }, status: :unprocessable_entity
+    render json: { errors: [ e.message ] }, status: :unprocessable_entity
   end
 
   private
@@ -34,12 +36,47 @@ class PaymentsController < ApplicationController
     Current.shop = @order.shop
   end
 
+  def authorize_payer!
+    return if performed?
+    return if payer_owns_order?
+
+    render json: { error: "Unauthorized" }, status: :unauthorized
+  end
+
+  def ensure_payable!
+    return if performed?
+
+    if @order.payment&.status_succeeded? || @order.payment_status_succeeded? || @order.payment_status_refunded?
+      render json: { error: "Order is already paid" }, status: :unprocessable_entity
+      return
+    end
+
+    return if @order.status_pending_payment?
+
+    render json: { error: "Order cannot accept payment" }, status: :unprocessable_entity
+  end
+
+  def payer_owns_order?
+    if current_user.present? && @order.customer&.user_id == current_user.id
+      return true
+    end
+
+    phones_match?(params[:customer_phone].to_s, @order.customer_phone.to_s)
+  end
+
+  def phones_match?(left, right)
+    return false if left.blank? || right.blank?
+    return false unless left.bytesize == right.bytesize
+
+    ActiveSupport::SecurityUtils.secure_compare(left, right)
+  end
+
   def order_id
     payment_params[:order_id]
   end
 
   def payment_params
-    params.permit(:order_id)
+    params.permit(:order_id, :customer_phone)
   end
 
   def create_or_update_payment_intent

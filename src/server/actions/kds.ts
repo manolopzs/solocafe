@@ -5,6 +5,7 @@ import { apiGet, apiPost, apiPatch, apiDelete } from '@/lib/api/server'
 import type { OrderStatus } from '@/types'
 
 export const stateMachine: Record<OrderStatus, OrderStatus[]> = {
+  pending_payment: ['cancelled'],
   received: ['preparing', 'cancelled'],
   preparing: ['ready', 'cancelled'],
   ready: ['picked_up'],

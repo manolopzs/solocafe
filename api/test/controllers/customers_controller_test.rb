@@ -6,7 +6,7 @@ class CustomersControllerTest < ActionDispatch::IntegrationTest
     @token = JsonWebToken.encode(user_id: @user.id)
 
     @shop = Shop.create!(name: "Cafe A", slug: "cafe-a", currency: "MXN")
-    @menu_item = MenuItem.create!(shop: @shop, name: "Latte", price_cents: 5000, currency: "MXN")
+    @menu_item = MenuItem.create!(shop: @shop, name: "Latte", price_cents: 5000)
   end
 
   test "unauthenticated user cannot access customer profile" do
