@@ -57,7 +57,7 @@ class PaymentsController < ApplicationController
       return
     end
 
-    @order = Order.across_shops.find_by(id: order_id)
+    @order = TenantScoped.unscoped_for_system { Order.find_by(id: order_id) }
     if @order.nil?
       render json: { error: "Order not found" }, status: :not_found
       return
@@ -167,7 +167,9 @@ class PaymentsController < ApplicationController
       return
     end
 
-    payment_method = CustomerPaymentMethod.for_customer(owner).find_by(id: params[:payment_method_id])
+    payment_method = TenantScoped.unscoped_for_system do
+      CustomerPaymentMethod.for_customer(owner).find_by(id: params[:payment_method_id])
+    end
     if payment_method.nil?
       render json: { error: "Payment method not found" }, status: :not_found
       return

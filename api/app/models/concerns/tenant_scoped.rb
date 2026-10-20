@@ -1,19 +1,33 @@
 module TenantScoped
+  class MissingShop < StandardError; end
+
+  THREAD_KEY = :tenant_scoped_system_access
+
+  def self.unscoped_for_system
+    previous = Thread.current[THREAD_KEY]
+    Thread.current[THREAD_KEY] = true
+    yield
+  ensure
+    Thread.current[THREAD_KEY] = previous
+  end
+
+  def self.system_access?
+    Thread.current[THREAD_KEY] == true
+  end
+
   extend ActiveSupport::Concern
 
   included do
     belongs_to :shop
 
-    default_scope { where(shop_id: Current.shop.id) if Current.shop }
+    default_scope do
+      if TenantScoped.system_access?
+        nil
+      elsif Current.shop
+        where(shop_id: Current.shop.id)
+      end
+    end
 
     validates :shop_id, presence: true
-  end
-
-  class_methods do
-    # Named escape from the shop scope. Use this when the shop is not known yet,
-    # then assign Current.shop. Do not rely on a missing Current.shop.
-    def across_shops
-      unscoped
-    end
   end
 end

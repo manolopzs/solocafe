@@ -8,19 +8,21 @@ class Customer < ApplicationRecord
   validates :stripe_customer_id, uniqueness: true, allow_nil: true
 
   def ensure_platform_stripe_customer!
-    return stripe_customer_id if stripe_customer_id.present?
+    TenantScoped.unscoped_for_system do
+      next stripe_customer_id if stripe_customer_id.present?
 
-    with_lock do
-      reload
-      return stripe_customer_id if stripe_customer_id.present?
+      with_lock do
+        reload
+        next stripe_customer_id if stripe_customer_id.present?
 
-      stripe_customer = Stripe::Customer.create(
-        email: user&.email,
-        name: name,
-        metadata: { customer_id: id }
-      )
-      update!(stripe_customer_id: stripe_customer.id)
-      stripe_customer_id
+        stripe_customer = Stripe::Customer.create(
+          email: user&.email,
+          name: name,
+          metadata: { customer_id: id }
+        )
+        update!(stripe_customer_id: stripe_customer.id)
+        stripe_customer_id
+      end
     end
   end
 end

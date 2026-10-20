@@ -9,35 +9,41 @@ class CustomerPaymentMethod < ApplicationRecord
   validates :exp_year, numericality: { only_integer: true, greater_than: 2000 }, allow_nil: true
 
   def self.store_for_customer!(customer, stripe_payment_method)
-    return if customer.nil?
-    return unless card_payment_method?(stripe_payment_method)
+    TenantScoped.unscoped_for_system do
+      next if customer.nil?
+      next unless card_payment_method?(stripe_payment_method)
 
-    record = find_or_initialize_by(stripe_payment_method_id: StripePayload.read(stripe_payment_method, :id))
-    return if record.persisted? && record.customer_id != customer.id
+      record = find_or_initialize_by(stripe_payment_method_id: StripePayload.read(stripe_payment_method, :id))
+      next if record.persisted? && record.customer_id != customer.id
 
-    assign_card!(record, customer, stripe_payment_method)
+      assign_card!(record, customer, stripe_payment_method)
+    end
   end
 
   def self.store_attached!(stripe_payment_method)
-    customer_ref = StripePayload.read(stripe_payment_method, :customer)
-    customer_ref = StripePayload.read(customer_ref, :id) unless customer_ref.is_a?(String) || customer_ref.nil?
-    customer = Customer.find_by(stripe_customer_id: customer_ref)
-    store_for_customer!(customer, stripe_payment_method)
+    TenantScoped.unscoped_for_system do
+      customer_ref = StripePayload.read(stripe_payment_method, :customer)
+      customer_ref = StripePayload.read(customer_ref, :id) unless customer_ref.is_a?(String) || customer_ref.nil?
+      customer = Customer.find_by(stripe_customer_id: customer_ref)
+      store_for_customer!(customer, stripe_payment_method)
+    end
   end
 
   def self.apply_card_update!(stripe_payment_method)
-    return unless card_payment_method?(stripe_payment_method)
+    TenantScoped.unscoped_for_system do
+      next unless card_payment_method?(stripe_payment_method)
 
-    record = find_by(stripe_payment_method_id: StripePayload.read(stripe_payment_method, :id))
-    return if record.nil?
+      record = find_by(stripe_payment_method_id: StripePayload.read(stripe_payment_method, :id))
+      next if record.nil?
 
-    card = StripePayload.read(stripe_payment_method, :card)
-    record.update!(
-      brand: StripePayload.read(card, :brand),
-      last4: StripePayload.read(card, :last4),
-      exp_month: StripePayload.read(card, :exp_month),
-      exp_year: StripePayload.read(card, :exp_year)
-    )
+      card = StripePayload.read(stripe_payment_method, :card)
+      record.update!(
+        brand: StripePayload.read(card, :brand),
+        last4: StripePayload.read(card, :last4),
+        exp_month: StripePayload.read(card, :exp_month),
+        exp_year: StripePayload.read(card, :exp_year)
+      )
+    end
   end
 
   def self.card_payment_method?(stripe_payment_method)

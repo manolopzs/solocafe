@@ -2,12 +2,16 @@ class CustomerPaymentMethodsController < ApplicationController
   before_action :authenticate_user!
 
   def index
-    cards = CustomerPaymentMethod.for_customer(current_customer).order(created_at: :desc)
+    cards = TenantScoped.unscoped_for_system do
+      CustomerPaymentMethod.for_customer(current_customer).order(created_at: :desc).to_a
+    end
     render json: { payment_methods: cards.map { |card| payment_method_payload(card) } }
   end
 
   def destroy
-    card = CustomerPaymentMethod.for_customer(current_customer).find(params[:id])
+    card = TenantScoped.unscoped_for_system do
+      CustomerPaymentMethod.for_customer(current_customer).find(params[:id])
+    end
     Stripe::PaymentMethod.detach(card.stripe_payment_method_id)
     card.destroy!
     render json: { deleted: true }
