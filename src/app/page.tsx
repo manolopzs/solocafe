@@ -195,29 +195,7 @@ export default async function Home() {
         </div>
       </section>
 
-      <section className="bg-background px-6 py-20 sm:py-28">
-        <div className="mx-auto max-w-4xl text-center">
-          <div className="flex justify-center gap-1">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <Icon key={i} name="star" className="h-5 w-5 fill-amber-400 text-amber-400" />
-            ))}
-          </div>
-          <blockquote className="mt-6 font-sans text-2xl font-medium leading-relaxed text-foreground sm:text-3xl">
-            «Dejamos de depender de los apps de delivery. Ahora vendemos directo, conocemos a nuestros clientes y el dinero llega a nuestra cuenta desde el primer día.»
-          </blockquote>
-          <div className="mt-6 flex items-center justify-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-surface font-semibold text-foreground">
-              MR
-            </div>
-            <div className="text-left">
-              <p className="font-semibold text-foreground">María Rodríguez</p>
-              <p className="text-sm text-muted-foreground">Dueña, Café de la Esquina</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section id="precios" className="bg-surface px-6 py-20 sm:py-28">
+      <section id="precios" className="bg-background px-6 py-20 sm:py-28">
         <div className="mx-auto max-w-5xl">
           <div className="text-center">
             <h2 className="font-sans text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
