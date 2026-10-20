@@ -17,17 +17,26 @@ export function OnboardingForm() {
     setError(null)
 
     try {
+      const slug = String(formData.get('slug') || '').trim()
       await createShop({
         name: formData.get('name') as string,
-        slug: formData.get('slug') as string,
+        slug: slug || undefined,
         timezone: formData.get('timezone') as string,
         currency: formData.get('currency') as 'MXN' | 'EUR',
         locale: formData.get('locale') as 'es' | 'en',
         address: (formData.get('address') as string) || undefined,
       })
     } catch (err) {
+      if (typeof err === 'object' && err !== null && 'digest' in err && String((err as { digest?: string }).digest).startsWith('NEXT_REDIRECT')) {
+        throw err
+      }
       setLoading(false)
-      setError(err instanceof Error ? err.message : 'Error al crear la cafeteria')
+      const message = err instanceof Error ? err.message : ''
+      setError(
+        message.includes('slug')
+          ? 'Esa URL ya está en uso. Prueba con otra.'
+          : 'No se pudo crear la cafetería. Revisa los datos e intenta de nuevo.'
+      )
     }
   }
 
@@ -49,7 +58,7 @@ export function OnboardingForm() {
             </div>
 
             <div>
-              <Label htmlFor="slug">URL de tu menu</Label>
+              <Label htmlFor="slug">URL de tu menú</Label>
               <div className="mt-1.5 flex rounded-xl border border-warm-200 bg-paper shadow-sm">
                 <span className="inline-flex items-center rounded-l-xl border-r border-warm-200 bg-warm-100 px-4 text-sm text-muted-foreground">
                   solocafe.app/
@@ -58,12 +67,12 @@ export function OnboardingForm() {
                   id="slug"
                   name="slug"
                   type="text"
-                  required
                   pattern="[a-z0-9-]+"
-                  placeholder="mi-cafeteria"
+                  placeholder="se crea con el nombre"
                   className="block w-full rounded-r-xl bg-transparent px-4 py-3 text-sm text-foreground placeholder:text-warm-400 focus:border-terracotta-400 focus:outline-none focus:ring-2 focus:ring-terracotta-400/20"
                 />
               </div>
+              <p className="mt-1.5 text-xs text-muted-foreground">Si lo dejas vacío, lo armamos a partir del nombre.</p>
             </div>
 
             <div className="grid grid-cols-2 gap-4">

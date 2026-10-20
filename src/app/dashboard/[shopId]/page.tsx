@@ -2,7 +2,6 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getShopById } from '@/server/queries/shops'
 import { getShopAnalytics } from '@/server/queries/analytics'
-import { getFullMenu } from '@/server/queries/menu'
 import { getShopOrders } from '@/server/queries/orders'
 import { QrCode } from '@/components/shop/qr-code'
 import { Button } from '@/components/ui/button'
@@ -10,7 +9,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Icon } from '@/components/ui/icon'
 import { CopyButton } from '@/components/ui/copy-button'
-import type { OrderStatus } from '@/types'
+import { OnboardingChecklist } from '@/components/dashboard/onboarding-checklist'
+import type { OrderStatus, ShopOnboarding } from '@/types'
 
 export const instant = false
 
@@ -41,6 +41,13 @@ function formatTime(iso: string) {
   return date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
 }
 
+function stripeLabel(status: ShopOnboarding['stripe']['status']) {
+  if (status === 'active') return 'Cuenta de Stripe conectada'
+  if (status === 'restricted') return 'Stripe necesita más datos para activar los cobros'
+  if (status === 'pending') return 'Termina la conexión con Stripe'
+  return 'Aún no conectas Stripe'
+}
+
 function formatToday() {
   return new Intl.DateTimeFormat('es-ES', {
     weekday: 'long',
@@ -60,59 +67,32 @@ export default async function ShopDashboardPage({
   if (!shop) notFound()
 
   const analytics = await getShopAnalytics(shopId)
-  const menu = await getFullMenu(shopId)
   const orders = await getShopOrders(shopId)
   const publicUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? ''}/${shop.slug}`
 
-  const hasMenuItems = menu.items.length > 0
-  const hasStripe = shop.stripe_connect_status === 'active'
+  const onboarding = shop.onboarding
+  const live = onboarding?.live ?? shop.status === 'active'
+  const stripeStatus = onboarding?.stripe.status ?? 'not_started'
 
   const recentOrders = orders
     .slice()
     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
     .slice(0, 5)
 
-  const steps = [
-    {
-      label: 'Crear tu cafeteria',
-      done: true,
-      href: `/dashboard/${shopId}/settings`,
-      description: 'Listo. Puedes editar los datos en Ajustes.',
-    },
-    {
-      label: 'Definir tu menu',
-      done: hasMenuItems,
-      href: `/dashboard/${shopId}/menu`,
-      description: hasMenuItems ? `${menu.items.length} productos listos.` : '5 a 7 opciones simples con poca configuracion.',
-    },
-    {
-      label: 'Conectar Stripe',
-      done: hasStripe,
-      href: `/dashboard/${shopId}/settings`,
-      description: hasStripe ? 'Recibes pagos directamente.' : 'Para recibir pagos con tarjeta, Apple Pay y Google Pay.',
-    },
-    {
-      label: 'Compartir QR o enlace',
-      done: hasMenuItems,
-      href: `/dashboard/${shopId}/qr`,
-      description: 'Imprime el QR o comparte el enlace con tus clientes.',
-    },
-    {
-      label: 'Abrir la cocina',
-      done: false,
-      href: `/dashboard/${shopId}/kds`,
-      description: 'Cumple pedidos y notifica a los clientes cuando esten listos.',
-    },
-  ]
-
-  const completedSteps = steps.filter((s) => s.done).length
-
   return (
     <div className="space-y-8">
       <div className="flex flex-col gap-1">
-        <h1 className="font-sans text-2xl font-semibold tracking-tight text-foreground">Resumen</h1>
-        <p className="text-sm text-muted-foreground">{formatToday()} · Forecasting y operación de tu cafetería</p>
+        <h1 className="font-sans text-2xl font-semibold tracking-tight text-foreground">
+          {live ? 'Resumen' : 'Prepara la apertura'}
+        </h1>
+        <p className="text-sm text-muted-foreground">
+          {live
+            ? `${formatToday()} · Operación de tu cafetería`
+            : 'Tu cafetería sigue en borrador. Completa los pasos y publícala.'}
+        </p>
       </div>
+
+      {!live && onboarding && <OnboardingChecklist shopId={shopId} onboarding={onboarding} />}
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
@@ -222,6 +202,7 @@ export default async function ShopDashboardPage({
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {live ? (
         <Card className="hover:border-foreground/20 transition-colors">
           <Link href={`/${shop.slug}`} target="_blank" className="block p-5">
             <div className="flex items-center justify-between">
@@ -234,6 +215,17 @@ export default async function ShopDashboardPage({
             <p className="text-sm text-muted-foreground">Abrir tienda publica</p>
           </Link>
         </Card>
+        ) : (
+        <Card>
+          <div className="block p-5">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-terracotta-50">
+              <Icon name="external-link" className="h-5 w-5 text-terracotta-700" />
+            </div>
+            <p className="mt-4 font-medium text-foreground">Página oculta</p>
+            <p className="text-sm text-muted-foreground">Se abre al publicar</p>
+          </div>
+        </Card>
+        )}
         <Card className="hover:border-foreground/20 transition-colors">
           <Link href={`/dashboard/${shopId}/menu`} className="block p-5">
             <div className="flex items-center justify-between">
@@ -319,6 +311,8 @@ export default async function ShopDashboardPage({
         </Card>
 
         <div className="space-y-6">
+          {live ? (
+            <>
           <Card>
             <CardHeader>
               <CardTitle>Tu pagina de pedidos</CardTitle>
@@ -357,70 +351,34 @@ export default async function ShopDashboardPage({
               </div>
             </CardContent>
           </Card>
+            </>
+          ) : (
+            <Card className="border-terracotta-200 bg-cream">
+              <CardHeader>
+                <CardTitle>Enlace y QR</CardTitle>
+                <CardDescription>Los compartes cuando la cafetería esté publicada.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  Mientras siga en borrador, el enlace público no abre el menú.
+                </p>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Pasos para empezar</CardTitle>
-          <CardDescription>
-            {completedSteps} de {steps.length} completados
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ul className="space-y-3">
-            {steps.map((step, idx) => (
-              <li
-                key={step.label}
-                className={`flex flex-col gap-3 rounded-lg border p-4 sm:flex-row sm:items-start sm:gap-4 ${
-                  step.done ? 'border-success/20 bg-success/5' : 'border-border bg-surface'
-                }`}
-              >
-                <div
-                  className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-bold ${
-                    step.done ? 'bg-success text-success-foreground' : 'bg-surface text-muted-foreground border border-border'
-                  }`}
-                >
-                  {step.done ? <Icon name="check" className="h-4 w-4" /> : idx + 1}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className={`font-medium ${step.done ? 'text-success' : 'text-foreground'}`}>{step.label}</span>
-                    {step.done && <Badge variant="success">Listo</Badge>}
-                  </div>
-                  <p className={`mt-0.5 text-sm ${step.done ? 'text-success/80' : 'text-muted-foreground'}`}>
-                    {step.description}
-                  </p>
-                </div>
-                <Button asChild variant={step.done ? 'outline' : 'primary'} size="sm">
-                  <Link href={step.href}>{step.done ? 'Revisar' : 'Hacer'}</Link>
-                </Button>
-              </li>
-            ))}
-          </ul>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
           <CardTitle>Pagos</CardTitle>
-          <CardDescription>Conecta Stripe para recibir pagos directamente.</CardDescription>
+          <CardDescription>El estado llega de Stripe. No se marca a mano.</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
-            {hasStripe ? (
-              <>
-                <span className="flex h-2.5 w-2.5 rounded-full bg-success" />
-                <span className="font-medium text-foreground">Cuenta de Stripe conectada</span>
-              </>
-            ) : (
-              <>
-                <span className="flex h-2.5 w-2.5 rounded-full bg-warning" />
-                <span className="font-medium text-foreground">Cuenta pendiente de conexion</span>
-              </>
-            )}
+            <span className={`flex h-2.5 w-2.5 rounded-full ${stripeStatus === 'active' ? 'bg-success' : 'bg-terracotta-400'}`} />
+            <span className="font-medium text-foreground">{stripeLabel(stripeStatus)}</span>
           </div>
-          <Button asChild variant={hasStripe ? 'outline' : 'primary'}>
+          <Button asChild variant={stripeStatus === 'active' ? 'outline' : 'primary'}>
             <Link href={`/dashboard/${shopId}/settings`}>Gestionar</Link>
           </Button>
         </CardContent>

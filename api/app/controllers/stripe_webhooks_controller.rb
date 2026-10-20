@@ -39,6 +39,8 @@ class StripeWebhooksController < ApplicationController
       handle_payment_intent_succeeded(event)
     when "payment_intent.payment_failed"
       handle_payment_intent_payment_failed(event)
+    when "account.updated"
+      handle_account_updated(event)
     else
       StripeWebhookEvent.create!(stripe_event_id: event.id, event_type: event.type)
     end
@@ -71,6 +73,15 @@ class StripeWebhooksController < ApplicationController
     payment.update!(status: "failed")
     order.apply_failed_payment!
     create_event(order, event.type, payment_intent)
+  end
+
+  def handle_account_updated(event)
+    account = event.data.object
+    shop = Shop.find_by(stripe_account_id: account.id)
+    return unless shop
+
+    StripeWebhookEvent.create!(stripe_event_id: event.id, event_type: event.type)
+    ShopOnboarding.apply_stripe_account!(shop, account)
   end
 
   def create_event(order, type, object)

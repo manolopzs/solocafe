@@ -26,6 +26,9 @@ Rails.application.routes.draw do
     resources :orders, only: [:index, :create, :show, :update]
     resources :favorites, only: [:index, :create, :destroy], controller: "customer_favorites", param: :menu_item_id
     post "/stripe/connect", to: "stripe_connect#create"
+    post "/stripe/status", to: "stripe_connect#status"
+    get "/onboarding", to: "shop_onboardings#show"
+    post "/onboarding/go_live", to: "shop_onboardings#go_live"
     get "/analytics/summary", to: "analytics#summary"
   end
 

@@ -29,7 +29,7 @@ export default function SignupPage() {
             Abre tu canal de ventas directo
           </h1>
           <p className="mt-4 text-base text-muted-foreground">
-            Crea tu cuenta, configura tu menú y empieza a recibir pedidos para recoger.
+            Crea tu cuenta y tu cafetería. Después confirmas el menú, Stripe y el horario antes de publicar.
           </p>
 
           <div className="mt-8 flex items-center gap-2 text-sm">
@@ -41,12 +41,12 @@ export default function SignupPage() {
             <span className="flex h-7 w-7 items-center justify-center rounded-full bg-border text-xs font-medium text-muted-foreground">
               2
             </span>
-            <span className="text-muted-foreground">Configura tu menú</span>
+            <span className="text-muted-foreground">Prepara la apertura</span>
             <Icon name="arrow-right" className="h-4 w-4 text-muted-foreground" />
             <span className="flex h-7 w-7 items-center justify-center rounded-full bg-border text-xs font-medium text-muted-foreground">
               3
             </span>
-            <span className="text-muted-foreground">Recibe pedidos</span>
+            <span className="text-muted-foreground">Publica</span>
           </div>
         </div>
       </section>
@@ -117,6 +117,9 @@ export default function SignupPage() {
                     placeholder="Café del Barrio"
                     className="mt-1.5"
                   />
+                  <p className="mt-1.5 text-xs text-muted-foreground">
+                    Con este nombre creamos la cafetería. La URL, la moneda y el horario se ajustan después.
+                  </p>
                 </div>
 
                 {state?.error && (

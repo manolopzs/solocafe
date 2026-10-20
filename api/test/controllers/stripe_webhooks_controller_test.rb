@@ -152,6 +152,64 @@ class StripeWebhooksControllerTest < ActionDispatch::IntegrationTest
     assert_equal "pending", @order.payment_status
   end
 
+  test "account.updated activates only the matching shop" do
+    @shop.update!(stripe_connect_status: "pending")
+    other = Shop.create!(
+      name: "Cafe B",
+      slug: "cafe-b-webhook",
+      currency: "MXN",
+      stripe_account_id: "acct_other",
+      stripe_connect_status: "pending",
+      owner: @owner
+    )
+    event = to_event({
+      "id" => "evt_acct",
+      "type" => "account.updated",
+      "data" => {
+        "object" => {
+          "id" => "acct_123",
+          "charges_enabled" => true,
+          "details_submitted" => true
+        }
+      }
+    })
+
+    with_stripe_webhook(event) do
+      post webhooks_stripe_url, params: event.as_json.to_json, headers: { "Content-Type" => "application/json" }
+    end
+
+    assert_response :success
+    assert_equal "active", @shop.reload.stripe_connect_status
+    assert_equal "pending", other.reload.stripe_connect_status
+    assert_equal "pending_payment", @order.reload.status
+    assert_equal 1, StripeWebhookEvent.where(stripe_event_id: "evt_acct").count
+  end
+
+  test "account.updated is idempotent" do
+    @shop.update!(stripe_connect_status: "pending")
+    event = to_event({
+      "id" => "evt_acct_repeat",
+      "type" => "account.updated",
+      "data" => {
+        "object" => {
+          "id" => "acct_123",
+          "charges_enabled" => false,
+          "details_submitted" => true
+        }
+      }
+    })
+
+    2.times do
+      with_stripe_webhook(event) do
+        post webhooks_stripe_url, params: event.as_json.to_json, headers: { "Content-Type" => "application/json" }
+      end
+      assert_response :success
+    end
+
+    assert_equal "restricted", @shop.reload.stripe_connect_status
+    assert_equal 1, StripeWebhookEvent.where(stripe_event_id: "evt_acct_repeat").count
+  end
+
   test "rejects invalid signature" do
     error = Stripe::SignatureVerificationError.new("bad", "sig")
 
