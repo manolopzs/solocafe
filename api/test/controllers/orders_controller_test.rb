@@ -62,6 +62,59 @@ class OrdersControllerTest < ActionDispatch::IntegrationTest
     patch shop_order_url(@shop, @order), params: { order: { status: "preparing" } }, headers: auth_headers
     assert_response :success
     assert_equal "preparing", @order.reload.status
+    assert_equal 0, Event.unscoped.where(order: @order, event_type: "order.kitchen_new").count
+  end
+
+  test "kitchen view returns open paid tickets sync policy and shop alerts" do
+    preparing = create_order(@shop, status: "preparing")
+    ready = create_order(@shop, status: "ready", payment_status: "refunded")
+    picked_up = create_order(@shop, status: "picked_up")
+    cancelled = create_order(@shop, status: "cancelled")
+    unpaid = create_order(@shop, status: "pending_payment", payment_status: "pending")
+
+    recent = Event.create!(shop: @shop, order: @order, event_type: "order.kitchen_new", payload: {})
+    recent.update_column(:created_at, 1.minute.ago)
+    stale = Event.create!(shop: @shop, order: preparing, event_type: "order.kitchen_new", payload: {})
+    stale.update_column(:created_at, 2.hours.ago)
+    foreign = Event.create!(shop: @other_shop, order: @other_order, event_type: "order.kitchen_new", payload: {})
+    foreign.update_column(:created_at, 1.minute.ago)
+
+    get shop_orders_url(@shop),
+      params: { view: "kitchen", since: 30.minutes.ago.iso8601(6) },
+      headers: auth_headers
+    assert_response :success
+
+    body = response.parsed_body
+    order_ids = body["orders"].map { |order| order["id"] }
+    assert_includes order_ids, @order.id
+    assert_includes order_ids, preparing.id
+    assert_includes order_ids, ready.id
+    assert_not_includes order_ids, picked_up.id
+    assert_not_includes order_ids, cancelled.id
+    assert_not_includes order_ids, unpaid.id
+    assert_not_includes order_ids, @other_order.id
+
+    assert_equal [ 1000, 2000, 4000, 8000, 16000, 30000 ], body["sync"]["retry_delays_ms"]
+    assert_equal 5000, body["sync"]["poll_interval_ms"]
+    assert body["sync"]["server_time"].present?
+
+    received = body["orders"].find { |order| order["id"] == @order.id }
+    assert_equal [ "preparing", "cancelled" ], received["allowed_transitions"]
+
+    alert_ids = body["alerts"].map { |alert| alert["order_id"] }
+    assert_equal [ @order.id ], alert_ids
+    assert_equal "order.kitchen_new", body["alerts"].first["event_type"]
+    assert_not_includes alert_ids, foreign.order_id
+  end
+
+  test "kitchen view rejects an invalid since cursor" do
+    get shop_orders_url(@shop), params: { view: "kitchen", since: "nope" }, headers: auth_headers
+    assert_response :unprocessable_entity
+  end
+
+  test "kitchen view is forbidden for another shop" do
+    get shop_orders_url(@other_shop), params: { view: "kitchen" }, headers: auth_headers
+    assert_response :forbidden
   end
 
   test "cancelling an order releases its pickup slot" do
@@ -330,11 +383,11 @@ class OrdersControllerTest < ActionDispatch::IntegrationTest
     { "Authorization" => "Bearer #{@token}" }
   end
 
-  def create_order(shop)
+  def create_order(shop, status: "received", payment_status: "succeeded")
     Order.create!(
       shop: shop,
-      status: "received",
-      payment_status: "succeeded",
+      status: status,
+      payment_status: payment_status,
       subtotal_cents: 1000,
       total_cents: 1000,
       currency: "MXN",

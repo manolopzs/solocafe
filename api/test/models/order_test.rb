@@ -36,6 +36,29 @@ class OrderTest < ActiveSupport::TestCase
     assert_not order.can_transition_to?("cancelled")
   end
 
+  test "successful payment enters the kitchen once" do
+    owner = User.create!(email: "kitchen-owner@example.com", password: "password123")
+    shop = Shop.create!(name: "Cafe Kitchen", slug: "cafe-kitchen", currency: "MXN", owner: owner)
+    order = Order.create!(
+      shop: shop,
+      status: "pending_payment",
+      payment_status: "pending",
+      subtotal_cents: 1000,
+      total_cents: 1000,
+      currency: "MXN",
+      pickup_type: "asap"
+    )
+
+    order.apply_successful_payment!
+    assert_equal "received", order.status
+    assert_equal "succeeded", order.payment_status
+    assert_equal 1, Event.unscoped.where(order: order, event_type: "order.kitchen_new").count
+
+    order.apply_successful_payment!
+    assert_equal "received", order.reload.status
+    assert_equal 1, Event.unscoped.where(order: order, event_type: "order.kitchen_new").count
+  end
+
   test "terminal states cannot transition" do
     assert_not Order.new(status: "picked_up").can_transition_to?("received")
     assert_not Order.new(status: "cancelled").can_transition_to?("preparing")

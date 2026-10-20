@@ -1,12 +1,12 @@
 'use client'
 
-import { useEffect, useState, useTransition } from 'react'
-import { updateOrderStatus } from '@/server/actions/kds'
+import { useEffect, useState } from 'react'
+import { api } from '@/lib/api/client'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
 import { Icon } from '@/components/ui/icon'
-import type { Order, OrderItem, OrderStatus } from '@/types'
+import type { Order, OrderItem } from '@/types'
 
 const statusLabels: Record<string, string> = {
   pending_payment: 'Pendiente de pago',
@@ -25,12 +25,11 @@ const statusVariants: Record<string, 'default' | 'secondary' | 'warning' | 'succ
   cancelled: 'danger',
 }
 
-const nextActions: Record<string, { status: OrderStatus; label: string } | null> = {
-  received: { status: 'preparing', label: 'Preparar' },
-  preparing: { status: 'ready', label: 'Listo' },
-  ready: { status: 'picked_up', label: 'Entregado' },
-  picked_up: null,
-  cancelled: null,
+const actionLabels: Record<string, string> = {
+  preparing: 'Preparar',
+  ready: 'Listo',
+  picked_up: 'Entregado',
+  cancelled: 'Cancelar',
 }
 
 function useNow(interval = 1000) {
@@ -73,15 +72,35 @@ export function OrderCard({
   order,
   items,
   shopId,
+  onUpdated,
 }: {
   order: Order
   items: (OrderItem & { modifiers?: { option_name_snapshot: string; price_cents: number }[] })[]
   shopId: string
+  onUpdated: (order: Order) => void
 }) {
   const now = useNow()
   const elapsedMinutes = getElapsedMinutes(order.created_at, now)
-  const action = nextActions[order.status]
-  const [isPending, startTransition] = useTransition()
+  const transitions = order.allowed_transitions ?? []
+  const primary = transitions.find((status) => status !== 'cancelled')
+  const canCancel = transitions.includes('cancelled')
+  const [isPending, setIsPending] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const advance = async (nextStatus: string) => {
+    setIsPending(true)
+    setError(null)
+    try {
+      const data = await api.patch<{ order: Order }>(`/shops/${shopId}/orders/${order.id}`, {
+        order: { status: nextStatus },
+      })
+      onUpdated(data.order)
+    } catch {
+      setError('No se pudo actualizar el pedido.')
+    } finally {
+      setIsPending(false)
+    }
+  }
 
   const urgencyClass =
     elapsedMinutes > 10
@@ -94,10 +113,10 @@ export function OrderCard({
     <Card variant="outline" className={`flex flex-col overflow-hidden border-l-8 ${urgencyClass}`}>
       <div className="flex items-start justify-between border-b border-border bg-surface-elevated px-3 py-3 sm:px-4">
         <div className="min-w-0 flex-1">
-          <p className="font-sans text-4xl font-bold leading-none text-foreground sm:text-5xl">
+          <p className="font-sans text-5xl font-bold leading-none text-foreground md:text-6xl">
             #{shortOrderNumber(order.id)}
           </p>
-          <p className="mt-1 text-base font-semibold text-foreground sm:text-lg">
+          <p className="mt-2 text-lg font-semibold text-foreground md:text-2xl">
             {order.customer_name || 'Cliente'}
           </p>
           {order.customer_phone && (
@@ -105,10 +124,10 @@ export function OrderCard({
           )}
         </div>
         <div className="flex flex-col items-end gap-2 pl-3">
-          <Badge variant={statusVariants[order.status] ?? 'secondary'} className="text-xs sm:text-sm">
+          <Badge variant={statusVariants[order.status] ?? 'secondary'} className="px-4 py-1.5 text-base md:text-lg">
             {statusLabels[order.status]}
           </Badge>
-          <div className="flex items-center gap-1 text-lg font-semibold text-muted-foreground sm:text-xl">
+          <div className="flex items-center gap-1 text-xl font-semibold text-muted-foreground md:text-2xl">
             <Icon name="clock" className="h-4 w-4 sm:h-5 sm:w-5" />
             {formatElapsed(order.created_at, now)}
           </div>
@@ -119,11 +138,11 @@ export function OrderCard({
         <ul className="space-y-2">
           {items.map((item) => (
             <li key={item.id} className="rounded-lg border border-border bg-surface p-2.5 sm:p-3">
-              <span className="text-base font-bold text-foreground sm:text-xl">
+              <span className="text-xl font-bold text-foreground md:text-2xl">
                 {item.quantity}x {item.item_name_snapshot}
               </span>
               {item.modifiers && item.modifiers.length > 0 && (
-                <p className="mt-1 text-sm text-muted-foreground sm:text-lg">
+                <p className="mt-1 text-base text-muted-foreground md:text-xl">
                   {item.modifiers.map((m) => m.option_name_snapshot).join(', ')}
                 </p>
               )}
@@ -132,40 +151,41 @@ export function OrderCard({
         </ul>
 
         {order.special_instructions && (
-          <div className="mt-3 flex gap-2 rounded-lg border border-border bg-surface p-2.5 text-sm text-foreground sm:p-3 sm:text-lg">
+          <div className="mt-3 flex gap-2 rounded-lg border border-border bg-surface p-3 text-base text-foreground md:text-xl">
             <Icon name="message-circle" className="mt-0.5 h-4 w-4 shrink-0 text-accent sm:h-5 sm:w-5" />
             {order.special_instructions}
           </div>
         )}
 
-        <p className="mt-3 text-base font-semibold text-foreground sm:mt-4 sm:text-lg">
+        <p className="mt-4 text-lg font-semibold text-foreground md:text-xl">
           Total: {order.currency ?? ''} {(order.total_cents / 100).toFixed(2)}
         </p>
       </div>
 
-      <div className="flex flex-col gap-2 border-t border-border bg-surface-elevated p-3 sm:p-4">
-        {action && (
+      <div className="flex flex-col gap-3 border-t border-border bg-surface-elevated p-4">
+        {primary && (
           <Button
             variant="primary"
             size="lg"
-            className="h-14 w-full text-xl font-bold touch-manipulation sm:h-16 sm:text-2xl"
+            className="min-h-16 w-full text-xl font-bold touch-manipulation md:text-2xl"
             loading={isPending}
-            onClick={() => startTransition(() => updateOrderStatus(shopId, order.id, action.status))}
+            onClick={() => void advance(primary)}
           >
-            {action.label}
+            {actionLabels[primary] ?? primary}
           </Button>
         )}
-        {(order.status === 'received' || order.status === 'preparing') && (
+        {canCancel && (
           <Button
             variant="outline"
             size="lg"
-            className="h-12 w-full text-base text-danger hover:bg-danger/10 touch-manipulation sm:text-lg"
+            className="min-h-14 w-full text-lg text-danger hover:bg-danger/10 touch-manipulation"
             disabled={isPending}
-            onClick={() => startTransition(() => updateOrderStatus(shopId, order.id, 'cancelled'))}
+            onClick={() => void advance('cancelled')}
           >
             Cancelar
           </Button>
         )}
+        {error && <p className="text-center text-base font-semibold text-danger">{error}</p>}
       </div>
     </Card>
   )

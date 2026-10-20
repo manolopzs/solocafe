@@ -165,6 +165,7 @@ export interface Order {
   pickup_window_ends_at?: string | null
   item_count?: number
   access_token?: string
+  allowed_transitions?: OrderStatus[]
   created_at: string
   updated_at: string
   items?: OrderItem[]

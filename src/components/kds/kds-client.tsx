@@ -1,9 +1,11 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { api } from '@/lib/api/client'
 import { toggleItem86 } from '@/server/actions/menu'
 import { OrderCard } from './order-card'
+import { KdsAlerts } from './kds-alerts'
+import { KdsSync, type KdsAlert, type KdsSyncPolicy } from './kds-sync'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Icon } from '@/components/ui/icon'
@@ -20,32 +22,10 @@ const columns: { status: OrderWithItems['status']; label: string }[] = [
   { status: 'ready', label: 'Listo' },
 ]
 
-function isKitchenOrder(order: { status: string; payment_status: string }) {
-  if (order.status === 'pending_payment' || order.status === 'picked_up' || order.status === 'cancelled') {
-    return false
-  }
-
-  return order.payment_status === 'succeeded' || order.payment_status === 'refunded'
-}
-
-function playBeep() {
-  try {
-    const AudioCtx = window.AudioContext || (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
-    if (!AudioCtx) return
-    const ctx = new AudioCtx()
-    const osc = ctx.createOscillator()
-    osc.connect(ctx.destination)
-    osc.type = 'sine'
-    osc.frequency.value = 880
-    osc.start()
-    osc.stop(ctx.currentTime + 0.2)
-  } catch {
-    // ignore audio errors
-  }
-}
+const openStatuses = new Set(['received', 'preparing', 'ready'])
 
 function formatTime(date: Date | null) {
-  if (!date) return '--:--:--'
+  if (!date) return 'sin hora'
   return date.toLocaleTimeString('es-ES', {
     hour: '2-digit',
     minute: '2-digit',
@@ -60,6 +40,7 @@ export function KdsClient({
   initialCategories = [],
   autoPoll = true,
   shopName,
+  initialSync = null,
 }: {
   shopId: string
   initialOrders: Order[]
@@ -67,18 +48,21 @@ export function KdsClient({
   initialCategories?: MenuCategory[]
   autoPoll?: boolean
   shopName?: string
+  initialSync?: KdsSyncPolicy | null
 }) {
-  const [orders, setOrders] = useState<OrderWithItems[]>(
-    (initialOrders as OrderWithItems[]).filter(isKitchenOrder)
-  )
+  const [orders, setOrders] = useState<OrderWithItems[]>(initialOrders as OrderWithItems[])
   const [menuItems, setMenuItems] = useState<MenuItem[]>(initialMenuItems)
   const [categories, setCategories] = useState<MenuCategory[]>(initialCategories)
   const [menuPanelOpen, setMenuPanelOpen] = useState(false)
   const [pending86, setPending86] = useState<Set<string>>(new Set())
-  const [soundEnabled, setSoundEnabled] = useState(false)
+  const [alertsEnabled, setAlertsEnabled] = useState(false)
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [mobileColumn, setMobileColumn] = useState<OrderWithItems['status']>('received')
+  const [link, setLink] = useState<'online' | 'offline' | 'retrying'>('online')
+  const [retryInMs, setRetryInMs] = useState<number | null>(null)
+  const alertsRef = useRef(false)
+  const syncRef = useRef<KdsSyncPolicy | null>(initialSync)
 
   useEffect(() => {
     const handleChange = () => {
@@ -86,6 +70,11 @@ export function KdsClient({
     }
     document.addEventListener('fullscreenchange', handleChange)
     return () => document.removeEventListener('fullscreenchange', handleChange)
+  }, [])
+
+  useEffect(() => {
+    const id = window.setTimeout(() => setLastUpdated(new Date()), 0)
+    return () => window.clearTimeout(id)
   }, [])
 
   const toggleFullscreen = async () => {
@@ -153,33 +142,109 @@ export function KdsClient({
   })()
 
   useEffect(() => {
+    const goOffline = () => setLink('offline')
+    const goOnline = () => setLink((current) => (current === 'offline' ? 'online' : current))
+    window.addEventListener('offline', goOffline)
+    window.addEventListener('online', goOnline)
+    const id = window.setTimeout(() => {
+      if (typeof navigator !== 'undefined' && navigator.onLine === false) setLink('offline')
+    }, 0)
+    return () => {
+      window.clearTimeout(id)
+      window.removeEventListener('offline', goOffline)
+      window.removeEventListener('online', goOnline)
+    }
+  }, [])
+
+  useEffect(() => {
     if (!autoPoll) return
-    let previousIds = new Set(orders.map((o) => o.id))
+    let cancelled = false
+    let attempt = 0
+    let timer = 0
+    let cursor = initialSync?.server_time ?? null
+    let primed = cursor !== null
 
-    const fetchOrders = async () => {
+    const schedule = (delay: number) => {
+      timer = window.setTimeout(() => {
+        void tick()
+      }, delay)
+    }
+
+    const tick = async () => {
+      if (cancelled) return
+      const delays = syncRef.current?.retry_delays_ms ?? KdsSync.fallbackDelaysMs
+      if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+        setLink('offline')
+        const delay = KdsSync.delayMs(attempt, delays)
+        setRetryInMs(delay)
+        attempt += 1
+        schedule(delay)
+        return
+      }
+
       try {
-        const data = await api.get<{ orders: OrderWithItems[] }>(`/shops/${shopId}/orders`)
-        const activeOrders = (data.orders ?? []).filter(isKitchenOrder)
-
-        const currentIds = new Set(activeOrders.map((o) => o.id))
-        const hasNewOrder = activeOrders.some((o) => !previousIds.has(o.id))
-        previousIds = currentIds
-
-        if (hasNewOrder && soundEnabled) {
-          playBeep()
-        }
-
-        setOrders(activeOrders)
+        const query = new URLSearchParams({ view: 'kitchen' })
+        if (cursor) query.set('since', cursor)
+        const data = await api.get<{
+          orders: OrderWithItems[]
+          sync: KdsSyncPolicy
+          alerts: KdsAlert[]
+        }>(`/shops/${shopId}/orders?${query.toString()}`)
+        if (cancelled) return
+        syncRef.current = data.sync
+        setOrders(data.orders ?? [])
         setLastUpdated(new Date())
+        setLink('online')
+        setRetryInMs(null)
+        attempt = 0
+        if (primed && alertsRef.current && (data.alerts?.length ?? 0) > 0) {
+          KdsAlerts.play()
+          KdsAlerts.notify(data.alerts.length)
+        }
+        primed = true
+        cursor = data.sync.server_time
+        schedule(data.sync.poll_interval_ms || KdsSync.fallbackPollMs)
       } catch {
-        // ignore polling errors
+        if (cancelled) return
+        const offline = typeof navigator !== 'undefined' && navigator.onLine === false
+        setLink(offline ? 'offline' : 'retrying')
+        const delay = KdsSync.delayMs(attempt, delays)
+        setRetryInMs(delay)
+        attempt += 1
+        schedule(delay)
       }
     }
 
-    void fetchOrders()
-    const interval = setInterval(() => void fetchOrders(), 5000)
-    return () => clearInterval(interval)
-  }, [shopId, soundEnabled, autoPoll])
+    schedule(syncRef.current?.poll_interval_ms ?? KdsSync.fallbackPollMs)
+    return () => {
+      cancelled = true
+      window.clearTimeout(timer)
+    }
+  }, [shopId, autoPoll, initialSync?.server_time])
+
+  const toggleAlerts = async () => {
+    const next = !alertsRef.current
+    alertsRef.current = next
+    setAlertsEnabled(next)
+    if (!next) return
+    await KdsAlerts.enable()
+    try {
+      await KdsAlerts.register(shopId, syncRef.current?.vapid_public_key ?? null)
+    } catch {
+      // Sound and the on-screen notice still work if the device could not be stored.
+    }
+  }
+
+  const applyOrderUpdate = (updated: Order) => {
+    setOrders((prev) => {
+      if (!openStatuses.has(updated.status)) {
+        return prev.filter((order) => order.id !== updated.id)
+      }
+      const withItems = updated as OrderWithItems
+      if (!prev.some((order) => order.id === updated.id)) return [withItems, ...prev]
+      return prev.map((order) => (order.id === updated.id ? { ...order, ...withItems, items: withItems.items ?? order.items } : order))
+    })
+  }
 
   return (
     <div className="flex min-h-[calc(100vh-8rem)] flex-col gap-4">
@@ -193,33 +258,44 @@ export function KdsClient({
               Prepara, marca como listo y notifica al cliente.
             </p>
           </div>
-          <Badge variant="secondary" className="h-8 px-3 text-base">
-            {orders.length} pedido{orders.length === 1 ? '' : 's'} activo
+          <Badge variant="secondary" className="h-10 px-3 text-base">
+            {orders.length === 1 ? '1 pedido activo' : `${orders.length} pedidos activos`}
           </Badge>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-sm text-muted-foreground">
+          <span className="text-base text-muted-foreground">
             Última actualización: {formatTime(lastUpdated)}
           </span>
-          <Button variant="outline" size="sm" onClick={() => setMenuPanelOpen(true)}>
-            <Icon name="menu" className="mr-2 h-4 w-4" />
+          <Button variant="outline" onClick={() => setMenuPanelOpen(true)}>
+            <Icon name="menu" className="mr-2 h-5 w-5" />
             Menu rapido
           </Button>
           <Button
-            variant={soundEnabled ? 'primary' : 'outline'}
-            size="sm"
-            onClick={() => setSoundEnabled(!soundEnabled)}
+            variant={alertsEnabled ? 'primary' : 'outline'}
+            onClick={() => void toggleAlerts()}
           >
-            <Icon name={soundEnabled ? 'volume-2' : 'volume-x'} className="mr-2 h-4 w-4" />
-            {soundEnabled ? 'Sonido on' : 'Sonido off'}
+            <Icon name={alertsEnabled ? 'volume-2' : 'volume-x'} className="mr-2 h-5 w-5" />
+            {alertsEnabled ? 'Avisos activos' : 'Avisos apagados'}
           </Button>
-          <Button variant="outline" size="sm" onClick={toggleFullscreen}>
-            <Icon name={isFullscreen ? 'minimize-2' : 'maximize-2'} className="mr-2 h-4 w-4" />
+          <Button variant="outline" onClick={toggleFullscreen}>
+            <Icon name={isFullscreen ? 'minimize-2' : 'maximize-2'} className="mr-2 h-5 w-5" />
             {isFullscreen ? 'Salir' : 'Pantalla completa'}
           </Button>
         </div>
       </header>
+
+      {link !== 'online' && (
+        <div
+          role="status"
+          data-testid="kds-connection"
+          className="rounded-xl border border-terracotta-300 bg-terracotta-50 px-4 py-4 text-base font-semibold text-terracotta-900 md:px-5 md:text-lg"
+        >
+          {link === 'offline'
+            ? 'Sin conexión. Los pedidos en pantalla siguen visibles.'
+            : `Sin respuesta del servidor. Siguiente intento en ${Math.max(1, Math.ceil((retryInMs ?? 1000) / 1000))} s.`}
+        </div>
+      )}
 
       {orders.length === 0 ? (
         <div className="flex flex-1 flex-col items-center justify-center rounded-3xl border border-dashed border-border bg-surface py-24 text-center">
@@ -241,7 +317,7 @@ export function KdsClient({
                   key={column.status}
                   onClick={() => setMobileColumn(column.status)}
                   className={[
-                    'flex flex-1 items-center justify-center gap-2 rounded-xl border px-3 py-2 text-sm font-semibold transition-colors touch-manipulation',
+                    'flex min-h-14 flex-1 items-center justify-center gap-2 rounded-xl border px-3 py-3 text-base font-semibold transition-colors touch-manipulation',
                     mobileColumn === column.status
                       ? 'border-foreground bg-foreground text-primary-foreground'
                       : 'border-border bg-surface text-foreground hover:bg-secondary',
@@ -256,23 +332,23 @@ export function KdsClient({
             })}
           </div>
 
-          <div className="hidden flex-1 grid-cols-3 gap-4 md:grid">
+          <div className="hidden flex-1 flex-col gap-4 md:flex lg:grid lg:grid-cols-3">
             {columns.map((column) => {
               const columnOrders = orders.filter((o) => o.status === column.status)
               return (
                 <section
                   key={column.status}
-                  className="flex flex-col rounded-xl border border-border bg-surface p-3"
+                  className="flex flex-col rounded-xl border border-border bg-surface p-4"
                 >
                   <div className="mb-3 flex items-center justify-between px-1">
-                    <h2 className="font-sans text-lg font-semibold text-foreground">{column.label}</h2>
-                    <Badge variant="secondary" className="text-sm">
+                    <h2 className="font-sans text-xl font-semibold text-foreground md:text-2xl">{column.label}</h2>
+                    <Badge variant="secondary" className="text-base">
                       {columnOrders.length}
                     </Badge>
                   </div>
-                  <div className="flex flex-col gap-3 overflow-y-auto pr-1">
+                  <div className="flex flex-col gap-4 overflow-y-auto pr-1">
                     {columnOrders.map((order) => (
-                      <OrderCard key={order.id} order={order} items={order.items} shopId={shopId} />
+                      <OrderCard key={order.id} order={order} items={order.items} shopId={shopId} onUpdated={applyOrderUpdate} />
                     ))}
                   </div>
                 </section>
@@ -287,14 +363,14 @@ export function KdsClient({
               return (
                 <section className="flex flex-1 flex-col rounded-xl border border-border bg-surface p-3">
                   <div className="mb-3 flex items-center justify-between px-1">
-                    <h2 className="font-sans text-lg font-semibold text-foreground">{column.label}</h2>
+                    <h2 className="font-sans text-xl font-semibold text-foreground">{column.label}</h2>
                     <Badge variant="secondary" className="text-sm">
                       {columnOrders.length}
                     </Badge>
                   </div>
                   <div className="flex flex-1 flex-col gap-3 overflow-y-auto pr-1">
                     {columnOrders.map((order) => (
-                      <OrderCard key={order.id} order={order} items={order.items} shopId={shopId} />
+                      <OrderCard key={order.id} order={order} items={order.items} shopId={shopId} onUpdated={applyOrderUpdate} />
                     ))}
                   </div>
                 </section>

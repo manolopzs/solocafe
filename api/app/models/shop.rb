@@ -11,6 +11,7 @@ class Shop < ApplicationRecord
   has_many :pickup_slots, dependent: :destroy
   has_many :events, dependent: :destroy
   has_many :notifications, dependent: :destroy
+  has_many :push_devices, dependent: :destroy
   has_many :customer_favorites, dependent: :destroy
 
   validates :slug, presence: true, uniqueness: true, format: { with: /\A[a-z0-9-]+\z/ }
