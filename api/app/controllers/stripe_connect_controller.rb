@@ -5,7 +5,14 @@ class StripeConnectController < ApplicationController
   def create
     account_id = Current.shop.stripe_account_id
 
-    if account_id.blank?
+    if account_id.present?
+      account = Stripe::Account.retrieve(account_id)
+      ShopOnboarding.apply_stripe_account!(Current.shop, account)
+      if Current.shop.reload.stripe_connect_status == "active"
+        render json: { url: nil, onboarding: ShopOnboarding.snapshot(Current.shop) }
+        return
+      end
+    else
       account = Stripe::Account.create(
         type: "express",
         capabilities: {
@@ -25,11 +32,24 @@ class StripeConnectController < ApplicationController
       type: "account_onboarding"
     )
 
-    render json: { url: account_link.url }
+    render json: { url: account_link.url, onboarding: ShopOnboarding.snapshot(Current.shop.reload) }
   rescue Stripe::StripeError => e
     render json: { error: e.message }, status: :bad_gateway
   rescue ActiveRecord::RecordInvalid => e
-    render json: { errors: [e.message] }, status: :unprocessable_entity
+    render json: { errors: [ e.message ] }, status: :unprocessable_entity
+  end
+
+  def status
+    if Current.shop.stripe_account_id.blank?
+      render json: { onboarding: ShopOnboarding.snapshot(Current.shop) }
+      return
+    end
+
+    account = Stripe::Account.retrieve(Current.shop.stripe_account_id)
+    ShopOnboarding.apply_stripe_account!(Current.shop, account)
+    render json: { onboarding: ShopOnboarding.snapshot(Current.shop.reload) }
+  rescue Stripe::StripeError => e
+    render json: { error: e.message }, status: :bad_gateway
   end
 
   private

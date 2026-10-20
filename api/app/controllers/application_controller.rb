@@ -32,13 +32,19 @@ class ApplicationController < ActionController::API
   end
 
   def set_current_shop!
-    shop = Shop.active.find_by(id: params[:shop_id])
-    if shop.nil?
+    shop = Shop.find_by(id: params[:shop_id])
+    unless shop && shop_visible?(shop)
       render json: { error: "Shop not found" }, status: :not_found
       return
     end
 
     Current.shop = shop
+  end
+
+  def shop_visible?(shop)
+    return true if shop.status == "active"
+
+    current_user.present? && shop.shop_members.exists?(user_id: current_user.id)
   end
 
   def require_shop_member!

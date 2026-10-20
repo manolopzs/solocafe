@@ -42,6 +42,27 @@ export interface PickupSlot {
   available: number
 }
 
+export interface ShopOnboardingStep {
+  key: string
+  done: boolean
+}
+
+export interface ShopStripeState {
+  status: string
+  charges_enabled: boolean
+  details_submitted: boolean
+}
+
+export interface ShopOnboarding {
+  status: string
+  live: boolean
+  can_go_live: boolean
+  blockers: string[]
+  hours_confirmed: boolean
+  steps: ShopOnboardingStep[]
+  stripe: ShopStripeState
+}
+
 export interface Shop {
   id: string
   slug: string
@@ -69,6 +90,7 @@ export interface Shop {
   estimated_ready_minutes?: number
   owner_id: string | null
   status: string
+  onboarding?: ShopOnboarding
   created_at: string
   updated_at: string
 }

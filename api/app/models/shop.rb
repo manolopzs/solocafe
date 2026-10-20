@@ -21,8 +21,12 @@ class Shop < ApplicationRecord
   validates :slot_capacity, numericality: { only_integer: true, greater_than: 0, less_than_or_equal_to: 500 }
   validates :prep_time_buffer_minutes, numericality: { greater_than_or_equal_to: 0 }
   validates :max_days_ahead, numericality: { greater_than_or_equal_to: 1, less_than_or_equal_to: 30 }
+  validate :operating_hours_are_usable
 
   scope :active, -> { where(status: "active") }
+
+  DAY_KEYS = %w[mon tue wed thu fri sat sun].freeze
+  TIME_PATTERN = /\A(?:[01]\d|2[0-3]):[0-5]\d\z/
 
   DEFAULT_HOURS = {
     "mon" => { "is_open" => true, "open" => "07:00", "close" => "20:00" },
@@ -36,6 +40,45 @@ class Shop < ApplicationRecord
 
   def operating_hours
     super.presence || DEFAULT_HOURS
+  end
+
+  def self.hours_valid?(raw)
+    return false unless raw.is_a?(Hash)
+
+    raw.all? do |day, value|
+      next false unless DAY_KEYS.include?(day.to_s) && value.is_a?(Hash)
+      next true unless day_open?(value)
+
+      open_time = day_value(value, "open")
+      close_time = day_value(value, "close")
+      TIME_PATTERN.match?(open_time) && TIME_PATTERN.match?(close_time) && close_time > open_time
+    end
+  end
+
+  def self.confirmed_open_day?(raw)
+    return false unless hours_valid?(raw)
+
+    raw.any? { |_day, value| value.is_a?(Hash) && day_open?(value) }
+  end
+
+  def self.day_open?(value)
+    ActiveModel::Type::Boolean.new.cast(day_value(value, "is_open"))
+  end
+
+  def self.day_value(value, key)
+    if value.key?(key)
+      value[key]
+    elsif value.key?(key.to_sym)
+      value[key.to_sym]
+    end.to_s
+  end
+
+  def operating_hours_are_usable
+    raw = read_attribute(:operating_hours)
+    return if raw.blank?
+    return if self.class.hours_valid?(raw)
+
+    errors.add(:operating_hours, "hours_invalid")
   end
 
   def hours_for(date)

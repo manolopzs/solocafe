@@ -18,6 +18,7 @@ export default async function QrPage({
   if (!shop) notFound()
 
   const publicUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? ''}/${shop.slug}`
+  const live = shop.onboarding?.live ?? shop.status === 'active'
 
   return (
     <div className="space-y-6">
@@ -25,6 +26,12 @@ export default async function QrPage({
         <h1 className="font-serif text-2xl font-semibold tracking-tight text-foreground">Codigo QR</h1>
         <p className="mt-1 text-muted-foreground">Imprime o comparte este codigo para que tus clientes ordenen.</p>
       </div>
+
+      {!live && (
+        <div className="rounded-xl border border-terracotta-200 bg-cream px-4 py-3 text-sm text-terracotta-800">
+          Este enlace todavía no abre el menú. Publícalo desde el resumen cuando el menú, Stripe y el horario estén listos.
+        </div>
+      )}
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Card variant="outline">

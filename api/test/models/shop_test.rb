@@ -86,4 +86,19 @@ class ShopTest < ActiveSupport::TestCase
     slots = @shop.available_slots_for(wednesday)
     assert slots.all? { |slot| slot[:capacity] == 6 }
   end
+
+  test "rejects an open day that closes before it opens" do
+    @shop.operating_hours = {
+      "mon" => { "is_open" => true, "open" => "18:00", "close" => "08:00" }
+    }
+
+    assert_not @shop.valid?
+    assert_includes @shop.errors.full_messages.join(" "), "hours_invalid"
+  end
+
+  test "accepts a closed day without opening times" do
+    @shop.operating_hours = { "tue" => { "is_open" => false } }
+
+    assert @shop.valid?
+  end
 end

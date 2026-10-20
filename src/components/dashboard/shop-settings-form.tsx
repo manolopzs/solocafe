@@ -8,6 +8,8 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import type { Shop, OperatingHours, OperatingHoursDay } from '@/types'
 
+const DEFAULT_DAY: OperatingHoursDay = { is_open: true, open: '07:00', close: '20:00' }
+
 const DAYS: { key: keyof OperatingHours; label: string }[] = [
   { key: 'mon', label: 'Lunes' },
   { key: 'tue', label: 'Martes' },
@@ -18,9 +20,21 @@ const DAYS: { key: keyof OperatingHours; label: string }[] = [
   { key: 'sun', label: 'Domingo' },
 ]
 
-const DEFAULT_DAY: OperatingHoursDay = { is_open: true, open: '07:00', close: '20:00' }
+function settingsError(err: unknown) {
+  const message = err instanceof Error ? err.message : ''
+  if (message.includes('hours_invalid')) {
+    return 'Revisa el horario: la hora de cierre tiene que ser después de la apertura.'
+  }
+  return 'No se pudieron guardar los cambios. Revisa los datos e intenta de nuevo.'
+}
 
 export function ShopSettingsForm({ shopId, shop }: { shopId: string; shop: Shop }) {
+  const [name, setName] = useState(shop.name)
+  const [slug, setSlug] = useState(shop.slug)
+  const [timezone, setTimezone] = useState(shop.timezone)
+  const [currency, setCurrency] = useState(shop.currency)
+  const [locale, setLocale] = useState(shop.locale)
+  const [address, setAddress] = useState(shop.address ?? '')
   const [hours, setHours] = useState<OperatingHours>(shop.operating_hours as OperatingHours)
   const [slotDuration, setSlotDuration] = useState(shop.slot_duration_minutes)
   const [slotCapacity, setSlotCapacity] = useState(shop.slot_capacity)
@@ -29,6 +43,7 @@ export function ShopSettingsForm({ shopId, shop }: { shopId: string; shop: Shop 
   const [acceptingPickup, setAcceptingPickup] = useState(shop.accepting_pickup !== false)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
+  const [messageTone, setMessageTone] = useState<'ok' | 'error'>('ok')
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -37,6 +52,12 @@ export function ShopSettingsForm({ shopId, shop }: { shopId: string; shop: Shop 
 
     try {
       await updateShopSettings(shopId, {
+        name,
+        slug,
+        timezone,
+        currency,
+        locale,
+        address,
         operating_hours: hours,
         slot_duration_minutes: slotDuration,
         slot_capacity: slotCapacity,
@@ -44,9 +65,11 @@ export function ShopSettingsForm({ shopId, shop }: { shopId: string; shop: Shop 
         max_days_ahead: maxDaysAhead,
         accepting_pickup: acceptingPickup,
       })
+      setMessageTone('ok')
       setMessage('Cambios guardados')
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : 'Error al guardar')
+      setMessageTone('error')
+      setMessage(settingsError(err))
     } finally {
       setSaving(false)
     }
@@ -58,6 +81,78 @@ export function ShopSettingsForm({ shopId, shop }: { shopId: string; shop: Shop 
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
+      <Card variant="outline">
+        <CardHeader>
+          <CardTitle>Datos de la cafetería</CardTitle>
+          <CardDescription>Nombre, moneda y zona horaria. La URL pública usa el identificador.</CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-4 sm:grid-cols-2">
+          <div className="sm:col-span-2">
+            <Label htmlFor="shopName">Nombre</Label>
+            <Input id="shopName" value={name} onChange={(e) => setName(e.target.value)} required className="mt-1.5" />
+          </div>
+          <div className="sm:col-span-2">
+            <Label htmlFor="slug">Identificador del enlace</Label>
+            <Input
+              id="slug"
+              value={slug}
+              pattern="[a-z0-9-]+"
+              onChange={(e) => setSlug(e.target.value)}
+              required
+              className="mt-1.5"
+            />
+          </div>
+          <div>
+            <Label htmlFor="currency">Moneda</Label>
+            <select
+              id="currency"
+              value={currency}
+              onChange={(e) => setCurrency(e.target.value)}
+              className="mt-1.5 block w-full rounded-xl border border-warm-200 bg-paper px-4 py-3 text-sm text-foreground focus:border-terracotta-400 focus:outline-none focus:ring-2 focus:ring-terracotta-400/20"
+            >
+              <option value="MXN">MXN</option>
+              <option value="EUR">EUR</option>
+            </select>
+          </div>
+          <div>
+            <Label htmlFor="locale">Idioma</Label>
+            <select
+              id="locale"
+              value={locale}
+              onChange={(e) => setLocale(e.target.value)}
+              className="mt-1.5 block w-full rounded-xl border border-warm-200 bg-paper px-4 py-3 text-sm text-foreground focus:border-terracotta-400 focus:outline-none focus:ring-2 focus:ring-terracotta-400/20"
+            >
+              <option value="es">Español</option>
+              <option value="en">English</option>
+            </select>
+          </div>
+          <div className="sm:col-span-2">
+            <Label htmlFor="timezone">Zona horaria</Label>
+            <select
+              id="timezone"
+              value={timezone}
+              onChange={(e) => setTimezone(e.target.value)}
+              className="mt-1.5 block w-full rounded-xl border border-warm-200 bg-paper px-4 py-3 text-sm text-foreground focus:border-terracotta-400 focus:outline-none focus:ring-2 focus:ring-terracotta-400/20"
+            >
+              <option value="America/Mexico_City">Ciudad de México</option>
+              <option value="America/New_York">Nueva York</option>
+              <option value="Europe/Madrid">Madrid</option>
+              <option value="Europe/Berlin">Berlín</option>
+            </select>
+          </div>
+          <div className="sm:col-span-2">
+            <Label htmlFor="address">Dirección</Label>
+            <textarea
+              id="address"
+              rows={2}
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+              className="mt-1.5 block w-full resize-none rounded-xl border border-warm-200 bg-paper px-4 py-3 text-sm text-foreground focus:border-terracotta-400 focus:outline-none focus:ring-2 focus:ring-terracotta-400/20"
+            />
+          </div>
+        </CardContent>
+      </Card>
+
       <Card variant="outline">
         <CardHeader>
           <CardTitle>Horarios de atención</CardTitle>
@@ -185,7 +280,11 @@ export function ShopSettingsForm({ shopId, shop }: { shopId: string; shop: Shop 
       </Card>
 
       {message && (
-        <div className="rounded-xl bg-sage-100 px-4 py-3 text-sm text-sage-800">
+        <div
+          className={`rounded-xl px-4 py-3 text-sm ${
+            messageTone === 'ok' ? 'bg-cream text-terracotta-800 border border-terracotta-200' : 'bg-danger/10 text-danger'
+          }`}
+        >
           {message}
         </div>
       )}
