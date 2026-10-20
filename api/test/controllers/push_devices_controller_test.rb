@@ -24,8 +24,8 @@ class PushDevicesControllerTest < ActionDispatch::IntegrationTest
     post shop_push_devices_url(@shop), params: refreshed, headers: auth_headers, as: :json
     assert_response :ok
     assert_equal device_id, response.parsed_body.dig("push_device", "id")
-    assert_equal 1, PushDevice.unscoped.where(shop: @shop, platform: "web").count
-    assert_equal "updated-auth", PushDevice.unscoped.find(device_id).auth_key
+    assert_equal 1, TenantScoped.unscoped_for_system { PushDevice.where(shop: @shop, platform: "web").count }
+    assert_equal "updated-auth", TenantScoped.unscoped_for_system { PushDevice.find(device_id).auth_key }
   end
 
   test "staff can register an expo token" do
@@ -44,10 +44,11 @@ class PushDevicesControllerTest < ActionDispatch::IntegrationTest
       headers: auth_headers,
       as: :json
     assert_response :unprocessable_entity
-    assert_equal 0, PushDevice.unscoped.count
+    assert_equal 0, TenantScoped.unscoped_for_system { PushDevice.count }
   end
 
   test "devices stay inside the shop" do
+    Current.shop = @other_shop
     foreign = PushDevice.register!(
       shop: @other_shop,
       user: @other_user,
@@ -63,14 +64,14 @@ class PushDevicesControllerTest < ActionDispatch::IntegrationTest
 
     delete shop_push_device_url(@shop, foreign), headers: auth_headers
     assert_response :not_found
-    assert PushDevice.unscoped.exists?(foreign.id)
+    assert TenantScoped.unscoped_for_system { PushDevice.exists?(foreign.id) }
 
     post shop_push_devices_url(@other_shop),
       params: { push_device: { platform: "expo", token: "ExponentPushToken[nope]" } },
       headers: auth_headers,
       as: :json
     assert_response :forbidden
-    assert_not PushDevice.unscoped.exists?(token: "ExponentPushToken[nope]")
+    assert_not TenantScoped.unscoped_for_system { PushDevice.exists?(token: "ExponentPushToken[nope]") }
   end
 
   private

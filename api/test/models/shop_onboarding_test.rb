@@ -48,6 +48,7 @@ class ShopOnboardingTest < ActiveSupport::TestCase
     assert_equal true, snapshot[:live]
     assert_equal [], snapshot[:blockers]
 
+    Current.shop = @shop
     @shop.menu_items.delete_all
     again = ShopOnboarding.go_live!(@shop.reload)
     assert_equal "active", @shop.reload.status
@@ -71,13 +72,23 @@ class ShopOnboardingTest < ActiveSupport::TestCase
 
   test "starter menu is idempotent and stays inside the shop" do
     assert_equal true, ShopOnboarding.seed_starter_menu!(@shop)
-    count = MenuItem.unscoped.where(shop_id: @shop.id).count
+    count = TenantScoped.unscoped_for_system { MenuItem.where(shop_id: @shop.id).count }
     assert count >= 5
-    assert_equal 0, MenuItem.unscoped.where(shop_id: @other.id).count
+    assert_equal 0, TenantScoped.unscoped_for_system { MenuItem.where(shop_id: @other.id).count }
 
     assert_equal false, ShopOnboarding.seed_starter_menu!(@shop)
-    assert_equal count, MenuItem.unscoped.where(shop_id: @shop.id).count
+    assert_equal count, TenantScoped.unscoped_for_system { MenuItem.where(shop_id: @shop.id).count }
     assert_not_includes ShopOnboarding.snapshot(@shop.reload)[:blockers], "menu"
+  end
+
+  test "starter menu seeds the named shop when another shop is current" do
+    Current.shop = @other
+
+    assert_equal true, ShopOnboarding.seed_starter_menu!(@shop)
+    assert_equal true, ShopOnboarding.menu_ready?(@shop)
+    assert_equal false, ShopOnboarding.menu_ready?(@other)
+  ensure
+    Current.shop = nil
   end
 
   test "slug is generated from the name and avoids collisions" do

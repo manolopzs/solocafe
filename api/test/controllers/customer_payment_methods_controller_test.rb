@@ -109,6 +109,24 @@ class CustomerPaymentMethodsControllerTest < ActionDispatch::IntegrationTest
     Current.shop = nil
   end
 
+  test "list and detach work when no shop is current" do
+    Current.shop = nil
+
+    get "/customers/me/payment_methods", headers: bearer(@token)
+    assert_response :success
+    assert_equal [ @card.id ], response.parsed_body["payment_methods"].map { |card| card["id"] }
+
+    with_detach do
+      delete "/customers/me/payment_methods/#{@card.id}", headers: bearer(@token)
+    end
+
+    assert_response :success
+    assert_not CustomerPaymentMethod.exists?(@card.id)
+    assert CustomerPaymentMethod.exists?(@other_card.id)
+    assert_equal [ "pm_ana" ], @detach_calls
+    assert_nil Current.shop
+  end
+
   test "customer can delete their own saved card" do
     with_detach do
       delete "/customers/me/payment_methods/#{@card.id}", headers: bearer(@token)

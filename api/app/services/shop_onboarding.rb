@@ -89,15 +89,23 @@ class ShopOnboarding
   end
 
   def self.seed_starter_menu!(shop)
-    return false if MenuItem.unscoped.where(shop_id: shop.id).exists?
+    TenantScoped.unscoped_for_system do
+      return false if MenuItem.where(shop_id: shop.id).exists?
 
+      seed_starter_menu_records!(shop)
+    end
+
+    true
+  end
+
+  def self.seed_starter_menu_records!(shop)
     ActiveRecord::Base.transaction do
       categories = STARTER_CATEGORIES.map do |category|
-        MenuCategory.unscoped.create!(shop_id: shop.id, name: category[:name], sort_order: category[:sort_order])
+        MenuCategory.create!(shop_id: shop.id, name: category[:name], sort_order: category[:sort_order])
       end
 
       groups = STARTER_GROUPS.to_h do |group|
-        record = ModifierGroup.unscoped.create!(
+        record = ModifierGroup.create!(
           shop_id: shop.id,
           name: group[:name],
           min_select: group[:min_select],
@@ -116,7 +124,7 @@ class ShopOnboarding
       end
 
       STARTER_ITEMS.each do |item|
-        record = MenuItem.unscoped.create!(
+        record = MenuItem.create!(
           shop_id: shop.id,
           category_id: categories.fetch(item[:category_index]).id,
           name: item[:name],
@@ -149,7 +157,9 @@ class ShopOnboarding
   end
 
   def self.menu_ready?(shop)
-    MenuItem.unscoped.where(shop_id: shop.id, is_active: true).exists?
+    TenantScoped.unscoped_for_system do
+      MenuItem.where(shop_id: shop.id, is_active: true).exists?
+    end
   end
 
   def self.hours_confirmed?(shop)

@@ -70,7 +70,9 @@ class PaymentsControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :unauthorized
     assert_nil @order.reload.payment
-    assert_equal 0, Payment.joins(:order).where(orders: { shop_id: @other_shop.id }).count
+    assert_equal 0, TenantScoped.unscoped_for_system {
+      Payment.joins(:order).where(orders: { shop_id: @other_shop.id }).count
+    }
     assert_empty @stripe_calls[:create]
     assert_empty @stripe_calls[:update]
   end
@@ -139,6 +141,7 @@ class PaymentsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "logged in customer can opt in to save a card on the platform customer" do
+    Current.shop = nil
     customer, token = login_customer!
 
     with_stripe do
@@ -193,6 +196,7 @@ class PaymentsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "logged in customer pays with a saved card by cloning it onto the shop" do
+    Current.shop = nil
     customer, token = login_customer!
     customer.update!(stripe_customer_id: "cus_platform")
     card = save_card!(customer)

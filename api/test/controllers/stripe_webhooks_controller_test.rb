@@ -30,8 +30,9 @@ class StripeWebhooksControllerTest < ActionDispatch::IntegrationTest
     assert_equal "succeeded", @order.payment.status
     assert_equal "received", @order.status
     assert_equal 1, StripeWebhookEvent.where(stripe_event_id: "evt_1").count
+    Current.shop = @shop
     assert_equal 1, Event.where(order: @order, event_type: "payment_intent.succeeded").count
-    assert_equal 1, Event.unscoped.where(order: @order, event_type: "order.kitchen_new").count
+    assert_equal 1, Event.where(order: @order, event_type: "order.kitchen_new").count
   end
 
   test "duplicate payment success is idempotent and does not skip received" do
@@ -47,8 +48,9 @@ class StripeWebhooksControllerTest < ActionDispatch::IntegrationTest
     @order.reload
     assert_equal "received", @order.status
     assert_equal 1, StripeWebhookEvent.where(stripe_event_id: "evt_1").count
+    Current.shop = @shop
     assert_equal 1, Event.where(order: @order, event_type: "payment_intent.succeeded").count
-    assert_equal 1, Event.unscoped.where(order: @order, event_type: "order.kitchen_new").count
+    assert_equal 1, Event.where(order: @order, event_type: "order.kitchen_new").count
   end
 
   test "a later success event does not move a received order to preparing" do
@@ -66,6 +68,7 @@ class StripeWebhooksControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "payment failure cancels an unpaid order and frees the slot" do
+    Current.shop = @shop
     slot = @shop.pickup_slots.create!(slot_date: Date.current + 3, start_time: "10:00:00", end_time: "10:15:00", capacity: 2)
     SlotReservation.create!(slot: slot, order: @order)
 
@@ -213,6 +216,7 @@ class StripeWebhooksControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "payment success with save_card stores brand last4 and expiry" do
+    Current.shop = nil
     customer = Customer.create!(name: "Ana", phone: "5551111111", stripe_customer_id: "cus_ana")
     @order.update!(customer: customer)
     event = build_saved_card_event(customer)
@@ -232,6 +236,13 @@ class StripeWebhooksControllerTest < ActionDispatch::IntegrationTest
     assert_equal 2030, saved.exp_year
     assert_not_includes CustomerPaymentMethod.column_names, "shop_id"
     assert_equal [ "pm_saved" ], @retrieved_payment_methods
+    assert_equal "succeeded", @order.reload.payment_status
+    assert_equal "received", @order.status
+    Current.shop = @shop
+    assert_equal 1, Event.where(order: @order, event_type: "order.kitchen_new").count
+    assert_equal 0, CustomerPaymentMethod.where.not(customer_id: customer.id).count
+  ensure
+    Current.shop = nil
   end
 
   test "payment success without save_card does not store a card" do
@@ -249,6 +260,7 @@ class StripeWebhooksControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "payment_method.attached stores the card for the platform customer only" do
+    Current.shop = nil
     customer = Customer.create!(name: "Ana", phone: "5551111111", stripe_customer_id: "cus_ana")
     other = Customer.create!(name: "Luis", phone: "5552222222", stripe_customer_id: "cus_luis")
     event = payment_method_event("payment_method.attached", "pm_attached", "cus_ana", "evt_attach")
@@ -278,6 +290,7 @@ class StripeWebhooksControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "payment_method.detached removes only that card" do
+    Current.shop = nil
     customer = Customer.create!(name: "Ana", phone: "5551111111", stripe_customer_id: "cus_ana")
     other = Customer.create!(name: "Luis", phone: "5552222222", stripe_customer_id: "cus_luis")
     CustomerPaymentMethod.create!(customer: customer, stripe_payment_method_id: "pm_gone", brand: "visa", last4: "4242", exp_month: 12, exp_year: 2028)
@@ -294,6 +307,7 @@ class StripeWebhooksControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "payment_method.updated refreshes expiry without copying the card to another customer" do
+    Current.shop = nil
     customer = Customer.create!(name: "Ana", phone: "5551111111", stripe_customer_id: "cus_ana")
     other = Customer.create!(name: "Luis", phone: "5552222222", stripe_customer_id: "cus_luis")
     saved = CustomerPaymentMethod.create!(customer: customer, stripe_payment_method_id: "pm_upd", brand: "visa", last4: "4242", exp_month: 1, exp_year: 2026)

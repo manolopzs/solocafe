@@ -53,6 +53,37 @@ class CustomersControllerTest < ActionDispatch::IntegrationTest
     assert_equal 5000, orders.first["total_cents"]
   end
 
+  test "order history includes the customer's orders from every shop" do
+    other_shop = Shop.create!(name: "Cafe B", slug: "cafe-b-history", currency: "MXN")
+    customer = Customer.create!(user: @user, name: "María", phone: "+525555555555")
+    Order.create!(
+      shop: @shop,
+      customer: customer,
+      status: "received",
+      payment_status: "succeeded",
+      subtotal_cents: 1000,
+      total_cents: 1000,
+      currency: "MXN",
+      pickup_type: "asap"
+    )
+    Order.create!(
+      shop: other_shop,
+      customer: customer,
+      status: "received",
+      payment_status: "succeeded",
+      subtotal_cents: 2000,
+      total_cents: 2000,
+      currency: "MXN",
+      pickup_type: "asap"
+    )
+
+    get customers_me_orders_url, headers: auth_headers
+
+    assert_response :success
+    totals = response.parsed_body["orders"].map { |order| order["total_cents"] }
+    assert_equal [ 1000, 2000 ].sort, totals.sort
+  end
+
   test "user cannot see another user's orders in history" do
     other_user = User.create!(email: "other@example.com", password: "password123", role: :customer)
     other_customer = Customer.create!(user: other_user, name: "Otro", phone: "+525555555556")

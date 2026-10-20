@@ -65,6 +65,7 @@ class Public::PickupSlotsControllerTest < ActionDispatch::IntegrationTest
     post shop_orders_url(@shop), params: order_params(pickup_time)
     assert_response :created
 
+    Current.shop = @shop
     slot = PickupSlot.find(response.parsed_body.dig("order", "pickup_slot", "id"))
     assert_equal 4, slot.capacity
   end
@@ -97,6 +98,7 @@ class Public::PickupSlotsControllerTest < ActionDispatch::IntegrationTest
 
   test "scheduled order fails when slot is full" do
     tuesday = upcoming_tuesday
+    Current.shop = @shop
     slot = @shop.pickup_slots.create!(
       slot_date: tuesday,
       start_time: "07:00:00",
