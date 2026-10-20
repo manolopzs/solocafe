@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { getOrderWithItems } from '@/server/queries/orders'
 import { createPaymentIntent } from '@/server/actions/payments'
 import { CheckoutForm } from '@/components/order/checkout-form'
+import { formatMoney, formatPickupWindow } from '@/lib/ordering'
 import { Button } from '@/components/ui/button'
 import { Icon } from '@/components/ui/icon'
 import { Card, CardContent } from '@/components/ui/card'
@@ -10,36 +11,20 @@ import { Badge } from '@/components/ui/badge'
 
 export const instant = false
 
-interface CheckoutPageProps {
-  params: Promise<{ orderId: string }>
-  searchParams: Promise<{ phone?: string }>
-}
-
-function formatCurrency(cents: number, currency: string) {
-  return `${currency} ${(cents / 100).toFixed(2)}`
-}
-
 function orderNumber(id: string) {
   return id.slice(-6).toUpperCase()
 }
 
-function pickupEta(order: {
-  pickup_type: 'asap' | 'scheduled'
-  pickup_time: string | null
-  items: { item_id: string; quantity: number }[]
-}) {
-  if (order.pickup_type === 'scheduled' && order.pickup_time) {
-    const date = new Date(order.pickup_time)
-    return date.toLocaleTimeString('es-MX', { hour: 'numeric', minute: '2-digit' })
-  }
-  return 'Lo antes posible'
+interface CheckoutPageProps {
+  params: Promise<{ orderId: string }>
+  searchParams: Promise<{ token?: string }>
 }
 
 export default async function CheckoutPage({ params, searchParams }: CheckoutPageProps) {
   const { orderId } = await params
-  const { phone } = await searchParams
-  const order = await getOrderWithItems(orderId, phone)
-  if (!order) notFound()
+  const { token } = await searchParams
+  const order = await getOrderWithItems(orderId, token)
+  if (!order || !token) notFound()
 
   if (order.payment_status === 'succeeded') {
     return (
@@ -53,20 +38,27 @@ export default async function CheckoutPage({ params, searchParams }: CheckoutPag
             Tu pedido ya fue pagado. Ve a la cafetería a recogerlo.
           </p>
           <Button asChild className="mt-6 w-full">
-            <Link href="/">Volver al inicio</Link>
+            <Link href={`/order/${orderId}?token=${encodeURIComponent(token)}`}>Ver tu pedido</Link>
           </Button>
         </div>
       </main>
     )
   }
 
-  const clientSecret = await createPaymentIntent(orderId, phone || order.customer_phone || '')
-  const eta = pickupEta(order)
+  const clientSecret = await createPaymentIntent(orderId, token)
+  const eta =
+    order.pickup_window_starts_at && order.pickup_window_ends_at
+      ? formatPickupWindow(
+          order.pickup_window_starts_at,
+          order.pickup_window_ends_at,
+          order.shop?.timezone || 'America/Mexico_City'
+        )
+      : 'Lo antes posible'
 
   return (
     <main className="min-h-screen bg-background px-4 py-6 sm:px-6 sm:py-10">
       <div className="mx-auto max-w-xl">
-        <Link href="/" className="mb-6 inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground">
+        <Link href={order.shop?.slug ? `/${order.shop.slug}` : '/'} className="mb-6 inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground">
           <Icon name="arrow-left" className="h-4 w-4" />
           Volver al menú
         </Link>
@@ -116,7 +108,7 @@ export default async function CheckoutPage({ params, searchParams }: CheckoutPag
                     )}
                   </div>
                   <span className="shrink-0 font-medium text-foreground">
-                    {formatCurrency(item.subtotal_cents, order.currency)}
+                    {formatMoney(item.subtotal_cents, order.currency)}
                   </span>
                 </li>
               ))}
@@ -124,18 +116,18 @@ export default async function CheckoutPage({ params, searchParams }: CheckoutPag
             <div className="mt-5 space-y-2 border-t border-border pt-4 text-sm">
               <div className="flex justify-between text-muted-foreground">
                 <span>Subtotal</span>
-                <span>{formatCurrency(order.subtotal_cents, order.currency)}</span>
+                <span>{formatMoney(order.subtotal_cents, order.currency)}</span>
               </div>
               {order.tax_cents > 0 && (
                 <div className="flex justify-between text-muted-foreground">
                   <span>Impuestos</span>
-                  <span>{formatCurrency(order.tax_cents, order.currency)}</span>
+                  <span>{formatMoney(order.tax_cents, order.currency)}</span>
                 </div>
               )}
             </div>
             <div className="mt-4 flex items-center justify-between border-t border-border pt-4">
               <span className="text-base font-semibold text-foreground">Total</span>
-              <span className="text-xl font-bold text-foreground">{formatCurrency(order.total_cents, order.currency)}</span>
+              <span className="text-xl font-bold text-foreground">{formatMoney(order.total_cents, order.currency)}</span>
             </div>
           </CardContent>
         </Card>
@@ -156,7 +148,7 @@ export default async function CheckoutPage({ params, searchParams }: CheckoutPag
             <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Pago</p>
           </div>
           <CardContent className="p-5 sm:p-6">
-            <CheckoutForm orderId={orderId} clientSecret={clientSecret} />
+            <CheckoutForm orderId={orderId} clientSecret={clientSecret} accessToken={token} />
           </CardContent>
         </Card>
       </div>

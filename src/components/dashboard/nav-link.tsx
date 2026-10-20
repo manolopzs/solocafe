@@ -2,9 +2,9 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Icon } from '@/components/ui/icon'
+import { Icon, type IconName } from '@/components/ui/icon'
 
-export function NavLink({ href, label, icon }: { href: string; label: string; icon: string }) {
+export function NavLink({ href, label, icon }: { href: string; label: string; icon: IconName }) {
   const pathname = usePathname()
   const active = pathname === href || pathname.startsWith(`${href}/`)
 
@@ -18,7 +18,7 @@ export function NavLink({ href, label, icon }: { href: string; label: string; ic
           : 'text-warm-700 hover:bg-warm-100 hover:text-warm-900',
       ].join(' ')}
     >
-      <Icon name={icon as any} className="h-4 w-4" />
+      <Icon name={icon} className="h-4 w-4" />
       <span>{label}</span>
     </Link>
   )

@@ -61,14 +61,7 @@ class PaymentsController < ApplicationController
       return true
     end
 
-    phones_match?(params[:customer_phone].to_s, @order.customer_phone.to_s)
-  end
-
-  def phones_match?(left, right)
-    return false if left.blank? || right.blank?
-    return false unless left.bytesize == right.bytesize
-
-    ActiveSupport::SecurityUtils.secure_compare(left, right)
+    guest_token_matches?(@order)
   end
 
   def order_id
@@ -76,7 +69,7 @@ class PaymentsController < ApplicationController
   end
 
   def payment_params
-    params.permit(:order_id, :customer_phone)
+    params.permit(:order_id, :token)
   end
 
   def create_or_update_payment_intent

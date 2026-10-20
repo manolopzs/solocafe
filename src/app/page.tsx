@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Icon } from "@/components/ui/icon";
+import { Icon, type IconName } from "@/components/ui/icon";
 import { Card } from "@/components/ui/card";
 import { MobileNav } from "@/components/landing/mobile-nav";
 
@@ -202,7 +202,7 @@ export default function Home() {
             ))}
           </div>
           <blockquote className="mt-6 font-sans text-2xl font-medium leading-relaxed text-foreground sm:text-3xl">
-            "Dejamos de depender de los apps de delivery. Ahora vendemos directo, conocemos a nuestros clientes y el dinero llega a nuestra cuenta desde el primer día."
+            {'"Dejamos de depender de los apps de delivery. Ahora vendemos directo, conocemos a nuestros clientes y el dinero llega a nuestra cuenta desde el primer día."'}
           </blockquote>
           <div className="mt-6 flex items-center justify-center gap-3">
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-surface font-semibold text-foreground">
@@ -288,10 +288,10 @@ export default function Home() {
   );
 }
 
-function PlatformFeature({ icon, text }: { icon: string; text: string }) {
+function PlatformFeature({ icon, text }: { icon: IconName; text: string }) {
   return (
     <div className="flex items-center gap-3 rounded-xl border border-border bg-surface px-4 py-3">
-      <Icon name={icon as any} className="h-5 w-5 text-accent" />
+      <Icon name={icon} className="h-5 w-5 text-accent" />
       <span className="text-sm font-medium text-foreground">{text}</span>
     </div>
   );

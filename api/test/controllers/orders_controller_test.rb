@@ -142,6 +142,188 @@ class OrdersControllerTest < ActionDispatch::IntegrationTest
     assert_empty response.parsed_body["orders"]
   end
 
+  test "public order show accepts a valid access token and hides the phone" do
+    @order.update!(customer_name: "Ana", customer_phone: "5551111111")
+
+    get "/public/orders/#{@order.id}", params: { token: @order.guest_access_token }
+
+    assert_response :success
+    body = response.parsed_body["order"]
+    assert_equal @order.id, body["id"]
+    assert_equal "Ana", body["customer_name"]
+    assert_not body.key?("customer_phone")
+    assert body["access_token"].present?
+    assert body["shop"]["name"].present?
+  end
+
+  test "public order show accepts the access token header" do
+    get "/public/orders/#{@order.id}", headers: { "X-Order-Token" => @order.guest_access_token }
+
+    assert_response :success
+    assert_equal @order.id, response.parsed_body.dig("order", "id")
+  end
+
+  test "public order show rejects an invalid access token" do
+    get "/public/orders/#{@order.id}", params: { token: "not-a-token", customer_phone: "5551111111" }
+
+    assert_response :forbidden
+  end
+
+  test "public order show rejects a token from another tenant" do
+    get "/public/orders/#{@other_order.id}", params: { token: @order.guest_access_token }
+
+    assert_response :forbidden
+
+    get "/public/orders/#{@order.id}", headers: { "X-Order-Token" => @other_order.guest_access_token }
+
+    assert_response :forbidden
+  end
+
+  test "guest checkout does not attach an order to an existing customer by phone" do
+    user = User.create!(email: "ana@example.com", password: "password123")
+    customer = Customer.create!(user: user, name: "Ana", phone: "5551234567")
+    item = MenuItem.create!(shop: @shop, name: "Latte", price_cents: 4500, prep_time_min: 6, is_active: true, is_86ed: false)
+
+    travel_to Time.find_zone(@shop.timezone).local(2026, 10, 20, 10, 0, 0) do
+      post shop_orders_url(@shop), params: {
+        order: {
+          customer_name: "Otra persona",
+          customer_phone: "5551234567",
+          pickup_type: "asap",
+          items: [ { menu_item_id: item.id, quantity: 1, modifier_option_ids: [] } ]
+        }
+      }
+    end
+
+    assert_response :created
+    created = Order.find(response.parsed_body.dig("order", "id"))
+    assert_nil created.customer_id
+    assert_equal "5551234567", created.customer_phone
+    assert_equal 0, customer.orders.count
+    assert_not response.parsed_body["order"].key?("customer_phone")
+  end
+
+  test "asap checkout is rejected when the shop is closed" do
+    item = MenuItem.create!(shop: @shop, name: "Latte", price_cents: 4500, prep_time_min: 5, is_active: true, is_86ed: false)
+
+    travel_to Time.find_zone(@shop.timezone).local(2026, 10, 20, 22, 0, 0) do
+      post shop_orders_url(@shop), params: asap_order_params(item)
+    end
+
+    assert_response :unprocessable_entity
+    assert_equal "shop_closed", response.parsed_body["error"]
+  end
+
+  test "checkout is rejected when the shop is not accepting pickup orders" do
+    @shop.update!(accepting_pickup: false)
+    item = MenuItem.create!(shop: @shop, name: "Latte", price_cents: 4500, prep_time_min: 5, is_active: true, is_86ed: false)
+
+    travel_to Time.find_zone(@shop.timezone).local(2026, 10, 20, 10, 0, 0) do
+      post shop_orders_url(@shop), params: asap_order_params(item)
+    end
+
+    assert_response :unprocessable_entity
+    assert_equal "not_accepting", response.parsed_body["error"]
+  end
+
+  test "estimated ready minutes come from the ordered items and the queue" do
+    @order.update!(status: "picked_up")
+    @shop.update!(prep_time_buffer_minutes: 10)
+    MenuItem.create!(shop: @shop, name: "Galleta", price_cents: 2000, prep_time_min: 2, is_active: true, is_86ed: false)
+    latte = MenuItem.create!(shop: @shop, name: "Latte", price_cents: 5000, prep_time_min: 9, is_active: true, is_86ed: false)
+    Order.create!(
+      shop: @shop,
+      status: "preparing",
+      payment_status: "succeeded",
+      subtotal_cents: 1000,
+      total_cents: 1000,
+      currency: "MXN",
+      pickup_type: "asap"
+    )
+
+    travel_to Time.find_zone(@shop.timezone).local(2026, 10, 20, 10, 0, 0) do
+      post shop_orders_url(@shop), params: {
+        order: {
+          customer_name: "Ana",
+          customer_phone: "5550001111",
+          pickup_type: "asap",
+          items: [ { menu_item_id: latte.id, quantity: 2, modifier_option_ids: [] } ]
+        }
+      }
+    end
+
+    assert_response :created
+    assert_equal 29, response.parsed_body.dig("order", "estimated_ready_minutes")
+    assert response.parsed_body.dig("order", "pickup_window_starts_at").present?
+    assert response.parsed_body.dig("order", "pickup_window_ends_at").present?
+  end
+
+  test "usual order is the most frequent paid order at this shop" do
+    user = User.create!(email: "regular@example.com", password: "password123")
+    customer = Customer.create!(user: user, name: "Regular", phone: "5552223333")
+    latte = MenuItem.create!(shop: @shop, name: "Latte", price_cents: 5000, prep_time_min: 5, is_active: true, is_86ed: false)
+    cookie = MenuItem.create!(shop: @shop, name: "Galleta", price_cents: 2000, prep_time_min: 2, is_active: true, is_86ed: false)
+    group = ModifierGroup.create!(shop: @shop, name: "Leche", min_select: 0, max_select: 1)
+    oat = ModifierOption.create!(group: group, name: "Avena", price_cents: 0, is_active: true)
+    ItemModifierLink.create!(item: latte, group: group)
+
+    2.times { create_paid_line(customer, latte, [ oat ]) }
+    create_paid_line(customer, cookie, [])
+
+    token = JsonWebToken.encode(user_id: user.id)
+    get usual_shop_order_url(@shop), headers: { "Authorization" => "Bearer #{token}" }
+
+    assert_response :success
+    usual = response.parsed_body["usual_order"]
+    assert_equal 2, usual["times_ordered"]
+    assert_equal true, usual["can_reorder"]
+    assert_equal [ latte.id ], usual["items"].map { |item| item["menu_item_id"] }
+    assert_equal [ oat.id ], usual["items"].first["modifier_option_ids"]
+    assert_equal "Latte con Avena", usual["label"]
+
+    latte.update!(is_86ed: true)
+    get usual_shop_order_url(@shop), headers: { "Authorization" => "Bearer #{token}" }
+    assert_equal false, response.parsed_body.dig("usual_order", "items", 0, "available")
+    assert_equal "sold_out", response.parsed_body.dig("usual_order", "items", 0, "unavailable_reason")
+  end
+
+  test "usual order ignores paid orders from another shop" do
+    user = User.create!(email: "traveler@example.com", password: "password123")
+    customer = Customer.create!(user: user, name: "Viaje", phone: "5552224444")
+    home_item = MenuItem.create!(shop: @shop, name: "Latte", price_cents: 5000, prep_time_min: 5, is_active: true, is_86ed: false)
+    other_item = MenuItem.create!(shop: @other_shop, name: "Espresso", price_cents: 3000, prep_time_min: 3, is_active: true, is_86ed: false)
+    create_paid_line(customer, home_item, [])
+    3.times { create_paid_line(customer, other_item, []) }
+
+    token = JsonWebToken.encode(user_id: user.id)
+    get usual_shop_order_url(@shop), headers: { "Authorization" => "Bearer #{token}" }
+
+    assert_response :success
+    assert_equal [ home_item.id ], response.parsed_body["usual_order"]["items"].map { |item| item["menu_item_id"] }
+  end
+
+  test "listing orders does not query once per order for the estimate" do
+    item = MenuItem.create!(shop: @shop, name: "Latte", price_cents: 5000, prep_time_min: 5, is_active: true, is_86ed: false)
+    create_order(@shop)
+    baseline = query_count { get shop_orders_url(@shop), headers: auth_headers }
+    assert_response :success
+
+    4.times do
+      order = create_order(@shop)
+      order.order_items.create!(
+        item: item,
+        item_name_snapshot: item.name,
+        unit_price_cents: item.price_cents,
+        quantity: 1,
+        subtotal_cents: item.price_cents
+      )
+    end
+
+    loaded = query_count { get shop_orders_url(@shop), headers: auth_headers }
+    assert_response :success
+    assert_operator loaded - baseline, :<=, 4
+  end
+
   private
 
   def auth_headers
@@ -158,5 +340,57 @@ class OrdersControllerTest < ActionDispatch::IntegrationTest
       currency: "MXN",
       pickup_type: "asap"
     )
+  end
+
+  def asap_order_params(item)
+    {
+      order: {
+        customer_name: "Ana",
+        customer_phone: "5550001111",
+        pickup_type: "asap",
+        items: [ { menu_item_id: item.id, quantity: 1, modifier_option_ids: [] } ]
+      }
+    }
+  end
+
+  def create_paid_line(customer, item, modifiers)
+    order = Order.create!(
+      shop: item.shop,
+      customer: customer,
+      status: "picked_up",
+      payment_status: "succeeded",
+      subtotal_cents: item.price_cents,
+      total_cents: item.price_cents,
+      currency: "MXN",
+      pickup_type: "asap",
+      customer_name: customer.name
+    )
+    order_item = order.order_items.create!(
+      item: item,
+      item_name_snapshot: item.name,
+      unit_price_cents: item.price_cents,
+      quantity: 1,
+      subtotal_cents: item.price_cents
+    )
+    modifiers.each do |modifier|
+      order_item.order_item_modifiers.create!(
+        option: modifier,
+        option_name_snapshot: modifier.name,
+        price_cents: modifier.price_cents
+      )
+    end
+    order
+  end
+
+  def query_count
+    count = 0
+    callback = lambda do |_name, _start, _finish, _id, payload|
+      next if payload[:name].in?(%w[SCHEMA CACHE])
+      next if payload[:cached]
+      next if payload[:sql].to_s.match?(/SCHEMA|pg_|sqlite_/)
+      count += 1
+    end
+    ActiveSupport::Notifications.subscribed(callback, "sql.active_record") { yield }
+    count
   end
 end

@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getShopById } from '@/server/queries/shops'
 import { LogoutButton } from '@/components/auth/logout-button'
-import { Icon } from '@/components/ui/icon'
+import { Icon, type IconName } from '@/components/ui/icon'
 import { NavLink } from '@/components/dashboard/nav-link'
 
 export default async function DashboardLayout({
@@ -16,7 +16,7 @@ export default async function DashboardLayout({
   const shop = await getShopById(shopId)
   if (!shop) notFound()
 
-  const nav = [
+  const nav: { href: string; label: string; icon: IconName }[] = [
     { href: `/dashboard/${shopId}`, label: 'Resumen', icon: 'store' },
     { href: `/dashboard/${shopId}/menu`, label: 'Menu', icon: 'receipt' },
     { href: `/dashboard/${shopId}/kds`, label: 'Cocina', icon: 'utensils' },

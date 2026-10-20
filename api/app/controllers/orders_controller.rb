@@ -1,50 +1,59 @@
 class OrdersController < ApplicationController
-  before_action :authenticate_user!, only: [:index, :update, :recent]
-  before_action :require_shop_member!, only: [:index, :update]
-  before_action :set_public_shop, only: [:create, :show, :recent]
+  ORDER_INCLUDES = { order_items: [ :item, :order_item_modifiers ], pickup_slot: [], shop: [] }.freeze
+
+  before_action :authenticate_user!, only: [ :index, :update, :recent, :usual ]
+  before_action :require_shop_member!, only: [ :index, :update ]
+  before_action :set_public_shop, only: [ :create, :show, :recent, :usual ]
 
   def recent
     orders = current_customer.orders
       .where(shop: Current.shop, payment_status: "succeeded")
       .where.not(status: "cancelled")
+      .includes(ORDER_INCLUDES)
       .order(created_at: :desc)
       .limit(3)
 
-    render json: { orders: orders.map { |order| order_payload(order) } }
+    render json: { orders: serialize_orders(orders, audience: :guest) }
+  end
+
+  def usual
+    result = UsualOrder.select(customer: current_customer, shop: Current.shop)
+    render json: { usual_order: result ? usual_order_payload(result) : nil }
   end
 
   def show_public
-    order = Order.find(params[:id])
+    order = Order.unscoped.includes(ORDER_INCLUDES).find_by(id: params[:id])
+    return render json: { error: "Order not found" }, status: :not_found unless order
 
     if staff_for_order?(order)
-      render json: { order: order_payload(order) }
-    elsif order.customer_phone.present? && order.customer_phone == params[:customer_phone]
-      render json: { order: order_payload(order) }
+      Current.shop = order.shop
+      render json: { order: order_payload(order, audience: :staff) }
+    elsif guest_token_matches?(order) || customer_owns_order?(order)
+      Current.shop = order.shop
+      render json: { order: order_payload(order, audience: :guest) }
     else
       render json: { error: "Forbidden" }, status: :forbidden
     end
-  rescue ActiveRecord::RecordNotFound
-    render json: { error: "Order not found" }, status: :not_found
   end
 
   def index
-    orders = Current.shop.orders.order(created_at: :desc)
+    orders = Current.shop.orders.includes(ORDER_INCLUDES).order(created_at: :desc)
     if params[:status].present?
       orders = orders.where(status: params[:status])
     else
       orders = orders.where.not(status: "pending_payment")
     end
     orders = orders.where(payment_status: %w[succeeded refunded]) unless params[:status] == "pending_payment"
-    render json: { orders: orders.map { |order| order_payload(order) } }
+    render json: { orders: serialize_orders(orders, audience: :staff) }
   end
 
   def show
-    order = Current.shop.orders.find(params[:id])
+    order = Current.shop.orders.includes(ORDER_INCLUDES).find(params[:id])
 
     if staff_for_current_shop?
-      render json: { order: order_payload(order) }
-    elsif order.customer_phone.present? && order.customer_phone == params[:customer_phone]
-      render json: { order: order_payload(order) }
+      render json: { order: order_payload(order, audience: :staff) }
+    elsif guest_token_matches?(order) || customer_owns_order?(order)
+      render json: { order: order_payload(order, audience: :guest) }
     else
       render json: { error: "Forbidden" }, status: :forbidden
     end
@@ -54,12 +63,13 @@ class OrdersController < ApplicationController
 
   def create
     return if performed?
+    return unless ensure_shop_can_accept_order!
 
     items = validate_order_items
     return if items.nil?
 
     pickup_time, pickup_slot = validate_pickup_time_and_slot
-    return if pickup_time.nil? && order_params[:pickup_type] == "scheduled"
+    return if pickup_time.nil? && (order_params[:pickup_type] || "asap") == "scheduled"
 
     ActiveRecord::Base.transaction do
       customer = find_or_build_customer
@@ -71,7 +81,8 @@ class OrdersController < ApplicationController
       end
 
       reserve_pickup_slot!(order, pickup_slot, pickup_time) if order.pickup_type_scheduled?
-      render json: { order: order_payload(order.reload) }, status: :created
+      saved = Current.shop.orders.includes(ORDER_INCLUDES).find(order.id)
+      render json: { order: order_payload(saved, audience: :guest) }, status: :created
     rescue PickupSlot::CapacityExceeded
       render json: { errors: [ "Selected pickup slot is full" ] }, status: :unprocessable_entity
       raise ActiveRecord::Rollback
@@ -83,12 +94,12 @@ class OrdersController < ApplicationController
     new_status = params.dig(:order, :status)
 
     if new_status.blank?
-      render json: { errors: ["Status is required"] }, status: :unprocessable_entity
+      render json: { errors: [ "Status is required" ] }, status: :unprocessable_entity
       return
     end
 
     unless order.staff_can_transition_to?(new_status)
-      render json: { errors: ["Cannot transition from #{order.status} to #{new_status}"] }, status: :unprocessable_entity
+      render json: { errors: [ "Cannot transition from #{order.status} to #{new_status}" ] }, status: :unprocessable_entity
       return
     end
 
@@ -99,7 +110,8 @@ class OrdersController < ApplicationController
       create_status_event(order, old_status, new_status)
       create_ready_notification(order) if new_status == "ready"
     end
-    render json: { order: order_payload(order) }
+    saved = Current.shop.orders.includes(ORDER_INCLUDES).find(order.id)
+    render json: { order: order_payload(saved, audience: :staff) }
   rescue ActiveRecord::RecordNotFound
     render json: { error: "Order not found" }, status: :not_found
   end
@@ -124,60 +136,50 @@ class OrdersController < ApplicationController
     current_user.present? && order.shop.shop_members.exists?(user_id: current_user.id)
   end
 
+  def customer_owns_order?(order)
+    current_user.present? && order.customer&.user_id == current_user.id
+  end
+
+  def ensure_shop_can_accept_order!
+    reason = Current.shop.checkout_blocked_reason(order_params[:pickup_type].presence || "asap")
+    return true if reason.nil?
+
+    message = reason == "not_accepting" ? "Shop is not accepting pickup orders" : "Shop is closed"
+    render json: { error: reason, errors: [ message ] }, status: :unprocessable_entity
+    false
+  end
+
   def validate_order_items
-    items = []
-
-    order_items_params.each do |item_data|
-      menu_item = Current.shop.menu_items.find_by(id: item_data[:menu_item_id], is_active: true, is_86ed: false)
-      unless menu_item
-        render json: { errors: ["Menu item is not available"] }, status: :unprocessable_entity
-        return nil
-      end
-
-      quantity = item_data[:quantity].to_i
-      if quantity < 1
-        render json: { errors: ["Quantity must be at least 1"] }, status: :unprocessable_entity
-        return nil
-      end
-
-      modifier_ids = Array(item_data[:modifier_option_ids]).map(&:to_s).reject(&:blank?)
-      invalid_modifier_id = modifier_ids.find do |moid|
-        !menu_item.modifier_groups.joins(:modifier_options).exists?(modifier_options: { id: moid })
-      end
-
-      if invalid_modifier_id
-        render json: { errors: ["Modifier does not belong to item"] }, status: :unprocessable_entity
-        return nil
-      end
-
-      modifiers = ModifierOption.where(id: modifier_ids).to_a
-      items << { menu_item: menu_item, quantity: quantity, modifiers: modifiers }
+    checked = CartLineCheck.inspect_items(Current.shop, order_items_params)
+    if checked.empty?
+      render json: { error: "empty", errors: [ "Add at least one item" ] }, status: :unprocessable_entity
+      return nil
     end
 
-    items
+    blocked = checked.find { |line| !line[:available] }
+    if blocked
+      code = blocked[:unavailable_reason] == "modifier_unavailable" ? "modifier_unavailable" : "item_unavailable"
+      message = code == "modifier_unavailable" ? "Modifier does not belong to item" : "Menu item is not available"
+      render json: { error: code, errors: [ message ] }, status: :unprocessable_entity
+      return nil
+    end
+
+    checked
   end
 
   def find_or_build_customer
-    phone = order_params[:customer_phone]
-    name = order_params[:customer_name]
+    return nil unless current_user
 
-    if current_user.present?
-      customer = Customer.find_or_initialize_by(user_id: current_user.id)
-      customer.phone = phone if phone.present?
-      customer.name = name if name.present?
-      customer.save!
-      return customer
+    customer = Customer.find_or_initialize_by(user_id: current_user.id)
+    if customer.name.blank? && order_params[:customer_name].present?
+      customer.name = order_params[:customer_name]
     end
-
-    return nil if phone.blank?
-
-    customer = Customer.find_or_initialize_by(phone: phone, user_id: nil)
-    customer.name = name if name.present?
     customer.save!
     customer
   end
 
   def build_order(customer, items, pickup_time)
+    quote = OrderPricing.quote(Current.shop, items)
     order = Current.shop.orders.build(
       customer: customer,
       status: "pending_payment",
@@ -190,43 +192,29 @@ class OrdersController < ApplicationController
       special_instructions: order_params[:special_instructions]
     )
 
-    subtotal_cents = 0
-
-    items.each do |data|
+    items.each_with_index do |data, index|
+      priced = quote[:lines][index]
       menu_item = data[:menu_item]
-      modifiers = data[:modifiers]
-      quantity = data[:quantity]
-
-      modifiers_total_cents = modifiers.sum(&:price_cents)
-      unit_price_cents = menu_item.price_cents + modifiers_total_cents
-      line_subtotal_cents = unit_price_cents * quantity
-
       order_item = order.order_items.build(
         item: menu_item,
         item_name_snapshot: menu_item.name,
-        unit_price_cents: unit_price_cents,
-        quantity: quantity,
-        subtotal_cents: line_subtotal_cents
+        unit_price_cents: priced.unit_price_cents,
+        quantity: data[:quantity],
+        subtotal_cents: priced.subtotal_cents
       )
 
-      modifiers.each do |option|
+      data[:modifiers].each do |option|
         order_item.order_item_modifiers.build(
           option: option,
           option_name_snapshot: option.name,
           price_cents: option.price_cents
         )
       end
-
-      subtotal_cents += line_subtotal_cents
     end
 
-    tax_cents = (subtotal_cents * Current.shop.tax_rate).round
-    total_cents = Current.shop.tax_included ? subtotal_cents : subtotal_cents + tax_cents
-
-    order.subtotal_cents = subtotal_cents
-    order.tax_cents = tax_cents
-    order.total_cents = total_cents
-
+    order.subtotal_cents = quote[:subtotal_cents]
+    order.tax_cents = quote[:tax_cents]
+    order.total_cents = quote[:total_cents]
     order
   end
 
@@ -237,14 +225,14 @@ class OrdersController < ApplicationController
     time_string = order_params[:pickup_slot_start_time]
 
     if date_string.blank? || time_string.blank?
-      render json: { errors: ["Pickup date and time are required for scheduled orders"] }, status: :unprocessable_entity
+      render json: { errors: [ "Pickup date and time are required for scheduled orders" ] }, status: :unprocessable_entity
       return [ nil, nil ]
     end
 
     begin
       slot_date = Date.parse(date_string)
     rescue ArgumentError
-      render json: { errors: ["Invalid pickup date"] }, status: :unprocessable_entity
+      render json: { errors: [ "Invalid pickup date" ] }, status: :unprocessable_entity
       return [ nil, nil ]
     end
 
@@ -255,24 +243,24 @@ class OrdersController < ApplicationController
         pickup_time = Time.zone.local(slot_date.year, slot_date.month, slot_date.day, hour, min)
       end
     rescue ArgumentError
-      render json: { errors: ["Invalid pickup time"] }, status: :unprocessable_entity
+      render json: { errors: [ "Invalid pickup time" ] }, status: :unprocessable_entity
       return [ nil, nil ]
     end
 
     unless Current.shop.open_at?(pickup_time)
-      render json: { errors: ["Selected time is outside operating hours"] }, status: :unprocessable_entity
+      render json: { errors: [ "Selected time is outside operating hours" ] }, status: :unprocessable_entity
       return [ nil, nil ]
     end
 
     min_time = Time.zone.now + Current.shop.prep_time_buffer_minutes.minutes
     if pickup_time < min_time
-      render json: { errors: ["Pickup time must be at least #{Current.shop.prep_time_buffer_minutes} minutes from now"] }, status: :unprocessable_entity
+      render json: { errors: [ "Pickup time must be at least #{Current.shop.prep_time_buffer_minutes} minutes from now" ] }, status: :unprocessable_entity
       return [ nil, nil ]
     end
 
     slot = Current.shop.pickup_slots.find_by(slot_date: slot_date, start_time: pickup_time)
     if slot && SlotReservation.where(slot_id: slot.id).count >= slot.capacity
-      render json: { errors: ["Selected pickup slot is full"] }, status: :unprocessable_entity
+      render json: { errors: [ "Selected pickup slot is full" ] }, status: :unprocessable_entity
       return [ nil, nil ]
     end
 
@@ -323,8 +311,30 @@ class OrdersController < ApplicationController
     end
   end
 
-  def order_payload(order)
-    {
+  def serialize_orders(orders, audience:)
+    records = orders.to_a
+    active_ids = PickupEstimate.active_order_ids(Current.shop)
+    records.map { |order| order_payload(order, audience: audience, active_ids: active_ids) }
+  end
+
+  def order_payload(order, audience:, active_ids: nil)
+    shop = shop_for(order)
+    active_ids ||= PickupEstimate.active_order_ids(shop)
+    queue_count = PickupEstimate.queue_count_for(active_ids, order.id)
+    minutes = PickupEstimate.minutes_for(
+      shop: shop,
+      lines: PickupEstimate.lines_for(order),
+      queue_count: queue_count
+    )
+    window = PickupEstimate.window_for(
+      shop: shop,
+      minutes: minutes,
+      pickup_type: order.pickup_type,
+      pickup_time: order.pickup_time,
+      pickup_slot: order.pickup_slot
+    )
+
+    payload = {
       id: order.id,
       shop_id: order.shop_id,
       customer_id: order.customer_id,
@@ -339,19 +349,41 @@ class OrdersController < ApplicationController
       pickup_time: order.pickup_time,
       pickup_slot: order.pickup_slot ? pickup_slot_payload(order.pickup_slot) : nil,
       customer_name: order.customer_name,
-      customer_phone: order.customer_phone,
       special_instructions: order.special_instructions,
-      estimated_ready_minutes: estimated_ready_minutes(order.shop),
+      estimated_ready_minutes: minutes,
+      pickup_window_starts_at: window[:starts_at]&.iso8601,
+      pickup_window_ends_at: window[:ends_at]&.iso8601,
+      item_count: order.order_items.sum { |order_item| order_item.quantity },
+      shop: shop_snippet(shop),
       created_at: order.created_at,
       updated_at: order.updated_at,
       items: order.order_items.map { |order_item| order_item_payload(order_item) }
     }
+
+    if audience == :staff
+      payload[:customer_phone] = order.customer_phone
+    else
+      payload[:access_token] = order.guest_access_token
+    end
+
+    payload
   end
 
-  def estimated_ready_minutes(shop)
-    active_orders_count = shop.orders.where(status: %w[received preparing]).count
-    base_minutes = shop.prep_time_buffer_minutes + shop.menu_items.where(is_active: true, is_86ed: false).minimum(:prep_time_min).to_i
-    [base_minutes + active_orders_count, 60].min
+  def shop_for(order)
+    Current.shop&.id == order.shop_id ? Current.shop : order.shop
+  end
+
+  def shop_snippet(shop)
+    {
+      id: shop.id,
+      name: shop.name,
+      slug: shop.slug,
+      address: shop.address,
+      lat: shop.lat&.to_f,
+      lng: shop.lng&.to_f,
+      timezone: shop.timezone,
+      directions_url: shop.directions_url
+    }
   end
 
   def pickup_slot_payload(slot)
@@ -383,5 +415,47 @@ class OrdersController < ApplicationController
       option_name_snapshot: modifier.option_name_snapshot,
       price_cents: modifier.price_cents
     }
+  end
+
+  def usual_order_payload(result)
+    order = result.order
+    lines = order.order_items.map { |order_item| usual_line_payload(order_item) }
+    {
+      source_order_id: order.id,
+      times_ordered: result.times_ordered,
+      label: lines.map { |line| line[:label] }.join(", "),
+      can_reorder: lines.any? { |line| line[:available] },
+      items: lines
+    }
+  end
+
+  def usual_line_payload(order_item)
+    checked = CartLineCheck.inspect_item(
+      Current.shop,
+      {
+        menu_item_id: order_item.item_id,
+        quantity: order_item.quantity,
+        modifier_option_ids: order_item.order_item_modifiers.map(&:option_id)
+      }
+    )
+    modifier_names = order_item.order_item_modifiers.map(&:option_name_snapshot)
+    {
+      menu_item_id: order_item.item_id,
+      name: order_item.item_name_snapshot,
+      image_url: checked[:image_url],
+      quantity: order_item.quantity,
+      modifier_option_ids: checked[:modifier_option_ids],
+      modifier_names: modifier_names,
+      label: item_label(order_item.item_name_snapshot, modifier_names),
+      available: checked[:available],
+      unavailable_reason: checked[:unavailable_reason]
+    }
+  end
+
+  def item_label(name, modifier_names)
+    return name if modifier_names.empty?
+
+    joiner = Current.shop.locale == "en" ? "with" : "con"
+    "#{name} #{joiner} #{modifier_names.join(", ")}"
   end
 end

@@ -2,9 +2,9 @@ class MenuItem < ApplicationRecord
   include TenantScoped
 
   belongs_to :category, class_name: "MenuCategory", optional: true
-  has_many :item_modifier_links, dependent: :destroy
+  has_many :item_modifier_links, foreign_key: :item_id, dependent: :destroy
   has_many :modifier_groups, through: :item_modifier_links, source: :group
-  has_many :order_items, dependent: :restrict_with_error
+  has_many :order_items, foreign_key: :item_id, dependent: :restrict_with_error
   has_many :customer_favorites, dependent: :destroy
 
   validates :name, presence: true

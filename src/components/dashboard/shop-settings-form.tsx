@@ -26,6 +26,7 @@ export function ShopSettingsForm({ shopId, shop }: { shopId: string; shop: Shop 
   const [slotCapacity, setSlotCapacity] = useState(shop.slot_capacity)
   const [prepBuffer, setPrepBuffer] = useState(shop.prep_time_buffer_minutes)
   const [maxDaysAhead, setMaxDaysAhead] = useState(shop.max_days_ahead)
+  const [acceptingPickup, setAcceptingPickup] = useState(shop.accepting_pickup !== false)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
 
@@ -41,6 +42,7 @@ export function ShopSettingsForm({ shopId, shop }: { shopId: string; shop: Shop 
         slot_capacity: slotCapacity,
         prep_time_buffer_minutes: prepBuffer,
         max_days_ahead: maxDaysAhead,
+        accepting_pickup: acceptingPickup,
       })
       setMessage('Cambios guardados')
     } catch (err) {
@@ -51,7 +53,7 @@ export function ShopSettingsForm({ shopId, shop }: { shopId: string; shop: Shop 
   }
 
   function updateDay(key: keyof OperatingHours, patch: Partial<OperatingHoursDay>) {
-    setHours((prev) => ({ ...prev, [key]: { ...prev[key], ...patch } }))
+    setHours((prev) => ({ ...prev, [key]: { ...(prev[key] ?? DEFAULT_DAY), ...patch } }))
   }
 
   return (
@@ -62,13 +64,27 @@ export function ShopSettingsForm({ shopId, shop }: { shopId: string; shop: Shop 
           <CardDescription>Define cuándo pueden hacer pedidos programados tus clientes.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {DAYS.map(({ key, label }) => (
+          <label className="flex items-center gap-3 rounded-xl border border-border bg-surface p-4">
+            <input
+              type="checkbox"
+              checked={acceptingPickup}
+              onChange={(event) => setAcceptingPickup(event.target.checked)}
+              className="h-5 w-5 rounded border-border text-accent"
+            />
+            <span>
+              <span className="block font-semibold text-foreground">Tomar pedidos para recoger</span>
+              <span className="block text-sm text-muted-foreground">Desactívalo si hoy no puedes preparar pedidos.</span>
+            </span>
+          </label>
+          {DAYS.map(({ key, label }) => {
+            const day = hours[key] ?? DEFAULT_DAY
+            return (
             <div key={key} className="flex flex-col gap-3 rounded-xl border border-border bg-surface p-4 sm:flex-row sm:items-center">
               <div className="flex items-center gap-3 sm:w-32">
                 <input
                   id={`${key}-open`}
                   type="checkbox"
-                  checked={hours[key].is_open}
+                  checked={day.is_open}
                   onChange={(e) => updateDay(key, { is_open: e.target.checked })}
                   className="h-5 w-5 rounded border-border text-accent"
                 />
@@ -85,8 +101,8 @@ export function ShopSettingsForm({ shopId, shop }: { shopId: string; shop: Shop 
                   <Input
                     id={`${key}-start`}
                     type="time"
-                    value={hours[key].open}
-                    disabled={!hours[key].is_open}
+                    value={day.open}
+                    disabled={!day.is_open}
                     onChange={(e) => updateDay(key, { open: e.target.value })}
                     className="mt-1"
                   />
@@ -98,15 +114,16 @@ export function ShopSettingsForm({ shopId, shop }: { shopId: string; shop: Shop 
                   <Input
                     id={`${key}-end`}
                     type="time"
-                    value={hours[key].close}
-                    disabled={!hours[key].is_open}
+                    value={day.close}
+                    disabled={!day.is_open}
                     onChange={(e) => updateDay(key, { close: e.target.value })}
                     className="mt-1"
                   />
                 </div>
               </div>
             </div>
-          ))}
+            )
+          })}
         </CardContent>
       </Card>
 

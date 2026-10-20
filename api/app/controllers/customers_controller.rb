@@ -7,10 +7,7 @@ class CustomersController < ApplicationController
 
   def update
     customer = current_customer
-    new_phone = customer_params[:phone]
-
     if customer.update(customer_params)
-      merge_guest_orders!(customer, new_phone) if new_phone.present? && new_phone != customer.phone_before_last_save
       render json: { customer: customer_payload(customer) }
     else
       render json: { errors: customer.errors.full_messages }, status: :unprocessable_entity
@@ -32,14 +29,6 @@ class CustomersController < ApplicationController
   end
 
   private
-
-  def merge_guest_orders!(customer, phone)
-    guest = Customer.find_by(phone: phone, user_id: nil)
-    return unless guest
-
-    guest.orders.update_all(customer_id: customer.id)
-    guest.destroy
-  end
 
   def current_customer
     return @current_customer if defined?(@current_customer)

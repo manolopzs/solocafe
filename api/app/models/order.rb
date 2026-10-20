@@ -76,4 +76,20 @@ class Order < ApplicationRecord
   def release_slot!
     slot_reservation&.destroy!
   end
+
+  GUEST_ACCESS_PURPOSE = "guest_access"
+  GUEST_ACCESS_TTL = 14.days
+
+  def guest_access_token
+    signed_id(purpose: GUEST_ACCESS_PURPOSE, expires_in: GUEST_ACCESS_TTL)
+  end
+
+  def self.locate_by_guest_access_token(token)
+    return nil if token.blank?
+
+    verified_id = signed_id_verifier.verified(token, purpose: combine_signed_id_purposes(GUEST_ACCESS_PURPOSE))
+    return nil if verified_id.blank?
+
+    unscoped.find_by(id: verified_id)
+  end
 end

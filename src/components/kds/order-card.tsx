@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
 import { Icon } from '@/components/ui/icon'
-import type { Order, OrderItem } from '@/types'
+import type { Order, OrderItem, OrderStatus } from '@/types'
 
 const statusLabels: Record<string, string> = {
   pending_payment: 'Pendiente de pago',
@@ -25,7 +25,7 @@ const statusVariants: Record<string, 'default' | 'secondary' | 'warning' | 'succ
   cancelled: 'danger',
 }
 
-const nextActions: Record<string, { status: string; label: string } | null> = {
+const nextActions: Record<string, { status: OrderStatus; label: string } | null> = {
   received: { status: 'preparing', label: 'Preparar' },
   preparing: { status: 'ready', label: 'Listo' },
   ready: { status: 'picked_up', label: 'Entregado' },
@@ -35,14 +35,15 @@ const nextActions: Record<string, { status: string; label: string } | null> = {
 
 function useNow(interval = 1000) {
   const [now, setNow] = useState(0)
-  const [mounted, setMounted] = useState(false)
   useEffect(() => {
-    setMounted(true)
-    setNow(Date.now())
-    const id = setInterval(() => setNow(Date.now()), interval)
-    return () => clearInterval(id)
+    const kick = window.setTimeout(() => setNow(Date.now()), 0)
+    const id = window.setInterval(() => setNow(Date.now()), interval)
+    return () => {
+      window.clearTimeout(kick)
+      window.clearInterval(id)
+    }
   }, [interval])
-  return mounted ? now : 0
+  return now
 }
 
 function getElapsedMinutes(createdAt: string, now: number) {
@@ -149,7 +150,7 @@ export function OrderCard({
             size="lg"
             className="h-14 w-full text-xl font-bold touch-manipulation sm:h-16 sm:text-2xl"
             loading={isPending}
-            onClick={() => startTransition(() => updateOrderStatus(shopId, order.id, action.status as any))}
+            onClick={() => startTransition(() => updateOrderStatus(shopId, order.id, action.status))}
           >
             {action.label}
           </Button>

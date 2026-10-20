@@ -80,6 +80,51 @@ class Shop < ApplicationRecord
     end
   end
 
+  def open_now?
+    open_at?(Time.current)
+  end
+
+  def ordering_status
+    return "not_accepting" unless accepting_pickup?
+    return "closed" unless open_now?
+
+    "open"
+  end
+
+  def today_hours
+    Time.use_zone(timezone) { hours_for(Time.zone.today) }
+  end
+
+  def ordering_payload
+    today = today_hours || {}
+    {
+      open_now: open_now?,
+      accepting_pickup: accepting_pickup?,
+      asap_available: accepting_pickup? && open_now?,
+      status: ordering_status,
+      today: {
+        is_open: ActiveModel::Type::Boolean.new.cast(today["is_open"]) == true,
+        open: today["open"],
+        close: today["close"]
+      }
+    }
+  end
+
+  def checkout_blocked_reason(pickup_type)
+    return "not_accepting" unless accepting_pickup?
+    return "shop_closed" if pickup_type.to_s != "scheduled" && !open_now?
+
+    nil
+  end
+
+  def directions_url
+    if lat.present? && lng.present?
+      "https://www.google.com/maps/search/?api=1&query=#{lat},#{lng}"
+    elsif address.present?
+      "https://www.google.com/maps/search/?api=1&query=#{CGI.escape(address)}"
+    end
+  end
+
   def available_slots_for(date)
     slots = generate_slots_for(date)
     return [] if slots.empty?

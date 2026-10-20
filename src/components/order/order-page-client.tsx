@@ -1,26 +1,37 @@
 'use client'
 
-import { useState, useMemo, useRef, useEffect } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { createOrder } from '@/server/actions/orders'
-import { getPublicPickupSlots } from '@/server/queries/menu'
 import { addFavorite, removeFavorite } from '@/server/queries/favorites'
 import { api } from '@/lib/api/client'
 import type { FullMenu } from '@/server/queries/menu'
-import { Button } from '@/components/ui/button'
+import { checkoutBlockedCopy, formatMoney, orderErrorCopy } from '@/lib/ordering'
 import { Icon } from '@/components/ui/icon'
-import { Sheet } from '@/components/ui/sheet'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-import { Badge } from '@/components/ui/badge'
-import type { Shop, MenuCategory, MenuItem, ModifierGroup, ModifierOption, ItemModifierLink, Customer, Order, PickupSlot } from '@/types'
-
-interface CartLine {
-  item: MenuItem
-  quantity: number
-  modifiers: ModifierOption[]
-}
+import { BagBar } from '@/components/order/bag-bar'
+import { CartSheet, type CartViewLine } from '@/components/order/cart-sheet'
+import { CategoryTabs } from '@/components/order/category-tabs'
+import { CheckoutSheet } from '@/components/order/checkout-sheet'
+import { ItemSheet } from '@/components/order/item-sheet'
+import { ProductCard } from '@/components/order/product-card'
+import { ShopStatusBadge, ShopStatusBanner } from '@/components/order/shop-status'
+import { UsualOrderButton } from '@/components/order/usual-order-button'
+import { useCartPreview } from '@/components/order/hooks/use-cart-preview'
+import { useCategorySpy } from '@/components/order/hooks/use-category-spy'
+import { useShopCart, type StoredCartLine } from '@/components/order/hooks/use-shop-cart'
+import type {
+  Customer,
+  MenuCategory,
+  MenuItem,
+  ModifierGroup,
+  ModifierOption,
+  ItemModifierLink,
+  Order,
+  Shop,
+  ShopOrdering,
+  UsualOrder,
+} from '@/types'
 
 export function OrderPageClient({
   shop,
@@ -34,6 +45,8 @@ export function OrderPageClient({
   reorderCount,
   favoriteIds: initialFavoriteIds,
   recentOrders,
+  usualOrder,
+  livePreview = true,
   onCreateOrder,
 }: {
   shop: Shop
@@ -47,6 +60,8 @@ export function OrderPageClient({
   reorderCount: number
   favoriteIds: string[]
   recentOrders: Order[]
+  usualOrder?: UsualOrder | null
+  livePreview?: boolean
   onCreateOrder?: (input: {
     shop_id: string
     customer_name: string
@@ -59,102 +74,121 @@ export function OrderPageClient({
   }) => Promise<void> | void
 }) {
   const [items, setItems] = useState<MenuItem[]>(initialItems)
+  const [menuOrdering, setMenuOrdering] = useState<ShopOrdering | undefined>(undefined)
   const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set(initialFavoriteIds))
-  const [cart, setCart] = useState<CartLine[]>([])
+  const reorderLines = useMemo(() => (reorderOrder ? linesFromOrder(reorderOrder) : null), [reorderOrder])
+  const cart = useShopCart(shop.id, reorderLines)
   const [activeItem, setActiveItem] = useState<MenuItem | null>(null)
-  const [selectedModifiers, setSelectedModifiers] = useState<Record<string, string[]>>({})
-  const [customerName, setCustomerName] = useState(customer?.name ?? '')
-  const [customerPhone, setCustomerPhone] = useState(customer?.phone ?? '')
-  const [specialInstructions, setSpecialInstructions] = useState('')
-  const [pickupType, setPickupType] = useState<'asap' | 'scheduled'>('asap')
-  const [selectedDate, setSelectedDate] = useState<string>(() => formatDateInput(new Date()))
-  const [slots, setSlots] = useState<PickupSlot[]>([])
-  const [selectedSlot, setSelectedSlot] = useState<PickupSlot | null>(null)
-  const [slotsLoading, setSlotsLoading] = useState(false)
+  const [pickupChoice, setPickupChoice] = useState<'asap' | 'scheduled' | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [cartOpen, setCartOpen] = useState(false)
-  const [activeCategory, setActiveCategory] = useState<string>(categories[0]?.id ?? '')
+  const [notice, setNotice] = useState<string | null>(null)
+  const [cartOpen, setCartOpen] = useState(() => (reorderLines?.length ?? 0) > 0)
+  const [checkoutOpen, setCheckoutOpen] = useState(false)
   const [addedItemId, setAddedItemId] = useState<string | null>(null)
+  const ordering = menuOrdering ?? shop.ordering
+  const pickupType: 'asap' | 'scheduled' =
+    ordering && !ordering.asap_available && ordering.accepting_pickup ? 'scheduled' : (pickupChoice ?? 'asap')
+  const { preview, loading: previewLoading } = useCartPreview(shop.id, cart.lines, pickupType, livePreview)
+  const liveOrdering = preview?.ordering ?? ordering
 
   useEffect(() => {
-    if (!reorderOrder?.items || reorderOrder.items.length === 0) return
-
-    const initialLines: CartLine[] = []
-    for (const orderItem of reorderOrder.items) {
-      const menuItem = items.find((i) => i.id === orderItem.item_id)
-      if (!menuItem || menuItem.is_active === false || menuItem.is_86ed) continue
-
-      const selected: Record<string, string[]> = {}
-      const chosenModifiers: ModifierOption[] = []
-      for (const mod of orderItem.modifiers ?? []) {
-        const option = modifierOptions.find((o) => o.id === mod.option_id)
-        if (!option) continue
-        const group = modifierGroups.find((g) => g.id === option.group_id)
-        if (!group) continue
-        selected[group.id] = [...(selected[group.id] ?? []), option.id]
-        chosenModifiers.push(option)
+    const refreshMenu = async () => {
+      try {
+        const data = await api.get<FullMenu & { shop?: { ordering?: ShopOrdering } }>(
+          `/public/shops/${shop.id}/menu`,
+          false
+        )
+        setItems(data.items)
+        if (data.shop?.ordering) setMenuOrdering(data.shop.ordering)
+      } catch {
+        // The next poll can recover.
       }
-
-      initialLines.push({
-        item: menuItem,
-        quantity: orderItem.quantity,
-        modifiers: chosenModifiers,
-      })
     }
 
-    if (initialLines.length > 0) {
-      setCart(initialLines)
-      setCartOpen(true)
-    }
-  }, [reorderOrder, items, modifierGroups, modifierOptions])
-
-  const categoryRefs = useRef<Record<string, HTMLDivElement | null>>({})
-  const navRef = useRef<HTMLDivElement>(null)
+    const interval = setInterval(() => void refreshMenu(), 15000)
+    return () => clearInterval(interval)
+  }, [shop.id])
 
   const groupsForItem = (itemId: string) => {
-    const linkIds = itemModifierLinks.filter((l) => l.item_id === itemId).map((l) => l.group_id)
-    return modifierGroups.filter((g) => linkIds.includes(g.id))
+    const linkIds = itemModifierLinks.filter((link) => link.item_id === itemId).map((link) => link.group_id)
+    return modifierGroups.filter((group) => linkIds.includes(group.id))
   }
 
-  const optionsForGroup = (groupId: string) => {
-    return modifierOptions.filter((o) => o.group_id === groupId)
-  }
+  const optionsForGroup = (groupId: string) => modifierOptions.filter((option) => option.group_id === groupId)
 
-  const hasModifiers = (itemId: string) => groupsForItem(itemId).length > 0
+  const formatPrice = useCallback((cents: number) => formatMoney(cents, shop.currency), [shop.currency])
 
-  const addToCart = (item: MenuItem, quantity: number) => {
-    const groupIds = groupsForItem(item.id).map((g) => g.id)
-    const chosen: ModifierOption[] = []
-    for (const gid of groupIds) {
-      const selected = selectedModifiers[gid] ?? []
-      for (const optId of selected) {
-        const option = modifierOptions.find((o) => o.id === optId)
-        if (option) chosen.push(option)
+  const viewLines: CartViewLine[] = useMemo(() => {
+    return cart.lines.map((line, index) => {
+      const item = items.find((candidate) => candidate.id === line.itemId)
+      const modifiers = line.modifierIds
+        .map((id) => modifierOptions.find((option) => option.id === id))
+        .filter((option): option is ModifierOption => Boolean(option))
+      const remote = preview?.lines[index]
+      const catalogUnit = (item?.price_cents ?? 0) + modifiers.reduce((sum, option) => sum + option.price_cents, 0)
+      const lineCents = remote?.line_total_cents ?? catalogUnit * line.quantity
+      return {
+        key: `${line.itemId}:${line.modifierIds.join(',')}:${index}`,
+        name: item?.name ?? remote?.name ?? 'Producto',
+        detail: modifiers.map((option) => option.name).join(', '),
+        quantity: line.quantity,
+        lineTotal: formatPrice(lineCents),
+        unavailable: remote ? !remote.available : false,
       }
-    }
-
-    setCart((prev) => {
-      const existing = prev.find(
-        (l) =>
-          l.item.id === item.id &&
-          JSON.stringify(l.modifiers.map((m) => m.id).sort()) ===
-            JSON.stringify(chosen.map((m) => m.id).sort())
-      )
-      if (existing) {
-        return prev.map((l) => (l === existing ? { ...l, quantity: l.quantity + quantity } : l))
-      }
-      return [...prev, { item, quantity, modifiers: chosen }]
     })
-    setActiveItem(null)
-    setSelectedModifiers({})
-    setAddedItemId(item.id)
-    setTimeout(() => setAddedItemId((id) => (id === item.id ? null : id)), 900)
-  }
+  }, [cart.lines, items, modifierOptions, preview, formatPrice])
 
-  const removeLine = (index: number) => {
-    setCart((prev) => prev.filter((_, i) => i !== index))
-  }
+  const itemCount = cart.lines.reduce((sum, line) => sum + line.quantity, 0)
+  const catalogTotal = cart.lines.reduce((sum, line) => {
+    const item = items.find((candidate) => candidate.id === line.itemId)
+    const modifiers = line.modifierIds
+      .map((id) => modifierOptions.find((option) => option.id === id))
+      .filter((option): option is ModifierOption => Boolean(option))
+    const unit = (item?.price_cents ?? 0) + modifiers.reduce((total, option) => total + option.price_cents, 0)
+    return sum + unit * line.quantity
+  }, 0)
+  const totalCents = livePreview && preview ? preview.total_cents : catalogTotal
+  const blockedReason = !livePreview
+    ? null
+    : itemCount === 0
+      ? 'empty'
+      : previewLoading && !preview
+        ? 'checking'
+        : preview?.checkout_blocked_reason ?? null
+  const blockedCopy = itemCount === 0 ? null : checkoutBlockedCopy(blockedReason)
+
+  const itemsByCategory = useMemo(() => {
+    const map = new Map<string, MenuItem[]>()
+    for (const category of categories) {
+      map.set(category.id, items.filter((item) => item.category_id === category.id && item.is_active && !item.is_86ed))
+    }
+    map.set(
+      'uncategorized',
+      items.filter((item) => !item.category_id && item.is_active && !item.is_86ed)
+    )
+    return map
+  }, [categories, items])
+
+  const visibleCategories = useMemo(
+    () => categories.filter((category) => (itemsByCategory.get(category.id) ?? []).length > 0),
+    [categories, itemsByCategory]
+  )
+  const uncategorizedItems = itemsByCategory.get('uncategorized') ?? []
+  const navItems = useMemo(
+    () => [
+      ...visibleCategories,
+      ...(uncategorizedItems.length > 0 ? [{ id: 'uncategorized', name: 'Otros', shop_id: shop.id, sort_order: 99, is_active: true, created_at: '' } satisfies MenuCategory] : []),
+    ],
+    [visibleCategories, uncategorizedItems.length, shop.id]
+  )
+  const categoryIds = useMemo(() => navItems.map((category) => category.id), [navItems])
+  const { activeId, scrollTo, setRef } = useCategorySpy(categoryIds)
+
+  const favoriteItems = useMemo(
+    () => items.filter((item) => favoriteIds.has(item.id) && item.is_active && !item.is_86ed),
+    [items, favoriteIds]
+  )
 
   const toggleFavorite = async (itemId: string) => {
     if (!customer) return
@@ -166,11 +200,8 @@ export function OrderPageClient({
       return next
     })
     try {
-      if (isFavorite) {
-        await removeFavorite(shop.id, itemId)
-      } else {
-        await addFavorite(shop.id, itemId)
-      }
+      if (isFavorite) await removeFavorite(shop.id, itemId)
+      else await addFavorite(shop.id, itemId)
     } catch {
       setFavoriteIds((prev) => {
         const next = new Set(prev)
@@ -181,216 +212,71 @@ export function OrderPageClient({
     }
   }
 
+  const addToCart = (item: MenuItem, quantity: number, modifierIds: string[]) => {
+    cart.add(item.id, quantity, modifierIds)
+    setActiveItem(null)
+    setAddedItemId(item.id)
+    setTimeout(() => setAddedItemId((id) => (id === item.id ? null : id)), 900)
+  }
+
   const reorderRecent = (order: Order) => {
-    const lines: CartLine[] = []
-    for (const orderItem of order.items ?? []) {
-      const menuItem = items.find((i) => i.id === orderItem.item_id)
-      if (!menuItem || menuItem.is_active === false || menuItem.is_86ed) continue
-
-      const chosenModifiers: ModifierOption[] = []
-      for (const mod of orderItem.modifiers ?? []) {
-        const option = modifierOptions.find((o) => o.id === mod.option_id)
-        if (option) chosenModifiers.push(option)
-      }
-
-      lines.push({ item: menuItem, quantity: orderItem.quantity, modifiers: chosenModifiers })
-    }
-
-    if (lines.length > 0) {
-      setCart(lines)
-      setCartOpen(true)
-    }
+    const next = linesFromOrder(order)
+    if (next.length === 0) return
+    cart.replace(next)
+    setCartOpen(true)
   }
 
-  const updateQuantity = (index: number, delta: number) => {
-    setCart((prev) =>
-      prev
-        .map((line, i) => (i === index ? { ...line, quantity: Math.max(0, line.quantity + delta) } : line))
-        .filter((line) => line.quantity > 0)
+  const orderUsual = () => {
+    if (!usualOrder?.can_reorder) return
+    const available = usualOrder.items.filter((item) => item.available)
+    if (available.length === 0) return
+    cart.replace(
+      available.map((item) => ({
+        itemId: item.menu_item_id,
+        quantity: item.quantity,
+        modifierIds: item.modifier_option_ids,
+      }))
     )
+    setNotice(available.length < usualOrder.items.length ? 'Quitamos lo que ya no está disponible.' : null)
+    setCartOpen(false)
+    setCheckoutOpen(true)
   }
 
-  const totalCents = useMemo(
-    () =>
-      cart.reduce((sum, line) => {
-        const modifierTotal = line.modifiers.reduce((m, mod) => m + mod.price_cents, 0)
-        return sum + (line.item.price_cents + modifierTotal) * line.quantity
-      }, 0),
-    [cart]
-  )
-
-  const totalItems = useMemo(() => cart.reduce((sum, line) => sum + line.quantity, 0), [cart])
-
-  const handleSubmit = async () => {
-    if (!customerName.trim()) {
-      setError('Ingresa tu nombre para continuar')
-      return
-    }
-    if (pickupType === 'scheduled' && !selectedSlot) {
-      setError('Selecciona un horario de recogida')
-      return
-    }
+  const handleSubmit = async (input: {
+    customerName: string
+    customerPhone: string
+    specialInstructions: string
+    pickupType: 'asap' | 'scheduled'
+    pickupSlotDate?: string
+    pickupSlotStartTime?: string
+  }) => {
     setLoading(true)
     setError(null)
-
+    const payload = {
+      shop_id: shop.id,
+      customer_name: input.customerName,
+      customer_phone: input.customerPhone,
+      pickup_type: input.pickupType,
+      pickup_slot_date: input.pickupSlotDate,
+      pickup_slot_start_time: input.pickupSlotStartTime,
+      special_instructions: input.specialInstructions,
+      items: cart.lines.map((line) => ({
+        menu_item_id: line.itemId,
+        quantity: line.quantity,
+        modifier_option_ids: line.modifierIds,
+      })),
+    }
     try {
-      const input = {
-        shop_id: shop.id,
-        customer_name: customerName.trim(),
-        customer_phone: customerPhone.trim(),
-        pickup_type: pickupType,
-        pickup_slot_date: pickupType === 'scheduled' ? selectedDate : undefined,
-        pickup_slot_start_time: pickupType === 'scheduled' ? selectedSlot?.start_time : undefined,
-        special_instructions: specialInstructions.trim(),
-        items: cart.map((line) => ({
-          menu_item_id: line.item.id,
-          quantity: line.quantity,
-          modifier_option_ids: line.modifiers.map((m) => m.id),
-        })),
-      }
-      if (onCreateOrder) {
-        await onCreateOrder(input)
-      } else {
-        await createOrder(input)
-      }
+      if (onCreateOrder) await onCreateOrder(payload)
+      else await createOrder(payload)
     } catch (err) {
       setLoading(false)
-      setError(err instanceof Error ? err.message : 'Error al crear el pedido')
+      setError(orderErrorCopy(err instanceof Error ? err.message : ''))
     }
   }
-
-  const itemsByCategory = useMemo(() => {
-    const map = new Map<string, MenuItem[]>()
-    for (const category of categories) {
-      map.set(category.id, items.filter((i) => i.category_id === category.id && i.is_active && !i.is_86ed))
-    }
-    map.set(
-      'uncategorized',
-      items.filter((i) => !i.category_id && i.is_active && !i.is_86ed)
-    )
-    return map
-  }, [categories, items])
-
-  const visibleCategories = useMemo(() => {
-    return categories.filter((c) => (itemsByCategory.get(c.id) ?? []).length > 0)
-  }, [categories, itemsByCategory])
-
-  const uncategorizedItems = itemsByCategory.get('uncategorized') ?? []
-
-  const scrollToCategory = (categoryId: string) => {
-    setActiveCategory(categoryId)
-    const el = categoryRefs.current[categoryId]
-    if (el) {
-      const offset = 120
-      const top = el.getBoundingClientRect().top + window.scrollY - offset
-      window.scrollTo({ top, behavior: 'smooth' })
-    }
-  }
-
-  useEffect(() => {
-    if (!activeCategory && visibleCategories.length > 0) {
-      setActiveCategory(visibleCategories[0].id)
-    }
-  }, [visibleCategories, activeCategory])
-
-  useEffect(() => {
-    if (pickupType !== 'scheduled') {
-      setSlots([])
-      setSelectedSlot(null)
-      return
-    }
-
-    let cancelled = false
-    setSlotsLoading(true)
-    getPublicPickupSlots(shop.id, selectedDate)
-      .then((data) => {
-        if (cancelled) return
-        setSlots(data)
-        setSelectedSlot((prev) => {
-          if (prev && data.find((s) => s.start_time === prev.start_time)) return prev
-          return data.find((s) => s.available > 0) ?? null
-        })
-      })
-      .catch(() => {
-        if (cancelled) return
-        setSlots([])
-        setSelectedSlot(null)
-      })
-      .finally(() => {
-        if (cancelled) return
-        setSlotsLoading(false)
-      })
-
-    return () => { cancelled = true }
-  }, [pickupType, selectedDate, shop.id])
-
-  useEffect(() => {
-    const handleScroll = () => {
-      const scrollPos = window.scrollY + 150
-      let current = visibleCategories[0]?.id ?? ''
-      for (const category of visibleCategories) {
-        const el = categoryRefs.current[category.id]
-        if (el && el.offsetTop <= scrollPos) {
-          current = category.id
-        }
-      }
-      if (uncategorizedItems.length > 0) {
-        const el = categoryRefs.current['uncategorized']
-        if (el && el.offsetTop <= scrollPos) {
-          current = 'uncategorized'
-        }
-      }
-      setActiveCategory(current)
-    }
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [visibleCategories, uncategorizedItems.length])
-
-  useEffect(() => {
-    const refreshMenu = async () => {
-      try {
-        const data = await api.get<FullMenu>(`/public/shops/${shop.id}/menu`, false)
-        setItems(data.items)
-      } catch {
-        // ignore polling errors
-      }
-    }
-
-    const interval = setInterval(refreshMenu, 15000)
-    return () => clearInterval(interval)
-  }, [shop.id])
-
-  const formatPrice = (cents: number) => {
-    return `${shop.currency} ${(cents / 100).toFixed(2)}`
-  }
-
-  function formatDateInput(date: Date) {
-    const year = date.getFullYear()
-    const month = String(date.getMonth() + 1).padStart(2, '0')
-    const day = String(date.getDate()).padStart(2, '0')
-    return `${year}-${month}-${day}`
-  }
-
-  function addDays(date: Date, days: number) {
-    const next = new Date(date)
-    next.setDate(next.getDate() + days)
-    return next
-  }
-
-  const navItems = useMemo(
-    () => [
-      ...visibleCategories,
-      ...(uncategorizedItems.length > 0 ? [{ id: 'uncategorized', name: 'Otros' } as MenuCategory] : []),
-    ],
-    [visibleCategories, uncategorizedItems.length]
-  )
-
-  const favoriteItems = useMemo(
-    () => items.filter((item) => favoriteIds.has(item.id) && item.is_active && !item.is_86ed),
-    [items, favoriteIds]
-  )
 
   const brandColor = shop.brand_color || '#c17c5b'
+  const sheetsOpen = cartOpen || checkoutOpen
 
   return (
     <div className="min-h-screen bg-background pb-40">
@@ -404,7 +290,7 @@ export function OrderPageClient({
             <div className="flex items-start gap-3 sm:gap-4">
               {shop.logo_url ? (
                 <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-2xl border-2 border-white bg-white shadow-md sm:h-20 sm:w-20">
-                  <Image src={shop.logo_url} alt={shop.name} fill className="object-cover" />
+                  <Image src={shop.logo_url} alt={shop.name} fill sizes="80px" className="object-cover" />
                 </div>
               ) : (
                 <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl border-2 border-white bg-white shadow-md sm:h-20 sm:w-20">
@@ -421,17 +307,8 @@ export function OrderPageClient({
                   </p>
                 )}
                 <div className="mt-2 flex flex-wrap items-center gap-2 sm:mt-3">
-                  <Badge variant="success" className="gap-1.5 pl-2 text-xs sm:text-sm">
-                    <span className="h-1.5 w-1.5 rounded-full bg-success" />
-                    Abierto
-                  </Badge>
-                  <Badge variant="secondary" className="text-xs sm:text-sm">Para recoger</Badge>
-                  {shop.estimated_ready_minutes !== undefined && (
-                    <Badge variant="secondary" className="gap-1.5 text-xs sm:text-sm">
-                      <Icon name="clock" className="h-3 w-3" />
-                      Listo en ~{shop.estimated_ready_minutes} min
-                    </Badge>
-                  )}
+                  <ShopStatusBadge ordering={liveOrdering} />
+                  <span className="text-xs font-medium text-muted-foreground">Para recoger</span>
                 </div>
               </div>
             </div>
@@ -446,10 +323,20 @@ export function OrderPageClient({
         </div>
       </header>
 
+      <ShopStatusBanner ordering={liveOrdering} hours={shop.operating_hours} />
+
+      {usualOrder && <UsualOrderButton usual={usualOrder} onOrder={orderUsual} />}
+
+      {notice && (
+        <div className="mx-auto max-w-3xl px-4 pt-3 sm:px-5">
+          <p className="rounded-xl border border-accent/20 bg-accent/10 px-4 py-3 text-sm font-medium text-foreground">{notice}</p>
+        </div>
+      )}
+
       {reorderCount > 0 && (
         <div className="mx-auto max-w-3xl px-4 py-2 sm:px-5">
           <div className="rounded-xl border border-accent/20 bg-accent/10 px-4 py-3 text-sm font-medium text-foreground">
-            Se agregaron {reorderCount} productos de tu pedido anterior. Revisa tu carrito.
+            Agregamos {reorderCount} productos de tu pedido anterior. Revisa tu pedido.
           </div>
         </div>
       )}
@@ -465,10 +352,10 @@ export function OrderPageClient({
                 className="snap-start shrink-0 rounded-xl border border-border bg-surface p-3 text-left transition-colors hover:bg-surface-elevated"
               >
                 <p className="text-xs font-semibold text-muted-foreground">
-                  {order.items?.reduce((sum, i) => sum + i.quantity, 0)} productos
+                  {order.item_count ?? order.items?.reduce((sum, item) => sum + item.quantity, 0)} productos
                 </p>
                 <p className="mt-1 line-clamp-1 text-sm font-bold text-foreground">
-                  {order.items?.map((i) => i.item_name_snapshot).join(', ')}
+                  {order.items?.map((item) => item.item_name_snapshot).join(', ')}
                 </p>
                 <p className="mt-1 text-xs text-accent">
                   {formatPrice(order.total_cents)} · Reordenar
@@ -487,7 +374,7 @@ export function OrderPageClient({
               <button
                 key={item.id}
                 onClick={() => setActiveItem(item)}
-                className="snap-start shrink-0 w-32 rounded-xl border border-border bg-surface p-2 text-left transition-colors hover:bg-surface-elevated"
+                className="w-32 shrink-0 snap-start rounded-xl border border-border bg-surface p-2 text-left transition-colors hover:bg-surface-elevated"
               >
                 <div className="relative aspect-square w-full overflow-hidden rounded-lg bg-surface">
                   {item.image_url ? (
@@ -506,51 +393,25 @@ export function OrderPageClient({
         </section>
       )}
 
-      <div className="sticky top-0 z-30 border-b border-border bg-background/95 backdrop-blur-md">
-        <div className="mx-auto max-w-3xl">
-          <div
-            ref={navRef}
-            className="flex snap-x snap-mandatory gap-2 overflow-x-auto scroll-smooth px-4 py-3 no-scrollbar touch-pan-y sm:px-5"
-          >
-            {navItems.map((category) => (
-              <button
-                key={category.id}
-                onClick={() => scrollToCategory(category.id)}
-                className={[
-                  'snap-start shrink-0 rounded-full px-3.5 py-2 text-sm font-semibold transition-all duration-200 touch-manipulation',
-                  activeCategory === category.id
-                    ? 'bg-foreground text-primary-foreground shadow-sm'
-                    : 'bg-surface text-foreground hover:bg-secondary',
-                ].join(' ')}
-              >
-                {category.name}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
+      <CategoryTabs categories={navItems} activeId={activeId} onSelect={scrollTo} />
 
       <main className="mx-auto max-w-3xl px-5 py-7">
         {visibleCategories.map((category) => {
           const categoryItems = itemsByCategory.get(category.id) ?? []
           if (categoryItems.length === 0) return null
           return (
-            <section
-              key={category.id}
-              ref={(el: HTMLDivElement | null) => { categoryRefs.current[category.id] = el }}
-              className="mb-12"
-            >
+            <section key={category.id} ref={setRef(category.id)} className="mb-12">
               <h2 className="text-lg font-bold tracking-tight text-foreground sm:text-xl">{category.name}</h2>
-              <div className="mt-4 grid grid-cols-2 gap-3 sm:mt-5 sm:gap-4 sm:grid-cols-3">
+              <div className="mt-4 grid grid-cols-2 gap-3 sm:mt-5 sm:grid-cols-3 sm:gap-4">
                 {categoryItems.map((item) => (
                   <ProductCard
                     key={item.id}
                     item={item}
-                    customizable={hasModifiers(item.id)}
+                    customizable={groupsForItem(item.id).length > 0}
                     isFavorite={favoriteIds.has(item.id)}
                     showFavorite={customer !== null}
                     onClick={() => setActiveItem(item)}
-                    onToggleFavorite={() => toggleFavorite(item.id)}
+                    onToggleFavorite={() => void toggleFavorite(item.id)}
                     formatPrice={formatPrice}
                     highlight={addedItemId === item.id}
                   />
@@ -561,21 +422,18 @@ export function OrderPageClient({
         })}
 
         {uncategorizedItems.length > 0 && (
-          <section
-            ref={(el: HTMLDivElement | null) => { categoryRefs.current['uncategorized'] = el }}
-            className="mb-12"
-          >
+          <section ref={setRef('uncategorized')} className="mb-12">
             <h2 className="text-lg font-bold tracking-tight text-foreground sm:text-xl">Otros</h2>
-            <div className="mt-4 grid grid-cols-2 gap-3 sm:mt-5 sm:gap-4 sm:grid-cols-3">
+            <div className="mt-4 grid grid-cols-2 gap-3 sm:mt-5 sm:grid-cols-3 sm:gap-4">
               {uncategorizedItems.map((item) => (
                 <ProductCard
                   key={item.id}
                   item={item}
-                  customizable={hasModifiers(item.id)}
+                  customizable={groupsForItem(item.id).length > 0}
                   isFavorite={favoriteIds.has(item.id)}
                   showFavorite={customer !== null}
                   onClick={() => setActiveItem(item)}
-                  onToggleFavorite={() => toggleFavorite(item.id)}
+                  onToggleFavorite={() => void toggleFavorite(item.id)}
                   formatPrice={formatPrice}
                   highlight={addedItemId === item.id}
                 />
@@ -586,483 +444,60 @@ export function OrderPageClient({
       </main>
 
       {activeItem && (
-        <ProductSheet
+        <ItemSheet
           item={activeItem}
           groups={groupsForItem(activeItem.id)}
           optionsForGroup={optionsForGroup}
-          selected={selectedModifiers}
-          onChange={setSelectedModifiers}
-          onClose={() => {
-            setActiveItem(null)
-            setSelectedModifiers({})
-          }}
-          onAdd={(quantity) => addToCart(activeItem, quantity)}
+          onClose={() => setActiveItem(null)}
+          onAdd={(quantity, modifierIds) => addToCart(activeItem, quantity, modifierIds)}
           formatPrice={formatPrice}
         />
       )}
 
-      <Sheet open={cartOpen} onClose={() => setCartOpen(false)} title="Tu pedido" position="bottom" className="flex flex-col">
-        <div className="flex h-full flex-col">
-          {cart.length === 0 ? (
-            <div className="flex flex-1 flex-col items-center justify-center py-10 text-center text-muted-foreground">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-surface">
-                <Icon name="cart" className="h-8 w-8" />
-              </div>
-              <p className="mt-4 font-medium text-foreground">Tu carrito está vacío</p>
-              <p className="mt-1 text-sm">Agrega productos para comenzar tu pedido.</p>
-            </div>
-          ) : (
-            <>
-              <div className="flex-1 space-y-6 overflow-y-auto">
-                <div className="space-y-3">
-                  {cart.map((line, idx) => (
-                    <div key={idx} className="flex items-start gap-3 rounded-xl border border-border bg-surface p-3">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-background text-sm font-bold text-foreground">
-                        {line.quantity}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="font-semibold text-foreground">{line.item.name}</p>
-                        {line.modifiers.length > 0 && (
-                          <p className="text-sm text-muted-foreground">
-                            {line.modifiers.map((m) => m.name).join(', ')}
-                          </p>
-                        )}
-                        <p className="mt-1 text-sm font-bold text-foreground">
-                          {formatPrice((line.item.price_cents + line.modifiers.reduce((s, m) => s + m.price_cents, 0)) * line.quantity)}
-                        </p>
-                      </div>
-                      <div className="flex flex-col items-end gap-2">
-                        <button
-                          onClick={() => removeLine(idx)}
-                          className="rounded-lg p-2 text-muted-foreground hover:bg-surface hover:text-danger touch-manipulation"
-                          aria-label="Eliminar"
-                        >
-                          <Icon name="trash" className="h-4 w-4" />
-                        </button>
-                        <div className="flex items-center gap-1">
-                          <button
-                            onClick={() => updateQuantity(idx, -1)}
-                            className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-background text-foreground hover:bg-surface touch-manipulation"
-                            aria-label="Disminuir"
-                          >
-                            <Icon name="minus" className="h-3.5 w-3.5" />
-                          </button>
-                          <span className="w-6 text-center text-sm font-bold">{line.quantity}</span>
-                          <button
-                            onClick={() => updateQuantity(idx, 1)}
-                            className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-background text-foreground hover:bg-surface touch-manipulation"
-                            aria-label="Aumentar"
-                          >
-                            <Icon name="plus" className="h-3.5 w-3.5" />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+      <CartSheet
+        open={cartOpen}
+        onClose={() => setCartOpen(false)}
+        lines={viewLines}
+        total={formatPrice(totalCents)}
+        blockedCopy={blockedCopy}
+        onQuantity={(index, quantity) => cart.setQuantity(index, quantity)}
+        onRemove={(index) => cart.remove(index)}
+        onCheckout={() => {
+          setCartOpen(false)
+          setCheckoutOpen(true)
+        }}
+      />
 
-                <div className="rounded-xl border border-border bg-surface p-4">
-                  <div className="flex items-center justify-between text-base font-bold text-foreground">
-                    <span>Total</span>
-                    <span>{formatPrice(totalCents)}</span>
-                  </div>
-                </div>
+      <CheckoutSheet
+        open={checkoutOpen}
+        onClose={() => setCheckoutOpen(false)}
+        shop={{ ...shop, ordering: liveOrdering }}
+        customer={customer}
+        total={formatPrice(totalCents)}
+        blockedReason={blockedReason}
+        pickupType={pickupType}
+        onPickupType={setPickupChoice}
+        loading={loading}
+        error={error}
+        onSubmit={(input) => void handleSubmit(input)}
+      />
 
-                {!customer && (
-                  <div className="rounded-xl border border-border bg-surface p-4 text-sm">
-                    <p className="text-foreground">
-                      ¿Quieres guardar este pedido y reordenar más rápido?{' '}
-                      <Link href="/account/signup" className="font-bold text-accent hover:underline">
-                        Crea una cuenta
-                      </Link>
-                    </p>
-                  </div>
-                )}
-
-                <div className="space-y-3">
-                  <div>
-                    <label htmlFor="customerName" className="block text-sm font-semibold text-foreground">
-                      Nombre
-                    </label>
-                    <Input
-                      id="customerName"
-                      type="text"
-                      value={customerName}
-                      onChange={(e) => setCustomerName(e.target.value)}
-                      placeholder="¿Cómo te llaman?"
-                      className="mt-1.5"
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="customerPhone" className="block text-sm font-semibold text-foreground">
-                      Teléfono
-                    </label>
-                    <Input
-                      id="customerPhone"
-                      type="tel"
-                      value={customerPhone}
-                      onChange={(e) => setCustomerPhone(e.target.value)}
-                      placeholder="Para avisarte cuando esté listo"
-                      className="mt-1.5"
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="instructions" className="block text-sm font-semibold text-foreground">
-                      Instrucciones especiales
-                    </label>
-                    <Textarea
-                      id="instructions"
-                      value={specialInstructions}
-                      onChange={(e) => setSpecialInstructions(e.target.value)}
-                      placeholder="Ej: menos hielo, sin azúcar"
-                      rows={2}
-                      className="mt-1.5 resize-none"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <p className="block text-sm font-semibold text-foreground">Tipo de recogida</p>
-                  <div className="mt-1.5 grid grid-cols-2 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setPickupType('asap')}
-                      className={[
-                        'rounded-xl border px-4 py-3 text-left text-sm transition-all',
-                        pickupType === 'asap'
-                          ? 'border-foreground bg-foreground text-primary-foreground'
-                          : 'border-border bg-surface-elevated text-foreground hover:bg-surface',
-                      ].join(' ')}
-                    >
-                      <span className="block font-bold">Lo antes posible</span>
-                      <span className="block text-xs opacity-80">Preparamos tu pedido ya</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setPickupType('scheduled')}
-                      className={[
-                        'rounded-xl border px-4 py-3 text-left text-sm transition-all',
-                        pickupType === 'scheduled'
-                          ? 'border-foreground bg-foreground text-primary-foreground'
-                          : 'border-border bg-surface-elevated text-foreground hover:bg-surface',
-                      ].join(' ')}
-                    >
-                      <span className="block font-bold">Programado</span>
-                      <span className="block text-xs opacity-80">Elige horario</span>
-                    </button>
-                  </div>
-                </div>
-
-                {pickupType === 'scheduled' && (
-                  <div className="space-y-3">
-                    <div>
-                      <label htmlFor="pickupDate" className="block text-sm font-semibold text-foreground">
-                        Fecha
-                      </label>
-                      <Input
-                        id="pickupDate"
-                        type="date"
-                        value={selectedDate}
-                        min={formatDateInput(new Date())}
-                        max={formatDateInput(addDays(new Date(), shop.max_days_ahead))}
-                        onChange={(e) => {
-                          setSelectedDate(e.target.value)
-                          setSelectedSlot(null)
-                        }}
-                        className="mt-1.5"
-                      />
-                    </div>
-
-                    <div>
-                      <p className="block text-sm font-semibold text-foreground">Horario</p>
-                      {slotsLoading ? (
-                        <p className="mt-1.5 text-sm text-muted-foreground">Cargando horarios...</p>
-                      ) : slots.length === 0 ? (
-                        <p className="mt-1.5 text-sm text-muted-foreground">No hay horarios disponibles para esta fecha.</p>
-                      ) : (
-                        <div className="mt-1.5 grid grid-cols-3 gap-2">
-                          {slots.map((slot) => (
-                            <button
-                              key={slot.start_time}
-                              type="button"
-                              disabled={slot.available <= 0}
-                              onClick={() => setSelectedSlot(slot)}
-                              className={[
-                                'rounded-xl border px-2 py-2.5 text-center text-sm transition-all touch-manipulation',
-                                selectedSlot?.start_time === slot.start_time
-                                  ? 'border-foreground bg-foreground text-primary-foreground'
-                                  : slot.available <= 0
-                                    ? 'border-border bg-surface text-muted-foreground'
-                                    : 'border-border bg-surface-elevated text-foreground hover:bg-surface',
-                              ].join(' ')}
-                            >
-                              <span className="block font-bold">{slot.start_time}</span>
-                              {slot.available <= 0 && <span className="block text-[0.6rem]">Lleno</span>}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {error && (
-                  <div className="flex items-start gap-2 rounded-lg bg-danger/10 p-3 text-sm text-danger">
-                    <Icon name="x" className="mt-0.5 h-4 w-4 shrink-0" />
-                    {error}
-                  </div>
-                )}
-              </div>
-
-              <div className="sticky bottom-0 -mx-6 -mb-6 mt-6 border-t border-border bg-surface-elevated p-4 sm:p-6">
-                <Button onClick={handleSubmit} disabled={cart.length === 0} loading={loading} size="lg" className="w-full touch-manipulation">
-                  Pagar {formatPrice(totalCents)}
-                </Button>
-              </div>
-            </>
-          )}
-        </div>
-      </Sheet>
-
-      <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-surface-elevated/95 p-4 shadow-lg backdrop-blur-md safe-bottom">
-        <div className="mx-auto max-w-3xl">
-          <Button
-            onClick={() => setCartOpen(true)}
-            disabled={cart.length === 0}
-            size="lg"
-            className="w-full touch-manipulation"
-          >
-            <span className="flex items-center gap-2">
-              <Icon name="cart" className="h-5 w-5" />
-              Ver pedido
-              {totalItems > 0 && (
-                <span className="rounded-full bg-primary-foreground/20 px-2.5 py-0.5 text-sm font-bold">{totalItems}</span>
-              )}
-            </span>
-            <span className="ml-auto font-bold">{formatPrice(totalCents)}</span>
-          </Button>
-        </div>
-      </div>
+      {!sheetsOpen && (
+        <BagBar
+          count={itemCount}
+          total={formatPrice(totalCents)}
+          etaMinutes={livePreview && pickupType === 'asap' ? preview?.estimated_ready_minutes : undefined}
+          onOpen={() => setCartOpen(true)}
+        />
+      )}
     </div>
   )
 }
 
-function ProductCard({
-  item,
-  customizable,
-  isFavorite,
-  showFavorite,
-  onClick,
-  onToggleFavorite,
-  formatPrice,
-  highlight,
-}: {
-  item: MenuItem
-  customizable: boolean
-  isFavorite: boolean
-  showFavorite: boolean
-  onClick: () => void
-  onToggleFavorite: () => void
-  formatPrice: (cents: number) => string
-  highlight?: boolean
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={[
-        'group flex flex-col overflow-hidden rounded-2xl border border-border bg-surface-elevated text-left transition-all duration-200 touch-manipulation',
-        'hover:shadow-lg hover:border-border/80 active:scale-[0.98]',
-        highlight ? 'ring-2 ring-accent ring-offset-2' : '',
-      ].join(' ')}
-    >
-      <div className="relative aspect-square w-full overflow-hidden bg-surface">
-        {item.image_url ? (
-          <Image
-            src={item.image_url}
-            alt={item.name}
-            fill
-            className="object-cover transition-transform duration-300 group-hover:scale-105"
-            sizes="(max-width: 640px) 50vw, 33vw"
-          />
-        ) : (
-          <div className="flex h-full w-full flex-col items-center justify-center gap-2 bg-gradient-to-br from-surface to-surface-elevated text-muted-foreground">
-            <Icon name="coffee" className="h-8 w-8 opacity-30" />
-          </div>
-        )}
-        {customizable && (
-          <span className="absolute right-2 top-2 rounded-full bg-background/90 px-2 py-0.5 text-[0.6rem] font-bold text-foreground shadow-sm backdrop-blur-sm">
-            Personalizable
-          </span>
-        )}
-        {showFavorite && (
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation()
-              onToggleFavorite()
-            }}
-            className="absolute left-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-background/90 text-foreground shadow-sm backdrop-blur-sm transition-colors hover:bg-background active:scale-90 touch-manipulation"
-            aria-label={isFavorite ? 'Quitar de favoritos' : 'Agregar a favoritos'}
-          >
-            <Icon
-              name="heart"
-              className={[
-                'h-4 w-4 transition-colors',
-                isFavorite ? 'fill-danger text-danger' : 'text-muted-foreground',
-              ].join(' ')}
-            />
-          </button>
-        )}
-      </div>
-      <div className="flex flex-1 flex-col p-2.5 sm:p-3">
-        <h3 className="text-sm font-bold leading-tight text-foreground sm:text-base">{item.name}</h3>
-        {item.description && (
-          <p className="mt-0.5 line-clamp-2 text-[0.65rem] text-muted-foreground sm:mt-1 sm:text-xs">{item.description}</p>
-        )}
-        <p className="mt-auto pt-2 text-sm font-bold text-foreground">{formatPrice(item.price_cents)}</p>
-      </div>
-    </button>
-  )
-}
-
-function ProductSheet({
-  item,
-  groups,
-  optionsForGroup,
-  selected,
-  onChange,
-  onClose,
-  onAdd,
-  formatPrice,
-}: {
-  item: MenuItem
-  groups: ModifierGroup[]
-  optionsForGroup: (groupId: string) => ModifierOption[]
-  selected: Record<string, string[]>
-  onChange: (s: Record<string, string[]>) => void
-  onClose: () => void
-  onAdd: (quantity: number) => void
-  formatPrice: (cents: number) => string
-}) {
-  const [quantity, setQuantity] = useState(1)
-  const [adding, setAdding] = useState(false)
-
-  const handleAdd = () => {
-    setAdding(true)
-    onAdd(quantity)
-    setTimeout(() => setAdding(false), 300)
-  }
-
-  const toggleOption = (groupId: string, optionId: string, maxSelect: number) => {
-    const current = selected[groupId] ?? []
-    if (current.includes(optionId)) {
-      onChange({ ...selected, [groupId]: current.filter((id) => id !== optionId) })
-    } else {
-      const next = maxSelect === 1 ? [optionId] : [...current, optionId]
-      onChange({ ...selected, [groupId]: next.slice(0, maxSelect) })
-    }
-  }
-
-  const itemTotal =
-    item.price_cents +
-    groups.reduce((sum, group) => {
-      const groupOptions = optionsForGroup(group.id)
-      const selectedIds = selected[group.id] ?? []
-      return (
-        sum +
-        selectedIds.reduce((s, id) => {
-          const opt = groupOptions.find((o) => o.id === id)
-          return s + (opt?.price_cents ?? 0)
-        }, 0)
-      )
-    }, 0)
-
-  return (
-    <Sheet open onClose={onClose} position="bottom">
-      <div className="flex flex-col">
-        <div className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl bg-surface sm:aspect-[16/10]">
-          {item.image_url ? (
-            <Image src={item.image_url} alt={item.name} fill className="object-cover" />
-          ) : (
-            <div className="flex h-full w-full flex-col items-center justify-center gap-2 bg-surface text-muted-foreground">
-              <Icon name="utensils" className="h-16 w-16 opacity-30" />
-            </div>
-          )}
-          <button
-            onClick={onClose}
-            className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-background/90 text-foreground shadow-sm backdrop-blur-sm transition-colors hover:bg-background touch-manipulation"
-            aria-label="Cerrar"
-          >
-            <Icon name="x" className="h-5 w-5" />
-          </button>
-        </div>
-
-        <div className="mt-4 sm:mt-5">
-          <h2 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">{item.name}</h2>
-          <p className="text-base font-bold text-foreground sm:text-lg">{formatPrice(item.price_cents)}</p>
-          {item.description && <p className="mt-1 text-sm text-muted-foreground">{item.description}</p>}
-        </div>
-
-        {groups.map((group) => (
-          <div key={group.id} className="mt-5">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold text-foreground">{group.name}</h3>
-              {group.max_select > 1 && (
-                <span className="text-xs text-muted-foreground">Selecciona hasta {group.max_select}</span>
-              )}
-            </div>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {optionsForGroup(group.id).map((option) => {
-                const isSelected = (selected[group.id] ?? []).includes(option.id)
-                return (
-                  <button
-                    key={option.id}
-                    onClick={() => toggleOption(group.id, option.id, group.max_select)}
-                    className={[
-                      'rounded-full px-3.5 py-2 text-sm font-semibold transition-all touch-manipulation',
-                      isSelected
-                        ? 'bg-foreground text-primary-foreground'
-                        : 'bg-surface text-foreground hover:bg-secondary border border-border',
-                    ].join(' ')}
-                  >
-                    {option.name}
-                    {option.price_cents > 0 && (
-                      <span className="ml-1.5 opacity-80">+{formatPrice(option.price_cents)}</span>
-                    )}
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-        ))}
-
-        <div className="mt-6 flex items-center justify-between rounded-xl border border-border bg-surface p-2">
-          <span className="pl-3 text-sm font-bold text-foreground">Cantidad</span>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-background text-foreground hover:bg-surface"
-              aria-label="Disminuir"
-            >
-              <Icon name="minus" className="h-4 w-4" />
-            </button>
-            <span className="w-6 text-center text-lg font-bold">{quantity}</span>
-            <button
-              onClick={() => setQuantity((q) => q + 1)}
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-background text-foreground hover:bg-surface"
-              aria-label="Aumentar"
-            >
-              <Icon name="plus" className="h-4 w-4" />
-            </button>
-          </div>
-        </div>
-
-        <div className="sticky bottom-0 -mx-6 -mb-6 mt-6 border-t border-border bg-surface-elevated p-4 sm:p-6">
-          <Button onClick={handleAdd} loading={adding} size="lg" className="w-full touch-manipulation">
-            Agregar · {formatPrice(itemTotal * quantity)}
-          </Button>
-        </div>
-      </div>
-    </Sheet>
-  )
+function linesFromOrder(order: Order): StoredCartLine[] {
+  return (order.items ?? []).map((item) => ({
+    itemId: item.item_id,
+    quantity: item.quantity,
+    modifierIds: (item.modifiers ?? []).map((modifier) => modifier.option_id),
+  }))
 }
