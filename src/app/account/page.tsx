@@ -1,8 +1,12 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { getCurrentCustomer } from '@/server/queries/customers'
+import { getSavedCards } from '@/server/queries/payment-methods'
 import { accountLogoutAction } from '@/server/actions/account-auth'
+import { deleteSavedCard } from '@/server/actions/payment-methods'
 import { updateCustomerProfile } from '@/server/actions/customers'
+import { cardExpiry, cardTitle } from '@/lib/cards'
+import type { CustomerPaymentMethod } from '@/types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -14,6 +18,13 @@ export default async function AccountPage() {
 
   if (!customer) {
     redirect('/account/login')
+  }
+
+  let savedCards: CustomerPaymentMethod[] = []
+  try {
+    savedCards = await getSavedCards()
+  } catch {
+    savedCards = []
   }
 
   return (
@@ -61,6 +72,39 @@ export default async function AccountPage() {
                 Guardar cambios
               </Button>
             </form>
+          </CardContent>
+        </Card>
+
+        <Card variant="outline" className="mt-4">
+          <CardHeader>
+            <CardTitle>Tarjetas guardadas</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {savedCards.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                No tienes tarjetas guardadas. Puedes guardar una al pagar tu próximo pedido.
+              </p>
+            ) : (
+              <ul className="space-y-3">
+                {savedCards.map((card) => {
+                  const expiry = cardExpiry(card)
+                  return (
+                    <li key={card.id} className="flex items-center justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="font-medium text-foreground">{cardTitle(card)}</p>
+                        {expiry && <p className="text-sm text-muted-foreground">{expiry}</p>}
+                      </div>
+                      <form action={deleteSavedCard}>
+                        <input type="hidden" name="id" value={card.id} />
+                        <Button type="submit" variant="outline" size="sm">
+                          Eliminar
+                        </Button>
+                      </form>
+                    </li>
+                  )
+                })}
+              </ul>
+            )}
           </CardContent>
         </Card>
 

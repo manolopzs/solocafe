@@ -280,6 +280,20 @@ export interface Customer {
   created_at: string
 }
 
+export interface CustomerPaymentMethod {
+  id: string
+  brand: string | null
+  last4: string | null
+  exp_month: number | null
+  exp_year: number | null
+}
+
+export interface PaymentAttempt {
+  status?: 'succeeded' | 'requires_action' | 'pending' | 'failed' | string
+  client_secret?: string | null
+  stripe_account_id?: string | null
+}
+
 export interface PeakHour {
   hour: number
   count: number

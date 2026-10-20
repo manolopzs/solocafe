@@ -16,13 +16,13 @@ class CustomersController < ApplicationController
 
   def orders
     customer = current_customer
-    orders = customer.orders.order(created_at: :desc).limit(50)
+    orders = Order.across_shops.where(customer: customer).order(created_at: :desc).limit(50)
     render json: { orders: orders.map { |order| order_payload(order) } }
   end
 
   def order
     customer = current_customer
-    order = customer.orders.find(params[:id])
+    order = Order.across_shops.where(customer: customer).find(params[:id])
     render json: { order: order_payload(order) }
   rescue ActiveRecord::RecordNotFound
     render json: { error: "Order not found" }, status: :not_found

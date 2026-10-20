@@ -1,9 +1,12 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getOrderWithItems } from '@/server/queries/orders'
+import { getCurrentCustomer } from '@/server/queries/customers'
+import { getSavedCards } from '@/server/queries/payment-methods'
 import { createPaymentIntent } from '@/server/actions/payments'
 import { CheckoutForm } from '@/components/order/checkout-form'
 import { formatMoney, formatPickupWindow } from '@/lib/ordering'
+import type { CustomerPaymentMethod } from '@/types'
 import { Button } from '@/components/ui/button'
 import { Icon } from '@/components/ui/icon'
 import { Card, CardContent } from '@/components/ui/card'
@@ -45,6 +48,16 @@ export default async function CheckoutPage({ params, searchParams }: CheckoutPag
     )
   }
 
+  const viewer = await getCurrentCustomer()
+  const canSaveCard = Boolean(viewer && order.customer_id && viewer.id === order.customer_id)
+  let savedCards: CustomerPaymentMethod[] = []
+  if (canSaveCard) {
+    try {
+      savedCards = await getSavedCards()
+    } catch {
+      savedCards = []
+    }
+  }
   const clientSecret = await createPaymentIntent(orderId, token)
   const eta =
     order.pickup_window_starts_at && order.pickup_window_ends_at
@@ -148,7 +161,13 @@ export default async function CheckoutPage({ params, searchParams }: CheckoutPag
             <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Pago</p>
           </div>
           <CardContent className="p-5 sm:p-6">
-            <CheckoutForm orderId={orderId} clientSecret={clientSecret} accessToken={token} />
+            <CheckoutForm
+              orderId={orderId}
+              clientSecret={clientSecret}
+              accessToken={token}
+              savedCards={savedCards}
+              canSaveCard={canSaveCard}
+            />
           </CardContent>
         </Card>
       </div>

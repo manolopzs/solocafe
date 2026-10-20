@@ -22,7 +22,7 @@ class OrdersController < ApplicationController
   end
 
   def show_public
-    order = Order.unscoped.includes(ORDER_INCLUDES).find_by(id: params[:id])
+    order = Order.across_shops.includes(ORDER_INCLUDES).find_by(id: params[:id])
     return render json: { error: "Order not found" }, status: :not_found unless order
 
     if staff_for_order?(order)

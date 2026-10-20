@@ -9,6 +9,8 @@ Rails.application.routes.draw do
   patch "/customers/me", to: "customers#update"
   get "/customers/me/orders", to: "customers#orders"
   get "/customers/me/orders/:id", to: "customers#order"
+  get "/customers/me/payment_methods", to: "customer_payment_methods#index"
+  delete "/customers/me/payment_methods/:id", to: "customer_payment_methods#destroy"
 
   resources :shops, only: [:index, :create, :update]
   get "/shops/:slug", to: "shops#show"
@@ -40,5 +42,6 @@ Rails.application.routes.draw do
   get "/public/orders/:id", to: "orders#show_public"
 
   post "/payments", to: "payments#create"
+  post "/payments/sync", to: "payments#sync"
   post "/webhooks/stripe", to: "stripe_webhooks#create"
 end
