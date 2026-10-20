@@ -69,7 +69,7 @@ export default async function AccountOrdersPage() {
                 <p className="mt-4 font-medium text-foreground">Aún no tienes pedidos</p>
                 <p className="mt-1 text-sm">Cuando hagas tu primera orden aparecerá aquí.</p>
                 <Button asChild className="mt-5">
-                  <Link href="/">Explorar cafeterías</Link>
+                  <Link href="/explore">Explorar cafeterías</Link>
                 </Button>
               </CardContent>
             </Card>

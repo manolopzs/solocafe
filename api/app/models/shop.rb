@@ -31,6 +31,7 @@ class Shop < ApplicationRecord
   validates :slug, presence: true, uniqueness: true, format: { with: /\A[a-z0-9-]+\z/ }
   validates :name, presence: true
   validates :currency, inclusion: { in: %w[MXN EUR] }
+  validate :coordinates_are_in_range
   validates :locale, inclusion: { in: %w[es en] }
   validates :slot_duration_minutes, numericality: { greater_than_or_equal_to: 5 }
   validates :slot_capacity, numericality: { only_integer: true, greater_than: 0, less_than_or_equal_to: 500 }
@@ -44,6 +45,33 @@ class Shop < ApplicationRecord
   before_validation :normalize_brand_color
 
   scope :active, -> { where(status: "active") }
+
+  # Spherical haversine, kilometers. Binds are origin latitude, origin latitude, origin longitude.
+  # LEAST ignores NULLs in PostgreSQL, so shops without coordinates are handled before the formula.
+  DISTANCE_SQL = <<~SQL.squish.freeze
+    CASE
+      WHEN shops.lat IS NULL OR shops.lng IS NULL THEN NULL
+      ELSE 2 * 6371.0 * ASIN(SQRT(LEAST(1.0,
+        POWER(SIN(RADIANS(shops.lat - ?) / 2), 2) +
+        COS(RADIANS(?)) * COS(RADIANS(shops.lat)) * POWER(SIN(RADIANS(shops.lng - ?) / 2), 2)
+      )))
+    END AS distance_km
+  SQL
+  DISTANCE_ORDER = Arel.sql("(shops.lat IS NULL OR shops.lng IS NULL) ASC, distance_km ASC NULLS LAST, shops.name ASC")
+
+  def self.explore(lat: nil, lng: nil)
+    TenantScoped.unscoped_for_system do
+      directory = active.with_attached_hero_photo
+      if lat && lng
+        directory
+          .select("shops.*", sanitize_sql_array([ DISTANCE_SQL, lat, lat, lng ]))
+          .order(DISTANCE_ORDER)
+          .to_a
+      else
+        directory.order(:name).to_a
+      end
+    end
+  end
 
   DAY_KEYS = %w[mon tue wed thu fri sat sun].freeze
   TIME_PATTERN = /\A(?:[01]\d|2[0-3]):[0-5]\d\z/
@@ -126,6 +154,15 @@ class Shop < ApplicationRecord
     elsif value.key?(key.to_sym)
       value[key.to_sym]
     end.to_s
+  end
+
+  def coordinates_are_in_range
+    if lat.present? && !lat.between?(-90, 90)
+      errors.add(:base, "La latitud debe estar entre -90 y 90.")
+    end
+    if lng.present? && !lng.between?(-180, 180)
+      errors.add(:base, "La longitud debe estar entre -180 y 180.")
+    end
   end
 
   def operating_hours_are_usable

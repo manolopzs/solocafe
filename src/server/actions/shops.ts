@@ -21,6 +21,8 @@ export interface ShopSettingsInput {
   currency: string
   locale: string
   address?: string
+  lat?: number | null
+  lng?: number | null
   operating_hours: OperatingHours
   slot_duration_minutes: number
   slot_capacity: number

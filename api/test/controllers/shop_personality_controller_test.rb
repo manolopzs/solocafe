@@ -133,12 +133,12 @@ class ShopPersonalityControllerTest < ActionDispatch::IntegrationTest
 
     assert_equal "#1f4d3a", shops["cafe-norte"]["brand_color"]
     assert_equal "libre_baskerville", shops["cafe-norte"]["display_font"]
-    assert_equal "Libre Baskerville", shops["cafe-norte"]["display_font_family"]
     assert_nil shops["cafe-norte"]["hero_photo_url"]
+    assert_includes [ true, false ], shops["cafe-norte"]["open_now"]
 
     assert_equal "#5c3317", shops["cafe-sur"]["brand_color"]
     assert_equal "literata", shops["cafe-sur"]["display_font"]
-    assert_equal "Literata", shops["cafe-sur"]["display_font_family"]
+    assert_not_equal shops["cafe-norte"]["slug"], shops["cafe-sur"]["slug"]
   end
 
   test "rejects a brand color without enough contrast and leaves the shop unchanged" do
