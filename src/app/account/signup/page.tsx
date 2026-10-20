@@ -6,112 +6,76 @@ import { accountSignupAction } from '@/server/actions/account-auth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Icon } from '@/components/ui/icon'
+import { Notice } from '@/components/ui/notice'
 
 export default function AccountSignupPage() {
   const [state, formAction, pending] = useActionState(accountSignupAction, null)
   const [showPassword, setShowPassword] = useState(false)
 
   return (
-    <main className="flex min-h-screen flex-col justify-center bg-surface px-6 py-12">
-      <div className="mx-auto w-full max-w-sm">
-        <Link href="/" className="mb-8 inline-flex items-center gap-2 text-foreground">
-          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-accent text-accent-foreground">
+    <main className="flex min-h-screen flex-col bg-background px-5 py-8">
+      <div className="mx-auto flex w-full max-w-sm flex-1 flex-col">
+        <Link href="/explore" className="inline-flex min-h-11 items-center gap-2.5 text-foreground">
+          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground">
             <Icon name="coffee" className="h-5 w-5" />
           </span>
-          <span className="text-lg font-semibold tracking-tight">Solo Cafe</span>
+          <span className="text-lg font-medium tracking-tight">Solo Cafe</span>
         </Link>
 
-        <Card variant="outline">
-          <CardHeader className="text-center">
-            <CardTitle>Crea tu cuenta</CardTitle>
-            <CardDescription>Guarda tu historial y reordena tus favoritos en segundos.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form action={formAction} className="space-y-4">
-              <div>
-                <Label htmlFor="name">Nombre</Label>
-                <Input
-                  id="name"
-                  name="name"
-                  type="text"
-                  required
-                  placeholder="María González"
-                  className="mt-1.5"
-                />
-              </div>
+        <h1 className="mt-10 text-[2rem] font-medium leading-tight tracking-tight text-foreground">Crea tu cuenta</h1>
+        <p className="mt-2 text-base leading-6 text-muted-foreground">Guarda tu historial y reordena tus favoritos en segundos.</p>
 
-              <div>
-                <Label htmlFor="email">Correo electrónico</Label>
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  required
-                  placeholder="tu@email.com"
-                  className="mt-1.5"
-                />
-              </div>
+        <form action={formAction} className="mt-8 space-y-4">
+          <div>
+            <Label htmlFor="name">Nombre</Label>
+            <Input id="name" name="name" type="text" required autoComplete="name" placeholder="María González" className="mt-1.5" />
+          </div>
+          <div>
+            <Label htmlFor="email">Correo electrónico</Label>
+            <Input id="email" name="email" type="email" required autoComplete="email" placeholder="tu@email.com" className="mt-1.5" />
+          </div>
+          <div>
+            <Label htmlFor="phone">Teléfono</Label>
+            <Input id="phone" name="phone" type="tel" autoComplete="tel" placeholder="Para avisarte cuando esté listo" className="mt-1.5" />
+          </div>
+          <div>
+            <Label htmlFor="password">Contraseña</Label>
+            <div className="relative mt-1.5">
+              <Input
+                id="password"
+                name="password"
+                type={showPassword ? 'text' : 'password'}
+                required
+                minLength={8}
+                autoComplete="new-password"
+                placeholder="Mínimo 8 caracteres"
+                className="pr-12"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                className="absolute right-1 top-1/2 inline-flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full text-muted-foreground hover:text-foreground"
+                aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+              >
+                <Icon name={showPassword ? 'eye-off' : 'eye'} className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
 
-              <div>
-                <Label htmlFor="phone">Teléfono</Label>
-                <Input
-                  id="phone"
-                  name="phone"
-                  type="tel"
-                  placeholder="Para avisarte cuando esté listo"
-                  className="mt-1.5"
-                />
-              </div>
+          {state?.error && <Notice tone="danger">{state.error}</Notice>}
 
-              <div>
-                <Label htmlFor="password">Contraseña</Label>
-                <div className="relative mt-1.5">
-                  <Input
-                    id="password"
-                    name="password"
-                    type={showPassword ? 'text' : 'password'}
-                    required
-                    minLength={8}
-                    placeholder="********"
-                    className="pr-10"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword((prev) => !prev)}
-                    className="absolute right-2 top-1/2 inline-flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:text-foreground"
-                    aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-                  >
-                    <Icon name={showPassword ? 'eye-off' : 'eye'} className="h-4 w-4" />
-                  </button>
-                </div>
-              </div>
+          <Button type="submit" disabled={pending} size="lg" className="w-full">
+            {pending ? 'Creando cuenta...' : 'Crear cuenta gratis'}
+          </Button>
+        </form>
 
-              {state?.error && (
-                <div
-                  role="alert"
-                  aria-live="polite"
-                  className="flex items-start gap-2 rounded-lg border border-danger/20 bg-danger/10 p-3 text-sm text-danger"
-                >
-                  <Icon name="x" className="mt-0.5 h-4 w-4 shrink-0" />
-                  <span>{state.error}</span>
-                </div>
-              )}
-
-              <Button type="submit" disabled={pending} className="w-full">
-                {pending ? 'Creando cuenta...' : 'Crear cuenta gratis'}
-              </Button>
-            </form>
-
-            <p className="mt-5 text-center text-sm text-muted-foreground">
-              ¿Ya tienes cuenta?{' '}
-              <Link href="/account/login" className="font-medium text-accent hover:text-accent/80">
-                Entrar
-              </Link>
-            </p>
-          </CardContent>
-        </Card>
+        <p className="mt-6 text-center text-sm text-muted-foreground">
+          ¿Ya tienes cuenta?{' '}
+          <Link href="/account/login" className="font-medium text-accent underline-offset-2 hover:underline">
+            Entrar
+          </Link>
+        </p>
       </div>
     </main>
   )

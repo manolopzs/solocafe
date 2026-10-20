@@ -30,6 +30,24 @@ export function ShopStatusBadge({ ordering }: { ordering?: ShopOrdering }) {
   )
 }
 
+function WeekHours({ hours }: { hours: OperatingHours }) {
+  return (
+    <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+      {DAY_LABELS.map(({ key, label }) => {
+        const day = hours[key]
+        return (
+          <div key={key} className="rounded-2xl bg-background px-3 py-2">
+            <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
+            <p className="mt-0.5 text-sm text-foreground">
+              {day?.is_open && day.open && day.close ? `${day.open} a ${day.close}` : 'Cerrado'}
+            </p>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
 export function ShopStatusBanner({
   ordering,
   hours,
@@ -40,42 +58,27 @@ export function ShopStatusBanner({
   const today = todayHoursLabel(ordering)
   const paused = ordering?.status === 'not_accepting'
   const closed = ordering?.status === 'closed'
+  const quiet = !paused && !closed
 
   return (
-    <section className="mx-auto max-w-3xl px-4 pt-4 sm:px-5">
-      <div
-        className={[
-          'rounded-2xl border px-4 py-4',
-          paused || closed ? 'border-warning/30 bg-warning/10' : 'border-border bg-surface',
-        ].join(' ')}
-      >
-        <div className="flex items-start gap-3">
-          <Icon name="clock" className="mt-0.5 h-4 w-4 text-muted-foreground" />
-          <div>
-            <p className="text-sm font-semibold text-foreground">
-              {paused ? 'Ahora no tomamos pedidos para recoger' : closed ? 'Cerrado ahora' : 'Abierto para recoger'}
-            </p>
-            <p className="mt-1 text-sm text-muted-foreground">{today}</p>
-            {closed && ordering?.accepting_pickup && (
-              <p className="mt-1 text-sm text-foreground">Puedes programar tu recogida dentro del horario.</p>
-            )}
-          </div>
-        </div>
-        {hours && (
-          <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
-            {DAY_LABELS.map(({ key, label }) => {
-              const day = hours[key]
-              return (
-                <div key={key} className="rounded-xl bg-background/70 px-3 py-2">
-                  <p className="text-[0.65rem] font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
-                  <p className="mt-0.5 text-xs font-medium text-foreground">
-                    {day?.is_open && day.open && day.close ? `${day.open} a ${day.close}` : 'Cerrado'}
-                  </p>
-                </div>
-              )
-            })}
-          </div>
-        )}
+    <section className="mx-auto max-w-3xl px-4 sm:px-5">
+      <div className={quiet ? '' : 'rounded-3xl bg-warning/10 px-4 py-4'}>
+        <details className="group">
+          <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3">
+            <span className="flex min-w-0 items-center gap-2 text-sm text-foreground">
+              <Icon name="clock" className="h-4 w-4 shrink-0 text-muted-foreground" />
+              <span className="truncate">
+                {paused ? 'Ahora no tomamos pedidos para recoger' : closed ? 'Cerrado ahora' : today}
+              </span>
+            </span>
+            {hours && <span className="shrink-0 text-sm font-medium text-accent">Horario</span>}
+          </summary>
+          {!quiet && <p className="mt-1 pl-6 text-sm text-muted-foreground">{today}</p>}
+          {closed && ordering?.accepting_pickup && (
+            <p className="mt-1 pl-6 text-sm text-foreground">Puedes programar tu recogida dentro del horario.</p>
+          )}
+          {hours && <WeekHours hours={hours} />}
+        </details>
       </div>
     </section>
   )

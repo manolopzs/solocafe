@@ -94,7 +94,7 @@ export function Sheet({ open, onClose, title, children, position = 'bottom', cla
         className={[
           'absolute bg-surface-elevated shadow-2xl transition-all duration-300 ease-out',
           isBottom
-            ? 'bottom-0 left-0 right-0 top-auto max-h-[92vh] rounded-t-2xl'
+            ? 'bottom-0 left-0 right-0 top-auto max-h-[92vh] rounded-t-[1.75rem]'
             : isRight
               ? 'right-0 top-0 bottom-0 h-full w-full max-w-md rounded-l-2xl'
               : 'left-1/2 top-1/2 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-2xl',
@@ -124,7 +124,7 @@ export function Sheet({ open, onClose, title, children, position = 'bottom', cla
             <button
               type="button"
               onClick={onClose}
-              className="rounded-full p-2 text-muted-foreground hover:bg-surface hover:text-foreground"
+              className="flex h-11 w-11 items-center justify-center rounded-full text-muted-foreground hover:bg-surface hover:text-foreground"
               aria-label="Cerrar"
             >
               <X className="h-5 w-5" />

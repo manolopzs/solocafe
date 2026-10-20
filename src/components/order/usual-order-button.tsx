@@ -19,7 +19,7 @@ export function UsualOrderButton({
         type="button"
         onClick={onOrder}
         disabled={!usual.can_reorder}
-        className="flex w-full items-center gap-4 rounded-3xl bg-foreground p-3 text-left text-primary-foreground shadow-md transition-transform enabled:active:scale-[0.99] disabled:opacity-70 sm:p-4"
+        className="flex min-h-[4.5rem] w-full items-center gap-4 rounded-3xl bg-primary p-3 text-left text-primary-foreground shadow-md transition-transform enabled:active:scale-[0.99] disabled:opacity-70 sm:p-4"
       >
         <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-2xl bg-white/10">
           {image ? (

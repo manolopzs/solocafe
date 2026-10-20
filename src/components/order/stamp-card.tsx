@@ -20,7 +20,7 @@ export function StampCard({
       <CardContent className="space-y-3 p-5">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Tarjeta de sellos</p>
+            <p className="text-xs font-medium text-muted-foreground">Tarjeta de sellos</p>
             {compact ? (
               <p className="mt-1 font-semibold text-foreground">{loyalty.shop_name}</p>
             ) : (
@@ -46,7 +46,7 @@ export function StampCard({
               <span
                 key={index}
                 className={[
-                  'h-3.5 w-3.5 rounded-full',
+                  'h-4 w-4 rounded-full',
                   index < filled ? 'bg-foreground' : 'border border-border bg-surface',
                 ].join(' ')}
               />

@@ -2,11 +2,20 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getOrderWithItems } from '@/server/queries/orders'
 import { PaymentReturnSync } from '@/components/order/payment-return-sync'
+import { formatMoney } from '@/lib/ordering'
 import { Button } from '@/components/ui/button'
 import { Icon } from '@/components/ui/icon'
-import { Card, CardContent } from '@/components/ui/card'
 
 export const instant = false
+
+const statusLabels: Record<string, string> = {
+  pending_payment: 'Pendiente de pago',
+  received: 'Recibido',
+  preparing: 'Preparando',
+  ready: 'Listo',
+  picked_up: 'Entregado',
+  cancelled: 'Cancelado',
+}
 
 export default async function CheckoutSuccessPage({
   params,
@@ -20,62 +29,43 @@ export default async function CheckoutSuccessPage({
   const order = await getOrderWithItems(orderId, token)
   if (!order || !token) notFound()
 
-  const statusLabels: Record<string, string> = {
-    pending_payment: 'Pendiente de pago',
-    received: 'Recibido',
-    preparing: 'Preparando',
-    ready: 'Listo',
-    picked_up: 'Entregado',
-    cancelled: 'Cancelado',
-  }
-
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-background px-6 py-12">
+    <main className="min-h-screen bg-background px-5 py-10">
       {sync === '1' && <PaymentReturnSync orderId={orderId} accessToken={token} />}
-      <div className="w-full max-w-md">
-        <div className="text-center">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-sage-100 text-sage-600">
-            <Icon name="check" className="h-8 w-8" />
-          </div>
-          <h1 className="mt-5 font-serif text-2xl font-semibold text-foreground">Pago confirmado</h1>
-          <p className="mt-2 text-muted-foreground">
-            Tu pedido fue recibido. Te avisaremos cuando este listo.
-          </p>
+      <div className="mx-auto w-full max-w-md">
+        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-success/15 text-success">
+          <Icon name="check" className="h-8 w-8" />
         </div>
+        <h1 className="mt-6 text-[2rem] font-medium leading-tight tracking-tight text-foreground">Pago confirmado</h1>
+        <p className="mt-2 text-base leading-6 text-muted-foreground">
+          Tu pedido fue recibido. Te avisaremos cuando esté listo.
+        </p>
 
-        <Card variant="outline" className="mt-8 overflow-hidden">
-          <div className="border-b border-warm-100 bg-cream px-5 py-3">
-            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Detalle del pedido</p>
+        <p className="mt-8 text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">Código de recogida</p>
+        <p className="mt-1 text-4xl font-medium tracking-[0.18em] text-foreground">{order.id.slice(-6).toUpperCase()}</p>
+
+        <dl className="mt-8 divide-y divide-border border-y border-border text-sm">
+          <div className="flex justify-between py-3">
+            <dt className="text-muted-foreground">Estado</dt>
+            <dd className="font-medium text-foreground">{statusLabels[order.status] ?? order.status}</dd>
           </div>
-          <CardContent className="space-y-3 p-5 text-sm">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Numero</span>
-              <span className="font-medium text-foreground">{order.id.slice(0, 8).toUpperCase()}</span>
+          <div className="flex justify-between py-3">
+            <dt className="text-muted-foreground">Total</dt>
+            <dd className="font-medium tabular-nums text-foreground">{formatMoney(order.total_cents, order.currency)}</dd>
+          </div>
+          {order.pickup_time && (
+            <div className="flex justify-between py-3">
+              <dt className="text-muted-foreground">Recogida</dt>
+              <dd className="font-medium text-foreground">{order.pickup_time}</dd>
             </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Total</span>
-              <span className="font-medium text-foreground">{order.currency} {(order.total_cents / 100).toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Estado</span>
-              <span className="font-medium text-foreground">{statusLabels[order.status] ?? order.status}</span>
-            </div>
-            {order.pickup_time && (
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Recogida</span>
-                <span className="font-medium text-foreground">{order.pickup_time}</span>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+          )}
+        </dl>
 
-        <Button asChild size="lg" className="mt-6 w-full">
-          <Link href={`/order/${orderId}?token=${encodeURIComponent(token)}`}>
-            Seguir tu pedido
-          </Link>
+        <Button asChild size="lg" className="mt-8 w-full">
+          <Link href={`/order/${orderId}?token=${encodeURIComponent(token)}`}>Seguir tu pedido</Link>
         </Button>
         <Button asChild variant="outline" size="lg" className="mt-3 w-full">
-          <Link href="/">Volver al inicio</Link>
+          <Link href={order.shop?.slug ? `/${order.shop.slug}` : '/'}>Volver al menú</Link>
         </Button>
       </div>
     </main>

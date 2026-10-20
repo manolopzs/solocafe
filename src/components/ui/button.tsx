@@ -44,11 +44,11 @@ export function Button({
 }: ButtonProps) {
   const classes = [
     'inline-flex items-center justify-center font-medium transition-all duration-150',
-    'focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
     'disabled:cursor-not-allowed',
     variantStyles[variant],
     sizeStyles[size],
-    loading ? 'relative text-transparent' : '',
+    loading ? 'relative' : '',
     className,
   ].join(' ')
 

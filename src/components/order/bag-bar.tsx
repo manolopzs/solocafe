@@ -16,26 +16,26 @@ export function BagBar({
   if (count <= 0) return null
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-surface-elevated/95 p-4 shadow-lg backdrop-blur-md safe-bottom">
-      <div className="mx-auto max-w-3xl">
-        <button
-          type="button"
-          onClick={onOpen}
-          className="flex w-full items-center justify-between rounded-full bg-foreground px-5 py-3.5 text-primary-foreground shadow-md touch-manipulation"
-        >
-          <span className="flex items-center gap-2 font-semibold">
-            <Icon name="cart" className="h-5 w-5" />
-            Tu pedido
-            <span className="rounded-full bg-primary-foreground/20 px-2.5 py-0.5 text-sm font-bold">{count}</span>
+    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 px-4 pb-[max(0.85rem,env(safe-area-inset-bottom))] pt-2">
+      <button
+        type="button"
+        onClick={onOpen}
+        className="pointer-events-auto mx-auto flex h-14 w-full max-w-3xl items-center justify-between rounded-2xl bg-primary px-4 text-primary-foreground shadow-float animate-rise touch-manipulation"
+      >
+        <span className="flex items-center gap-2.5 font-medium">
+          <Icon name="cart" className="h-5 w-5" />
+          Ver pedido
+          <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-primary-foreground px-1.5 text-sm font-semibold tabular-nums text-primary">
+            {count}
           </span>
-          <span className="text-right">
-            <span className="block font-bold">{total}</span>
-            {etaMinutes !== undefined && (
-              <span className="block text-[0.65rem] font-medium text-primary-foreground/75">Listo en ~{etaMinutes} min</span>
-            )}
-          </span>
-        </button>
-      </div>
+        </span>
+        <span className="text-right">
+          <span className="block font-semibold tabular-nums">{total}</span>
+          {etaMinutes !== undefined && (
+            <span className="block text-[11px] font-medium text-primary-foreground/80">Listo en unos {etaMinutes} min</span>
+          )}
+        </span>
+      </button>
     </div>
   )
 }

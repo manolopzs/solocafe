@@ -8,7 +8,9 @@ import { addFavorite, removeFavorite } from '@/server/queries/favorites'
 import { api } from '@/lib/api/client'
 import type { FullMenu } from '@/server/queries/menu'
 import { checkoutBlockedCopy, formatMoney, orderErrorCopy } from '@/lib/ordering'
+import { EmptyState } from '@/components/ui/empty-state'
 import { Icon } from '@/components/ui/icon'
+import { Notice } from '@/components/ui/notice'
 import { BagBar } from '@/components/order/bag-bar'
 import { CartSheet, type CartViewLine } from '@/components/order/cart-sheet'
 import { CategoryTabs } from '@/components/order/category-tabs'
@@ -289,45 +291,46 @@ export function OrderPageClient({
   }
 
   const sheetsOpen = cartOpen || checkoutOpen
+  const hasHero = Boolean(shop.hero_photo_url)
+  const menuIsEmpty = visibleCategories.length === 0 && uncategorizedItems.length === 0
 
   return (
-    <div className="min-h-screen bg-background pb-40">
-      <header className="bg-surface">
-        <div className="mx-auto max-w-3xl px-4 pb-4 pt-5 sm:px-5 sm:pb-5 sm:pt-6">
-          <div className="flex items-start justify-between gap-3 sm:gap-4">
-            <div className="flex items-start gap-3 sm:gap-4">
-              {shop.logo_url ? (
-                <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-2xl border-2 border-white bg-white shadow-md sm:h-20 sm:w-20">
-                  <Image src={shop.logo_url} alt={shop.name} fill sizes="80px" className="object-cover" />
-                </div>
-              ) : (
-                <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl border-2 border-white bg-white shadow-md sm:h-20 sm:w-20">
-                  <Icon name="store" className="h-8 w-8 text-muted-foreground sm:h-10 sm:w-10" />
-                </div>
+    <div className="min-h-screen bg-background pb-32">
+      <header>
+        <div className="mx-auto flex max-w-3xl items-start gap-3 px-4 pb-3 sm:px-5">
+          <div className={hasHero ? '-mt-9 shrink-0' : 'mt-4 shrink-0'}>
+            {shop.logo_url ? (
+              <div className="relative h-[4.5rem] w-[4.5rem] overflow-hidden rounded-3xl border-[3px] border-background bg-surface-elevated shadow-md">
+                <Image src={shop.logo_url} alt="" fill sizes="72px" className="object-cover" />
+              </div>
+            ) : (
+              <div className="flex h-[4.5rem] w-[4.5rem] items-center justify-center rounded-3xl border-[3px] border-background bg-surface-elevated shadow-md">
+                <Icon name="store" className="h-8 w-8 text-muted-foreground" />
+              </div>
+            )}
+          </div>
+          <div className="flex min-w-0 flex-1 items-start justify-between gap-2 pt-3">
+            <div className="min-w-0">
+              <div className="flex min-w-0 items-center">
+                <h1 className="shop-display-font min-w-0 truncate text-[1.7rem] font-medium leading-none tracking-tight text-foreground">
+                  {shop.name}
+                </h1>
+                <ShopSwitcher shop={{ slug: shop.slug, name: shop.name }} />
+              </div>
+              {shop.address && (
+                <p className="mt-1.5 flex items-center gap-1.5 text-sm text-muted-foreground">
+                  <Icon name="map-pin" className="h-3.5 w-3.5 shrink-0" />
+                  <span className="truncate">{shop.address}</span>
+                </p>
               )}
-              <div className="min-w-0 flex-1 pt-0.5 sm:pt-1">
-                <p className="text-xs font-semibold uppercase tracking-wider text-accent">Bienvenido a</p>
-                <div className="flex min-w-0 items-center gap-0.5">
-                  <h1 className="shop-display-font min-w-0 truncate text-xl font-bold tracking-tight text-foreground sm:text-2xl">
-                    {shop.name}
-                  </h1>
-                  <ShopSwitcher shop={{ slug: shop.slug, name: shop.name }} />
-                </div>
-                {shop.address && (
-                  <p className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground sm:mt-1 sm:text-sm">
-                    <Icon name="map-pin" className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-                    <span className="truncate">{shop.address}</span>
-                  </p>
-                )}
-                <div className="mt-2 flex flex-wrap items-center gap-2 sm:mt-3">
-                  <ShopStatusBadge ordering={liveOrdering} />
-                  <span className="text-xs font-medium text-muted-foreground">Para recoger</span>
-                </div>
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <ShopStatusBadge ordering={liveOrdering} />
+                <span className="text-xs text-muted-foreground">Para recoger</span>
               </div>
             </div>
             <Link
               href={customer ? '/account' : '/account/login'}
-              className="flex shrink-0 items-center justify-center rounded-full bg-white p-2.5 text-foreground shadow-sm transition-transform hover:scale-105 active:scale-95 sm:p-3"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-surface text-foreground"
               aria-label={customer ? 'Mi cuenta' : 'Iniciar sesión'}
             >
               <Icon name="user" className="h-5 w-5" />
@@ -342,27 +345,26 @@ export function OrderPageClient({
 
       {notice && (
         <div className="mx-auto max-w-3xl px-4 pt-3 sm:px-5">
-          <p className="rounded-xl border border-accent/20 bg-accent/10 px-4 py-3 text-sm font-medium text-foreground">{notice}</p>
+          <Notice>{notice}</Notice>
         </div>
       )}
 
       {reorderCount > 0 && (
-        <div className="mx-auto max-w-3xl px-4 py-2 sm:px-5">
-          <div className="rounded-xl border border-accent/20 bg-accent/10 px-4 py-3 text-sm font-medium text-foreground">
-            Agregamos {reorderCount} productos de tu pedido anterior. Revisa tu pedido.
-          </div>
+        <div className="mx-auto max-w-3xl px-4 pt-3 sm:px-5">
+          <Notice>Agregamos {reorderCount} productos de tu pedido anterior. Revisa tu pedido.</Notice>
         </div>
       )}
 
       {recentOrders.length > 0 && (
-        <section className="mx-auto max-w-3xl px-4 pt-4 sm:px-5">
-          <h2 className="text-sm font-bold text-foreground">Pedidos recientes</h2>
-          <div className="mt-3 flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2 no-scrollbar">
+        <section className="mx-auto max-w-3xl px-4 pt-5 sm:px-5">
+          <h2 className="text-sm font-medium text-muted-foreground">Pedidos recientes</h2>
+          <div className="mt-3 flex snap-x snap-mandatory gap-3 overflow-x-auto pb-1 no-scrollbar">
             {recentOrders.map((order) => (
               <button
                 key={order.id}
+                type="button"
                 onClick={() => reorderRecent(order)}
-                className="snap-start shrink-0 rounded-xl border border-border bg-surface p-3 text-left transition-colors hover:bg-surface-elevated"
+                className="w-52 shrink-0 snap-start rounded-2xl bg-surface p-3 text-left transition-colors hover:bg-secondary"
               >
                 <p className="text-xs font-semibold text-muted-foreground">
                   {order.item_count ?? order.items?.reduce((sum, item) => sum + item.quantity, 0)} productos
@@ -380,14 +382,15 @@ export function OrderPageClient({
       )}
 
       {favoriteItems.length > 0 && (
-        <section className="mx-auto max-w-3xl px-4 pt-4 sm:px-5">
-          <h2 className="text-sm font-bold text-foreground">Tus favoritos</h2>
-          <div className="mt-3 flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2 no-scrollbar">
+        <section className="mx-auto max-w-3xl px-4 pt-5 sm:px-5">
+          <h2 className="text-sm font-medium text-muted-foreground">Tus favoritos</h2>
+          <div className="mt-3 flex snap-x snap-mandatory gap-3 overflow-x-auto pb-1 no-scrollbar">
             {favoriteItems.map((item) => (
               <button
                 key={item.id}
+                type="button"
                 onClick={() => setActiveItem(item)}
-                className="w-32 shrink-0 snap-start rounded-xl border border-border bg-surface p-2 text-left transition-colors hover:bg-surface-elevated"
+                className="w-36 shrink-0 snap-start rounded-2xl bg-surface p-2 text-left transition-transform active:scale-[0.98]"
               >
                 <div className="relative aspect-square w-full overflow-hidden rounded-lg bg-surface">
                   {item.image_url ? (
@@ -398,8 +401,8 @@ export function OrderPageClient({
                     </div>
                   )}
                 </div>
-                <p className="mt-2 line-clamp-2 text-xs font-bold text-foreground">{item.name}</p>
-                <p className="text-xs text-muted-foreground">{formatPrice(item.price_cents)}</p>
+                <p className="mt-2 line-clamp-2 px-1 text-sm font-medium leading-snug text-foreground">{item.name}</p>
+                <p className="px-1 text-sm tabular-nums text-muted-foreground">{formatPrice(item.price_cents)}</p>
               </button>
             ))}
           </div>
@@ -408,14 +411,21 @@ export function OrderPageClient({
 
       <CategoryTabs categories={navItems} activeId={activeId} onSelect={scrollTo} />
 
-      <main className="mx-auto max-w-3xl px-5 py-7">
+      <main className="mx-auto max-w-3xl animate-rise px-4 py-2 sm:px-5 sm:py-6">
+        {menuIsEmpty && (
+          <EmptyState
+            icon={<Icon name="coffee" className="h-6 w-6" />}
+            title="El menú está por llegar"
+            description="Esta cafetería todavía no publicó productos para recoger."
+          />
+        )}
         {visibleCategories.map((category) => {
           const categoryItems = itemsByCategory.get(category.id) ?? []
           if (categoryItems.length === 0) return null
           return (
-            <section key={category.id} ref={setRef(category.id)} className="mb-12">
-              <h2 className="text-lg font-bold tracking-tight text-foreground sm:text-xl">{category.name}</h2>
-              <div className="mt-4 grid grid-cols-2 gap-3 sm:mt-5 sm:grid-cols-3 sm:gap-4">
+            <section key={category.id} ref={setRef(category.id)} className="scroll-mt-16 pb-8">
+              <h2 className="shop-display-font pt-4 text-[1.65rem] font-medium tracking-tight text-foreground">{category.name}</h2>
+              <div className="sm:mt-3 sm:grid sm:grid-cols-2 sm:gap-4">
                 {categoryItems.map((item) => (
                   <ProductCard
                     key={item.id}
@@ -435,9 +445,9 @@ export function OrderPageClient({
         })}
 
         {uncategorizedItems.length > 0 && (
-          <section ref={setRef('uncategorized')} className="mb-12">
-            <h2 className="text-lg font-bold tracking-tight text-foreground sm:text-xl">Otros</h2>
-            <div className="mt-4 grid grid-cols-2 gap-3 sm:mt-5 sm:grid-cols-3 sm:gap-4">
+          <section ref={setRef('uncategorized')} className="scroll-mt-16 pb-8">
+            <h2 className="shop-display-font pt-4 text-[1.65rem] font-medium tracking-tight text-foreground">Otros</h2>
+            <div className="sm:mt-3 sm:grid sm:grid-cols-2 sm:gap-4">
               {uncategorizedItems.map((item) => (
                 <ProductCard
                   key={item.id}
