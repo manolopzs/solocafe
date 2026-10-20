@@ -1,0 +1,4 @@
+es:
+  kitchen_push:
+    title: Nuevo pedido
+    body: Hay un pedido nuevo en cocina.
