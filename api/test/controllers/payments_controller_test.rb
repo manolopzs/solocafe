@@ -141,6 +141,7 @@ class PaymentsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "logged in customer can opt in to save a card on the platform customer" do
+    Current.shop = nil
     customer, token = login_customer!
 
     with_stripe do
@@ -195,6 +196,7 @@ class PaymentsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "logged in customer pays with a saved card by cloning it onto the shop" do
+    Current.shop = nil
     customer, token = login_customer!
     customer.update!(stripe_customer_id: "cus_platform")
     card = save_card!(customer)
