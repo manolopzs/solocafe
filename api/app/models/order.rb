@@ -111,6 +111,6 @@ class Order < ApplicationRecord
     verified_id = signed_id_verifier.verified(token, purpose: combine_signed_id_purposes(GUEST_ACCESS_PURPOSE))
     return nil if verified_id.blank?
 
-    unscoped.find_by(id: verified_id)
+    TenantScoped.unscoped_for_system { find_by(id: verified_id) }
   end
 end

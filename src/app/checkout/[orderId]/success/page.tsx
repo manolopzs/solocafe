@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getOrderWithItems } from '@/server/queries/orders'
+import { PaymentReturnSync } from '@/components/order/payment-return-sync'
 import { Button } from '@/components/ui/button'
 import { Icon } from '@/components/ui/icon'
 import { Card, CardContent } from '@/components/ui/card'
@@ -12,10 +13,10 @@ export default async function CheckoutSuccessPage({
   searchParams,
 }: {
   params: Promise<{ orderId: string }>
-  searchParams: Promise<{ token?: string }>
+  searchParams: Promise<{ token?: string; sync?: string }>
 }) {
   const { orderId } = await params
-  const { token } = await searchParams
+  const { token, sync } = await searchParams
   const order = await getOrderWithItems(orderId, token)
   if (!order || !token) notFound()
 
@@ -30,6 +31,7 @@ export default async function CheckoutSuccessPage({
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-background px-6 py-12">
+      {sync === '1' && <PaymentReturnSync orderId={orderId} accessToken={token} />}
       <div className="w-full max-w-md">
         <div className="text-center">
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-sage-100 text-sage-600">

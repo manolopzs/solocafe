@@ -212,6 +212,105 @@ class StripeWebhooksControllerTest < ActionDispatch::IntegrationTest
     assert_equal 1, StripeWebhookEvent.where(stripe_event_id: "evt_acct_repeat").count
   end
 
+  test "payment success with save_card stores brand last4 and expiry" do
+    customer = Customer.create!(name: "Ana", phone: "5551111111", stripe_customer_id: "cus_ana")
+    @order.update!(customer: customer)
+    event = build_saved_card_event(customer)
+
+    with_stripe_webhook(event) do
+      with_payment_method(card_payment_method) do
+        post webhooks_stripe_url, params: event.as_json.to_json, headers: { "Content-Type" => "application/json" }
+      end
+    end
+
+    assert_response :success
+    saved = CustomerPaymentMethod.find_by(stripe_payment_method_id: "pm_saved")
+    assert_equal customer.id, saved.customer_id
+    assert_equal "visa", saved.brand
+    assert_equal "4242", saved.last4
+    assert_equal 12, saved.exp_month
+    assert_equal 2030, saved.exp_year
+    assert_not_includes CustomerPaymentMethod.column_names, "shop_id"
+    assert_equal [ "pm_saved" ], @retrieved_payment_methods
+  end
+
+  test "payment success without save_card does not store a card" do
+    event = build_event("payment_intent.succeeded", "pi_123", "ch_123", "evt_nosave")
+
+    with_stripe_webhook(event) do
+      with_payment_method(card_payment_method) do
+        post webhooks_stripe_url, params: event.as_json.to_json, headers: { "Content-Type" => "application/json" }
+      end
+    end
+
+    assert_response :success
+    assert_equal 0, CustomerPaymentMethod.count
+    assert_empty @retrieved_payment_methods
+  end
+
+  test "payment_method.attached stores the card for the platform customer only" do
+    customer = Customer.create!(name: "Ana", phone: "5551111111", stripe_customer_id: "cus_ana")
+    other = Customer.create!(name: "Luis", phone: "5552222222", stripe_customer_id: "cus_luis")
+    event = payment_method_event("payment_method.attached", "pm_attached", "cus_ana", "evt_attach")
+
+    with_stripe_webhook(event) do
+      post webhooks_stripe_url, params: event.as_json.to_json, headers: { "Content-Type" => "application/json" }
+    end
+
+    assert_response :success
+    saved = CustomerPaymentMethod.find_by!(stripe_payment_method_id: "pm_attached")
+    assert_equal customer.id, saved.customer_id
+    assert_equal "visa", saved.brand
+    assert_equal "4242", saved.last4
+    assert_equal 0, CustomerPaymentMethod.where(customer: other).count
+  end
+
+  test "payment_method.attached ignores an unknown stripe customer" do
+    event = payment_method_event("payment_method.attached", "pm_unknown", "cus_missing", "evt_unknown")
+
+    with_stripe_webhook(event) do
+      post webhooks_stripe_url, params: event.as_json.to_json, headers: { "Content-Type" => "application/json" }
+    end
+
+    assert_response :success
+    assert_equal 0, CustomerPaymentMethod.count
+    assert_equal 1, StripeWebhookEvent.where(stripe_event_id: "evt_unknown").count
+  end
+
+  test "payment_method.detached removes only that card" do
+    customer = Customer.create!(name: "Ana", phone: "5551111111", stripe_customer_id: "cus_ana")
+    other = Customer.create!(name: "Luis", phone: "5552222222", stripe_customer_id: "cus_luis")
+    CustomerPaymentMethod.create!(customer: customer, stripe_payment_method_id: "pm_gone", brand: "visa", last4: "4242", exp_month: 12, exp_year: 2028)
+    kept = CustomerPaymentMethod.create!(customer: other, stripe_payment_method_id: "pm_kept", brand: "mastercard", last4: "4444", exp_month: 1, exp_year: 2029)
+    event = payment_method_event("payment_method.detached", "pm_gone", "cus_ana", "evt_detach")
+
+    with_stripe_webhook(event) do
+      post webhooks_stripe_url, params: event.as_json.to_json, headers: { "Content-Type" => "application/json" }
+    end
+
+    assert_response :success
+    assert_nil CustomerPaymentMethod.find_by(stripe_payment_method_id: "pm_gone")
+    assert CustomerPaymentMethod.exists?(kept.id)
+  end
+
+  test "payment_method.updated refreshes expiry without copying the card to another customer" do
+    customer = Customer.create!(name: "Ana", phone: "5551111111", stripe_customer_id: "cus_ana")
+    other = Customer.create!(name: "Luis", phone: "5552222222", stripe_customer_id: "cus_luis")
+    saved = CustomerPaymentMethod.create!(customer: customer, stripe_payment_method_id: "pm_upd", brand: "visa", last4: "4242", exp_month: 1, exp_year: 2026)
+    event = payment_method_event("payment_method.updated", "pm_upd", "cus_luis", "evt_upd", 8, 2031)
+
+    with_stripe_webhook(event) do
+      post webhooks_stripe_url, params: event.as_json.to_json, headers: { "Content-Type" => "application/json" }
+    end
+
+    assert_response :success
+    saved.reload
+    assert_equal customer.id, saved.customer_id
+    assert_equal 8, saved.exp_month
+    assert_equal 2031, saved.exp_year
+    assert_equal 0, CustomerPaymentMethod.where(customer: other).count
+  end
+
   test "rejects invalid signature" do
     error = Stripe::SignatureVerificationError.new("bad", "sig")
 
@@ -240,6 +339,67 @@ class StripeWebhooksControllerTest < ActionDispatch::IntegrationTest
 
   def to_event(hash)
     OpenStruct.new(hash.transform_values { |v| v.is_a?(Hash) ? OpenStruct.new(v.transform_values { |vv| vv.is_a?(Hash) ? OpenStruct.new(vv) : vv }) : v })
+  end
+
+  def build_saved_card_event(customer)
+    to_event({
+      "id" => "evt_save",
+      "type" => "payment_intent.succeeded",
+      "data" => {
+        "object" => {
+          "id" => "pi_123",
+          "metadata" => {
+            "order_id" => @order.id,
+            "save_card" => "true",
+            "customer_id" => customer.id
+          },
+          "payment_method" => "pm_saved",
+          "latest_charge" => "ch_save"
+        }
+      }
+    })
+  end
+
+  def payment_method_event(type, payment_method_id, customer_id, event_id, exp_month = 12, exp_year = 2030)
+    to_event({
+      "id" => event_id,
+      "type" => type,
+      "data" => {
+        "object" => {
+          "id" => payment_method_id,
+          "customer" => customer_id,
+          "type" => "card",
+          "card" => {
+            "brand" => "visa",
+            "last4" => "4242",
+            "exp_month" => exp_month,
+            "exp_year" => exp_year
+          }
+        }
+      }
+    })
+  end
+
+  def card_payment_method
+    OpenStruct.new(
+      id: "pm_saved",
+      type: "card",
+      customer: "cus_ana",
+      card: OpenStruct.new(brand: "visa", last4: "4242", exp_month: 12, exp_year: 2030)
+    )
+  end
+
+  def with_payment_method(payment_method)
+    @retrieved_payment_methods = []
+    original = Stripe::PaymentMethod.method(:retrieve)
+    retrieved = @retrieved_payment_methods
+    Stripe::PaymentMethod.define_singleton_method(:retrieve) do |id, *|
+      retrieved << id
+      payment_method
+    end
+    yield
+  ensure
+    Stripe::PaymentMethod.define_singleton_method(:retrieve, original)
   end
 
   def with_stripe_webhook(return_value)

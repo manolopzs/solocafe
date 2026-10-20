@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_20_130100) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_20_143000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -27,6 +27,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_20_130100) do
     t.index ["shop_id"], name: "index_customer_favorites_on_shop_id"
   end
 
+  create_table "customer_payment_methods", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "customer_id", null: false
+    t.string "stripe_payment_method_id", null: false
+    t.string "brand"
+    t.string "last4"
+    t.integer "exp_month"
+    t.integer "exp_year"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["customer_id"], name: "index_customer_payment_methods_on_customer_id"
+    t.index ["stripe_payment_method_id"], name: "index_customer_payment_methods_on_stripe_payment_method_id", unique: true
+  end
+
   create_table "customers", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.uuid "user_id"
     t.string "name"
@@ -34,6 +47,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_20_130100) do
     t.string "email"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "stripe_customer_id"
+    t.index ["stripe_customer_id"], name: "index_customers_on_stripe_customer_id", unique: true
     t.index ["user_id"], name: "index_customers_on_user_id"
   end
 
@@ -178,6 +193,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_20_130100) do
     t.string "status", default: "pending", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "stripe_account_id"
     t.index ["order_id"], name: "index_payments_on_order_id", unique: true
     t.index ["stripe_payment_intent_id"], name: "index_payments_on_stripe_payment_intent_id"
   end
@@ -304,6 +320,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_20_130100) do
   add_foreign_key "customer_favorites", "customers"
   add_foreign_key "customer_favorites", "menu_items"
   add_foreign_key "customer_favorites", "shops"
+  add_foreign_key "customer_payment_methods", "customers"
   add_foreign_key "customers", "users"
   add_foreign_key "events", "orders"
   add_foreign_key "events", "shops"

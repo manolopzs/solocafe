@@ -41,6 +41,12 @@ class StripeWebhooksController < ApplicationController
       handle_payment_intent_payment_failed(event)
     when "account.updated"
       handle_account_updated(event)
+    when "payment_method.attached"
+      handle_payment_method_attached(event)
+    when "payment_method.detached"
+      handle_payment_method_detached(event)
+    when "payment_method.updated", "payment_method.automatically_updated"
+      handle_payment_method_updated(event)
     else
       StripeWebhookEvent.create!(stripe_event_id: event.id, event_type: event.type)
     end
@@ -53,10 +59,47 @@ class StripeWebhooksController < ApplicationController
 
     StripeWebhookEvent.create!(stripe_event_id: event.id, event_type: event.type)
 
-    order = Order.unscoped.lock.find(payment.order_id)
-    payment.update!(status: "succeeded")
-    order.apply_successful_payment!
-    create_event(order, event.type, payment_intent)
+    order = TenantScoped.unscoped_for_system { Order.lock.find(payment.order_id) }
+    in_order_shop(order) do
+      payment.update!(status: "succeeded")
+      order.apply_successful_payment!
+      create_event(order, event.type, payment_intent)
+      save_card_from_payment_intent!(payment_intent)
+    end
+  end
+
+  def handle_payment_method_attached(event)
+    StripeWebhookEvent.create!(stripe_event_id: event.id, event_type: event.type)
+    TenantScoped.unscoped_for_system { CustomerPaymentMethod.store_attached!(event.data.object) }
+  end
+
+  def handle_payment_method_detached(event)
+    StripeWebhookEvent.create!(stripe_event_id: event.id, event_type: event.type)
+    TenantScoped.unscoped_for_system do
+      payment_method_id = StripePayload.read(event.data.object, :id)
+      CustomerPaymentMethod.find_by(stripe_payment_method_id: payment_method_id)&.destroy!
+    end
+  end
+
+  def handle_payment_method_updated(event)
+    StripeWebhookEvent.create!(stripe_event_id: event.id, event_type: event.type)
+    TenantScoped.unscoped_for_system { CustomerPaymentMethod.apply_card_update!(event.data.object) }
+  end
+
+  def save_card_from_payment_intent!(payment_intent)
+    return unless StripePayload.read(payment_intent, :metadata).then { |metadata| StripePayload.read(metadata, :save_card) } == "true"
+
+    TenantScoped.unscoped_for_system do
+      customer = Customer.find_by(id: StripePayload.read(StripePayload.read(payment_intent, :metadata), :customer_id))
+      next if customer.nil?
+
+      payment_method_ref = StripePayload.read(payment_intent, :payment_method)
+      payment_method_id = payment_method_ref.is_a?(String) ? payment_method_ref : StripePayload.read(payment_method_ref, :id)
+      next if payment_method_id.blank?
+
+      stripe_payment_method = Stripe::PaymentMethod.retrieve(payment_method_id)
+      CustomerPaymentMethod.store_for_customer!(customer, stripe_payment_method)
+    end
   end
 
   def handle_payment_intent_payment_failed(event)
@@ -67,12 +110,22 @@ class StripeWebhooksController < ApplicationController
     StripeWebhookEvent.create!(stripe_event_id: event.id, event_type: event.type)
     return if payment.status_succeeded?
 
-    order = Order.unscoped.lock.find(payment.order_id)
+    order = TenantScoped.unscoped_for_system { Order.lock.find(payment.order_id) }
     return if order.payment_status_succeeded?
 
-    payment.update!(status: "failed")
-    order.apply_failed_payment!
-    create_event(order, event.type, payment_intent)
+    in_order_shop(order) do
+      payment.update!(status: "failed")
+      order.apply_failed_payment!
+      create_event(order, event.type, payment_intent)
+    end
+  end
+
+  def in_order_shop(order)
+    previous_shop = Current.shop
+    Current.shop = order.shop
+    yield
+  ensure
+    Current.shop = previous_shop
   end
 
   def handle_account_updated(event)
