@@ -15,6 +15,10 @@ const createOrderSchema = z.object({
   shop_id: z.string().uuid(),
   customer_name: z.string().min(1).max(100),
   customer_phone: z.string().max(30),
+  customer_email: z.preprocess(
+    (value) => (typeof value === 'string' && value.trim() === '' ? undefined : value),
+    z.string().trim().email().max(254).optional()
+  ),
   pickup_type: z.enum(['asap', 'scheduled']).default('asap'),
   pickup_slot_date: z.string().optional(),
   pickup_slot_start_time: z.string().optional(),
@@ -31,6 +35,7 @@ export async function createOrder(input: CreateOrderInput) {
   const orderBody: Record<string, unknown> = {
     customer_name: parsed.customer_name,
     customer_phone: parsed.customer_phone,
+    customer_email: parsed.customer_email,
     pickup_type: parsed.pickup_type,
     special_instructions: parsed.special_instructions,
     redeem_loyalty: parsed.redeem_loyalty === true,

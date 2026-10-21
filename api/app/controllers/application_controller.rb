@@ -2,11 +2,18 @@ class ApplicationController < ActionController::API
   include GuestOrderAccess
 
   before_action :set_current_user
+  before_action :set_active_storage_url_options
 
   private
 
   def set_current_user
     Current.user = current_user
+  end
+
+  def set_active_storage_url_options
+    options = { protocol: request.protocol.delete_suffix("://"), host: request.host }
+    options[:port] = request.port unless request.port.in?([ 80, 443 ])
+    ActiveStorage::Current.url_options = options
   end
 
   def current_user

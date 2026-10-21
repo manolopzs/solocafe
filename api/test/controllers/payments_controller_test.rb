@@ -460,6 +460,17 @@ class PaymentsControllerTest < ActionDispatch::IntegrationTest
     assert_empty @stripe_calls[:create]
   end
 
+  test "stripe receives the order receipt email" do
+    @order.update!(customer_email: "recibo@cafe.test")
+
+    with_stripe do
+      post payments_url, params: { order_id: @order.id, token: @order.guest_access_token }
+    end
+
+    assert_response :success
+    assert_equal "recibo@cafe.test", @stripe_calls[:create].last[0][:receipt_email]
+  end
+
   test "platform payment intents are created with an idempotency key" do
     with_stripe do
       post payments_url, params: { order_id: @order.id, token: @order.guest_access_token }

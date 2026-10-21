@@ -13,6 +13,10 @@ class Order < ApplicationRecord
   validates :subtotal_cents, presence: true, numericality: { greater_than_or_equal_to: 0 }
   validates :total_cents, presence: true, numericality: { greater_than_or_equal_to: 0 }
   validates :currency, presence: true, inclusion: { in: %w[MXN EUR] }
+  validates :customer_email, format: { with: URI::MailTo::EMAIL_REGEXP }, allow_nil: true
+  validates :customer_email, length: { maximum: 254 }, allow_nil: true
+
+  before_validation :normalize_customer_email
 
   enum :status, {
     pending_payment: "pending_payment",
@@ -124,6 +128,10 @@ class Order < ApplicationRecord
 
   def release_slot!
     slot_reservation&.destroy!
+  end
+
+  def normalize_customer_email
+    self.customer_email = customer_email.to_s.strip.downcase.presence
   end
 
   GUEST_ACCESS_PURPOSE = "guest_access"

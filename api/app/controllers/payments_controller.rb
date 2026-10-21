@@ -151,6 +151,7 @@ class PaymentsController < ApplicationController
       application_fee_amount: application_fee_amount,
       metadata: payment_metadata(save_card)
     }
+    attributes[:receipt_email] = @order.customer_email if @order.customer_email.present?
 
     if save_card
       attributes[:customer] = stripe_customer_id
@@ -175,8 +176,14 @@ class PaymentsController < ApplicationController
         transfer_data: { destination: Current.shop.stripe_account_id },
         on_behalf_of: Current.shop.stripe_account_id
       ),
-      { idempotency_key: "platform-pi-#{@order.id}-#{@order.total_cents}-#{application_fee_amount}-#{save_card_requested?}" }
+      { idempotency_key: "platform-pi-#{@order.id}-#{@order.total_cents}-#{application_fee_amount}-#{save_card_requested?}-#{receipt_key}" }
     )
+  end
+
+  def receipt_key
+    return "none" if @order.customer_email.blank?
+
+    Digest::SHA256.hexdigest(@order.customer_email)[0, 12]
   end
 
   def payment_metadata(save_card)
@@ -271,10 +278,10 @@ class PaymentsController < ApplicationController
           customer_id: owner.id,
           save_card: "false"
         }
-      },
+      }.tap { |attrs| attrs[:receipt_email] = @order.customer_email if @order.customer_email.present? },
       {
         stripe_account: Current.shop.stripe_account_id,
-        idempotency_key: "direct-pi-#{@order.id}-#{payment_method.id}-#{@order.total_cents}-#{application_fee_amount}"
+        idempotency_key: "direct-pi-#{@order.id}-#{payment_method.id}-#{@order.total_cents}-#{application_fee_amount}-#{receipt_key}"
       }
     )
     if intent.status == "succeeded" && !StripeCharges.matches_order?(intent, @order)

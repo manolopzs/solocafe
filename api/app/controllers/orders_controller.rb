@@ -30,7 +30,7 @@ class OrdersController < ApplicationController
       render json: { order: order_payload(order, audience: :staff) }
     elsif guest_token_matches?(order) || customer_owns_order?(order)
       Current.shop = order.shop
-      render json: { order: order_payload(order, audience: :guest) }
+      render json: { order: order_payload(order, audience: :guest), push: push_config }
     else
       render json: { error: "Forbidden" }, status: :forbidden
     end
@@ -117,7 +117,7 @@ class OrdersController < ApplicationController
         LoyaltyStamp.unwind!(order)
       end
       create_status_event(order, old_status, new_status)
-      create_ready_notification(order) if new_status == "ready"
+      notify_customer_ready!(order) if new_status == "ready"
     end
     saved = Current.shop.orders.includes(ORDER_INCLUDES).find(order.id)
     render json: { order: order_payload(saved, audience: :staff) }
@@ -198,6 +198,7 @@ class OrdersController < ApplicationController
       pickup_time: pickup_time,
       customer_name: order_params[:customer_name],
       customer_phone: order_params[:customer_phone],
+      customer_email: order_params[:customer_email],
       special_instructions: order_params[:special_instructions]
     )
 
@@ -356,20 +357,32 @@ class OrdersController < ApplicationController
     )
   end
 
-  def create_ready_notification(order)
-    return if order.customer_phone.blank?
+  def push_config
+    { vapid_public_key: ENV["VAPID_PUBLIC_KEY"].presence }
+  end
+
+  def notify_customer_ready!(order)
+    has_push = Current.shop.push_devices.where(audience: "customer", order_id: order.id).exists?
+    channel = if has_push
+      "web_push"
+    elsif order.customer_phone.present?
+      "sms"
+    else
+      "in_app"
+    end
 
     Current.shop.notifications.create!(
       order: order,
       notification_type: "order.ready",
-      channel: "sms",
-      status: "pending"
+      channel: channel,
+      status: has_push ? "queued" : "pending"
     )
+    CustomerReadyPush.enqueue(order)
   end
 
   def order_params
     params.require(:order).permit(
-      :customer_name, :customer_phone, :special_instructions,
+      :customer_name, :customer_phone, :customer_email, :special_instructions,
       :pickup_type, :pickup_slot_date, :pickup_slot_start_time, :redeem_loyalty
     )
   end
@@ -420,6 +433,7 @@ class OrdersController < ApplicationController
       pickup_time: order.pickup_time,
       pickup_slot: order.pickup_slot ? pickup_slot_payload(order.pickup_slot) : nil,
       customer_name: order.customer_name,
+      customer_email: order.customer_email,
       special_instructions: order.special_instructions,
       estimated_ready_minutes: minutes,
       pickup_window_starts_at: window[:starts_at]&.iso8601,

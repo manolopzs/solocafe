@@ -38,8 +38,10 @@ export function orderErrorCopy(message: string) {
   return 'No pudimos crear el pedido. Inténtalo de nuevo.'
 }
 
+export const CUSTOMER_TIME_ZONE = 'Europe/Madrid'
+
 export function formatPickupWindow(start: string, end: string, timeZone: string) {
-  const fmt = new Intl.DateTimeFormat('es-MX', {
+  const fmt = new Intl.DateTimeFormat('es-ES', {
     hour: '2-digit',
     minute: '2-digit',
     hour12: false,
@@ -48,6 +50,16 @@ export function formatPickupWindow(start: string, end: string, timeZone: string)
   return `Recoge entre ${fmt.format(new Date(start))} y ${fmt.format(new Date(end))}`
 }
 
-export function formatMoney(cents: number, currency: string) {
-  return `${currency} ${(cents / 100).toFixed(2)}`
+export function formatMoney(cents: number, currency = 'EUR') {
+  const amount = (Number.isFinite(cents) ? cents : 0) / 100
+  const code = (currency || 'EUR').toUpperCase()
+  try {
+    return new Intl.NumberFormat('es-ES', { style: 'currency', currency: code })
+      .format(amount)
+      .replace(/[\u00a0\u202f]/g, ' ')
+  } catch {
+    return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' })
+      .format(amount)
+      .replace(/[\u00a0\u202f]/g, ' ')
+  }
 }

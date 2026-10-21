@@ -35,7 +35,7 @@ class CartLineCheck
       quantity: quantity,
       modifier_option_ids: modifier_ids,
       name: menu_item&.name,
-      image_url: menu_item&.image_url,
+      image_url: menu_item&.public_image_url,
       available: available,
       unavailable_reason: reason,
       prep_time_min: available ? menu_item.prep_time_min.to_i : 0,

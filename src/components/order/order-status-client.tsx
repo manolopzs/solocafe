@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import Link from 'next/link'
 import { getOrderWithItems } from '@/server/queries/orders'
-import { formatMoney, formatPickupWindow } from '@/lib/ordering'
+import { CUSTOMER_TIME_ZONE, formatMoney, formatPickupWindow } from '@/lib/ordering'
+import { env } from '@/lib/env'
 import { Button } from '@/components/ui/button'
 import { StampCard } from '@/components/order/stamp-card'
 import { Icon } from '@/components/ui/icon'
@@ -25,12 +26,55 @@ function readNotificationPermission(): NotificationPermission | 'unsupported' {
   return typeof Notification === 'undefined' ? 'unsupported' : Notification.permission
 }
 
+async function registerCustomerPush(orderId: string, accessToken: string | undefined, vapidPublicKey: string | null) {
+  if (!vapidPublicKey || !accessToken) return
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) return
+
+  const registration = await navigator.serviceWorker.register('/order/sw.js', { scope: '/order/' })
+  const existing = await registration.pushManager.getSubscription()
+  const subscription = existing ?? await registration.pushManager.subscribe({
+    userVisibleOnly: true,
+    applicationServerKey: applicationServerKey(vapidPublicKey),
+  })
+  const json = subscription.toJSON()
+  const headers = new Headers({ Accept: 'application/json', 'Content-Type': 'application/json' })
+  headers.set('X-Order-Token', accessToken)
+  await fetch(`${env.NEXT_PUBLIC_API_URL}/public/orders/${orderId}/push_devices?token=${encodeURIComponent(accessToken)}`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({
+      push_device: {
+        platform: 'web',
+        endpoint: subscription.endpoint,
+        keys: {
+          p256dh: json.keys?.p256dh,
+          auth: json.keys?.auth,
+        },
+      },
+    }),
+  })
+}
+
+function applicationServerKey(vapidPublicKey: string): ArrayBuffer {
+  const padding = '='.repeat((4 - (vapidPublicKey.length % 4)) % 4)
+  const base64 = (vapidPublicKey + padding).replace(/-/g, '+').replace(/_/g, '/')
+  const raw = atob(base64)
+  const buffer = new ArrayBuffer(raw.length)
+  const output = new Uint8Array(buffer)
+  for (let index = 0; index < raw.length; index += 1) {
+    output[index] = raw.charCodeAt(index)
+  }
+  return buffer
+}
+
 export function OrderStatusClient({
   initialOrder,
   accessToken,
+  vapidPublicKey = null,
 }: {
   initialOrder: Order & { items: (OrderItem & { modifiers: OrderItemModifier[] })[] }
   accessToken?: string
+  vapidPublicKey?: string | null
 }) {
   const [order, setOrder] = useState(initialOrder)
   const [permissionOverride, setPermissionOverride] = useState<NotificationPermission | null>(null)
@@ -71,12 +115,18 @@ export function OrderStatusClient({
     if (!('Notification' in window)) return
     const permission = await Notification.requestPermission()
     setPermissionOverride(permission)
+    if (permission !== 'granted') return
+    try {
+      await registerCustomerPush(order.id, accessToken, vapidPublicKey)
+    } catch {
+      // The page still updates live if push registration fails.
+    }
   }
 
   const progressIndex = order.status === 'picked_up' ? statusSteps.length - 1 : statusSteps.indexOf(order.status as 'received')
   const itemCount = order.item_count ?? order.items.reduce((sum, item) => sum + item.quantity, 0)
   const shopName = order.shop?.name
-  const timeZone = order.shop?.timezone || 'America/Mexico_City'
+  const timeZone = order.shop?.timezone || CUSTOMER_TIME_ZONE
   const windowLabel =
     order.pickup_window_starts_at && order.pickup_window_ends_at
       ? formatPickupWindow(order.pickup_window_starts_at, order.pickup_window_ends_at, timeZone)

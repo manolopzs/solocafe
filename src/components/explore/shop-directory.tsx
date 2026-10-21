@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import Link from 'next/link'
 import { displayFontFamily } from '@/lib/display-fonts'
 import { Button } from '@/components/ui/button'
@@ -62,10 +63,12 @@ export function ShopDirectory({
                   >
                     <div className="relative h-44 w-full overflow-hidden bg-surface">
                       {shop.hero_photo_url ? (
-                        <div
-                          aria-hidden
-                          className="h-full w-full bg-cover bg-center transition-transform duration-500 group-hover:scale-[1.03]"
-                          style={{ backgroundImage: `url("${shop.hero_photo_url.replaceAll('"', '')}")` }}
+                        <Image
+                          src={shop.hero_photo_url}
+                          alt=""
+                          fill
+                          sizes="(max-width: 768px) 100vw, 384px"
+                          className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                         />
                       ) : (
                         <div className="flex h-full w-full items-center justify-center text-white" style={{ backgroundColor: shop.brand_color }}>

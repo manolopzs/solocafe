@@ -1,10 +1,10 @@
+import { cookies } from 'next/headers'
 import { notFound } from 'next/navigation'
-import { getShopBySlug } from '@/server/queries/shops'
-import { getPublicMenu } from '@/server/queries/menu'
 import { getCurrentCustomer, getCustomerOrder } from '@/server/queries/customers'
 import { getShopFavorites } from '@/server/queries/favorites'
 import { getRecentOrders } from '@/server/queries/recentOrders'
 import { getUsualOrder } from '@/server/queries/orders'
+import { getPublicStorefront } from '@/server/queries/storefront'
 import { OrderPageClient } from '@/components/order/order-page-client'
 import { ShopHero } from '@/components/shop/shop-hero'
 import { shopThemeVars } from '@/lib/shop-theme'
@@ -21,15 +21,15 @@ export default async function PublicOrderPage({
 }) {
   const { shopSlug } = await params
   const { reorder: reorderOrderId } = await searchParams
-  const shop = await getShopBySlug(shopSlug)
-  if (!shop) notFound()
-
-  const [menu, customer, reorderOrder] = await Promise.all([
-    getPublicMenu(shop.id),
-    getCurrentCustomer(),
+  const signedIn = Boolean((await cookies()).get('token')?.value)
+  const [storefront, reorderOrder, customer] = await Promise.all([
+    getPublicStorefront(shopSlug),
     reorderOrderId ? getCustomerOrder(reorderOrderId) : Promise.resolve(null),
+    signedIn ? getCurrentCustomer() : Promise.resolve(null),
   ])
+  if (!storefront) notFound()
 
+  const { shop, menu } = storefront
   let favoriteIds: string[] = []
   let recentOrders: Order[] = []
   let usualOrder: UsualOrder | null = null
@@ -40,7 +40,6 @@ export default async function PublicOrderPage({
       getUsualOrder(shop.id),
     ])
   }
-
   const reorderCount = reorderOrder?.items?.reduce((sum, item) => sum + item.quantity, 0) ?? 0
 
   return (

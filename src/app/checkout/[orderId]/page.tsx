@@ -7,7 +7,7 @@ import { checkoutPaymentMessage, isConfiguredStripeKey, STRIPE_NOT_CONFIGURED_ME
 import { env } from '@/lib/env'
 import { CheckoutForm } from '@/components/order/checkout-form'
 import { CheckoutScreen } from '@/components/order/checkout-screen'
-import { formatMoney, formatPickupWindow } from '@/lib/ordering'
+import { CUSTOMER_TIME_ZONE, formatMoney, formatPickupWindow } from '@/lib/ordering'
 import type { CustomerPaymentMethod } from '@/types'
 import { Button } from '@/components/ui/button'
 import { Notice } from '@/components/ui/notice'
@@ -83,7 +83,7 @@ export default async function CheckoutPage({ params, searchParams }: CheckoutPag
       ? formatPickupWindow(
           order.pickup_window_starts_at,
           order.pickup_window_ends_at,
-          order.shop?.timezone || 'America/Mexico_City'
+          order.shop?.timezone || CUSTOMER_TIME_ZONE
         )
       : 'Lo antes posible'
 

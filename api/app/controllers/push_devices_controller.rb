@@ -3,7 +3,7 @@ class PushDevicesController < ApplicationController
   before_action :require_shop_member!
 
   def index
-    devices = Current.shop.push_devices.order(created_at: :desc)
+    devices = Current.shop.push_devices.where(audience: "kitchen").order(created_at: :desc)
     render json: { push_devices: devices.map { |device| push_device_payload(device) } }
   end
 

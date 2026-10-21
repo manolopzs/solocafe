@@ -2,7 +2,7 @@ class KitchenPush
   def self.enqueue(order)
     message = message_for(order)
     Current.set(shop: order.shop) do
-      PushDevice.find_each do |device|
+      PushDevice.where(audience: "kitchen").find_each do |device|
         KitchenPushJob.perform_later(order.shop_id, device.id, message)
       end
     end

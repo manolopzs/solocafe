@@ -24,6 +24,27 @@ export async function getOrderById(id: string, accessToken?: string): Promise<Or
   }
 }
 
+export async function getPublicOrderView(
+  id: string,
+  accessToken?: string
+): Promise<{
+  order: Order & { items: (OrderItem & { modifiers: OrderItemModifier[] })[] }
+  vapidPublicKey: string | null
+} | null> {
+  try {
+    const data = await apiGet<{
+      order: Order & { items: (OrderItem & { modifiers: OrderItemModifier[] })[] }
+      push?: { vapid_public_key: string | null }
+    }>(`/public/orders/${id}${tokenQuery(accessToken)}`, false, tokenHeaders(accessToken))
+    return {
+      order: data.order,
+      vapidPublicKey: data.push?.vapid_public_key ?? null,
+    }
+  } catch {
+    return null
+  }
+}
+
 export async function getOrderWithItems(
   id: string,
   accessToken?: string

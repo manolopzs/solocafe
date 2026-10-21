@@ -3,8 +3,8 @@ class ShopOnboarding
 
   STARTER_CATEGORIES = [
     { name: "Bebidas calientes", sort_order: 1 },
-    { name: "Bebidas frias", sort_order: 2 },
-    { name: "Panaderia", sort_order: 3 }
+    { name: "Bebidas frías", sort_order: 2 },
+    { name: "Panadería", sort_order: 3 }
   ].freeze
 
   STARTER_GROUPS = [
@@ -15,31 +15,32 @@ class ShopOnboarding
       sort_order: 1,
       options: [
         { name: "Entera", price_cents: 0, sort_order: 1 },
-        { name: "Deslactosada", price_cents: 500, sort_order: 2 },
-        { name: "Almendra", price_cents: 1500, sort_order: 3 }
+        { name: "Deslactosada", price_cents: 30, sort_order: 2 },
+        { name: "Almendra", price_cents: 50, sort_order: 3 }
       ]
     },
     {
-      name: "Tamano",
+      name: "Tamaño",
       min_select: 1,
       max_select: 1,
       sort_order: 2,
       options: [
         { name: "Chico", price_cents: 0, sort_order: 1 },
-        { name: "Mediano", price_cents: 1000, sort_order: 2 },
-        { name: "Grande", price_cents: 2000, sort_order: 3 }
+        { name: "Mediano", price_cents: 40, sort_order: 2 },
+        { name: "Grande", price_cents: 80, sort_order: 3 }
       ]
     }
   ].freeze
 
   STARTER_ITEMS = [
-    { name: "Cappuccino", description: "Espresso doble con leche vaporizada y espuma cremosa.", price_cents: 5500, category_index: 0, prep_time_min: 4, groups: [ "Leche", "Tamano" ], image_url: "https://images.unsplash.com/photo-1572442388796-11668a67e53d?w=600&auto=format&fit=crop" },
-    { name: "Latte Vainilla", description: "Cafe suave con leche caliente y un toque de vainilla.", price_cents: 6200, category_index: 0, prep_time_min: 4, groups: [ "Tamano" ], image_url: "https://images.unsplash.com/photo-1461023058943-48dbf1399192?w=600&auto=format&fit=crop" },
-    { name: "Americano", description: "Espresso con agua caliente, intenso y ligero.", price_cents: 4200, category_index: 0, prep_time_min: 3, groups: [ "Tamano" ] },
-    { name: "Cold Brew", description: "Cafe infusionado en frio por 18 horas. Suave y refrescante.", price_cents: 6800, category_index: 1, prep_time_min: 2, groups: [ "Tamano" ], image_url: "https://images.unsplash.com/photo-1517701550927-30cf4ba1dba5?w=600&auto=format&fit=crop" },
-    { name: "Frappe Mocha", description: "Cafe, hielo, chocolate y crema batida.", price_cents: 7500, category_index: 1, prep_time_min: 5, groups: [ "Tamano" ], image_url: "https://images.unsplash.com/photo-1577968897966-3d4325b36b61?w=600&auto=format&fit=crop" },
-    { name: "Croissant de Mantequilla", description: "Hojaldre dorado y crujiente, horneado diario.", price_cents: 4800, category_index: 2, prep_time_min: 1, groups: [], image_url: "https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=600&auto=format&fit=crop" },
-    { name: "Muffin de Arandanos", description: "Esponjoso con arandanos frescos y un toque de limon.", price_cents: 5200, category_index: 2, prep_time_min: 1, groups: [] }
+    { name: "Café", description: "Café espresso corto, intenso y con cuerpo.", price_cents: 180, category_index: 0, prep_time_min: 2, groups: [ "Tamaño" ], image_url: "https://images.unsplash.com/photo-1511920170033-f8396924c348?auto=format&fit=crop&w=240&h=240&q=70" },
+    { name: "Cappuccino", description: "Espresso doble con leche vaporizada y espuma cremosa.", price_cents: 280, category_index: 0, prep_time_min: 4, groups: [ "Leche", "Tamaño" ], image_url: "https://images.unsplash.com/photo-1572442388796-11668a67e53d?auto=format&fit=crop&w=240&h=240&q=70" },
+    { name: "Latte Vainilla", description: "Café suave con leche caliente y un toque de vainilla.", price_cents: 320, category_index: 0, prep_time_min: 4, groups: [ "Tamaño" ], image_url: "https://images.unsplash.com/photo-1461023058943-48dbf1399192?auto=format&fit=crop&w=240&h=240&q=70" },
+    { name: "Americano", description: "Café espresso con agua caliente, intenso y ligero.", price_cents: 220, category_index: 0, prep_time_min: 3, groups: [ "Tamaño" ] },
+    { name: "Cold Brew", description: "Café infusionado en frío por 18 horas. Suave y refrescante.", price_cents: 340, category_index: 1, prep_time_min: 2, groups: [ "Tamaño" ], image_url: "https://images.unsplash.com/photo-1517701550927-30cf4ba1dba5?auto=format&fit=crop&w=240&h=240&q=70" },
+    { name: "Frappe Mocha", description: "Café, hielo, chocolate y crema batida.", price_cents: 390, category_index: 1, prep_time_min: 5, groups: [ "Tamaño" ], image_url: "https://images.unsplash.com/photo-1577968897966-3d4325b36b61?auto=format&fit=crop&w=240&h=240&q=70" },
+    { name: "Croissant de Mantequilla", description: "Hojaldre dorado y crujiente, horneado a diario.", price_cents: 250, category_index: 2, prep_time_min: 1, groups: [], image_url: "https://images.unsplash.com/photo-1555507036-ab1f4038808a?auto=format&fit=crop&w=240&h=240&q=70" },
+    { name: "Muffin de arándanos", description: "Esponjoso con arándanos frescos y un toque de limón.", price_cents: 280, category_index: 2, prep_time_min: 1, groups: [] }
   ].freeze
 
   def self.snapshot(shop)

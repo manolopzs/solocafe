@@ -49,7 +49,7 @@ export function ItemSheet({
       <div className="flex flex-col">
         <div className="relative -mx-6 -mt-2 h-52 overflow-hidden bg-surface sm:h-64">
           {item.image_url ? (
-            <Image src={item.image_url} alt="" fill sizes="100vw" className="object-cover" />
+            <Image src={item.image_url} alt="" fill sizes="(max-width: 768px) 100vw, 768px" className="object-cover" />
           ) : (
             <div className="flex h-full w-full items-center justify-center bg-surface text-muted-foreground">
               <Icon name="coffee" className="h-14 w-14 opacity-30" />
