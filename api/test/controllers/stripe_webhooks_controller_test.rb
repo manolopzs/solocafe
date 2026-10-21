@@ -1,6 +1,16 @@
 require "test_helper"
 require "ostruct"
 
+class RaisingQueueAdapter
+  def enqueue(*)
+    raise "queue unavailable"
+  end
+
+  def enqueue_at(*)
+    raise "queue unavailable"
+  end
+end
+
 class StripeWebhooksControllerTest < ActionDispatch::IntegrationTest
   setup do
     @owner = User.create!(email: "owner@example.com", password: "password123")
@@ -15,6 +25,49 @@ class StripeWebhooksControllerTest < ActionDispatch::IntegrationTest
       pickup_type: "asap"
     )
     Payment.create!(order: @order, amount_cents: 1000, currency: "MXN", status: "pending", stripe_payment_intent_id: "pi_123")
+  end
+
+  test "payment_intent.succeeded enqueues a kitchen push" do
+    register_kitchen_device
+    event = build_event("payment_intent.succeeded", "pi_123", "ch_123", "evt_kitchen")
+
+    with_immediate_kitchen_enqueue do
+      assert_enqueued_jobs 1, only: KitchenPushJob do
+        with_stripe_webhook(event) do
+          post webhooks_stripe_url, params: event.as_json.to_json, headers: { "Content-Type" => "application/json" }
+        end
+      end
+    end
+
+    assert_response :success
+    assert_equal "received", @order.reload.status
+    assert_equal "succeeded", @order.payment_status
+  end
+
+  test "webhook succeeds when kitchen enqueue raises" do
+    register_kitchen_device
+    event = build_event("payment_intent.succeeded", "pi_123", "ch_123", "evt_enqueue_down")
+    previous_adapter = ActiveJob::Base.queue_adapter
+    ActiveJob::Base.queue_adapter = RaisingQueueAdapter.new
+    logs = nil
+
+    with_immediate_kitchen_enqueue do
+      logs = capture_rails_logs do
+        with_stripe_webhook(event) do
+          post webhooks_stripe_url, params: event.as_json.to_json, headers: { "Content-Type" => "application/json" }
+        end
+      end
+    end
+
+    assert_response :success
+    @order.reload
+    assert_equal "succeeded", @order.payment_status
+    assert_equal "received", @order.status
+    assert_equal "succeeded", @order.payment.status
+    assert_equal 1, StripeWebhookEvent.where(stripe_event_id: "evt_enqueue_down").count
+    assert_match(/kitchen_push.enqueue_failed/, logs)
+  ensure
+    ActiveJob::Base.queue_adapter = previous_adapter if previous_adapter
   end
 
   test "payment_intent.succeeded updates payment and order" do
@@ -862,6 +915,29 @@ class StripeWebhooksControllerTest < ActionDispatch::IntegrationTest
     yield
   ensure
     Stripe::PaymentMethod.define_singleton_method(:retrieve, original)
+  end
+
+  def register_kitchen_device
+    Current.set(shop: @shop) do
+      PushDevice.register!(
+        shop: @shop,
+        user: @owner,
+        attributes: {
+          platform: "web",
+          endpoint: "https://push.example/kitchen",
+          p256dh: "kitchen-p256dh",
+          auth_key: "kitchen-auth"
+        }
+      )
+    end
+  end
+
+  def with_immediate_kitchen_enqueue
+    previous = KitchenPushJob.enqueue_after_transaction_commit
+    KitchenPushJob.enqueue_after_transaction_commit = false
+    yield
+  ensure
+    KitchenPushJob.enqueue_after_transaction_commit = previous
   end
 
   def with_stripe_webhook(return_value)

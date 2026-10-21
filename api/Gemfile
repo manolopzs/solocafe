@@ -8,8 +8,8 @@ gem "bcrypt", "~> 3.1.7"
 gem "jwt", "~> 3.0"
 gem "stripe", "~> 13.0"
 gem "web-push", "~> 3.1"
-gem "redis", "~> 5.0"
-gem "sidekiq", "~> 7.0"
+gem "solid_queue"
+gem "aws-sdk-s3", require: false
 gem "rack-cors"
 gem "jbuilder", "~> 2.0"
 

@@ -42,6 +42,6 @@ module Api
     config.i18n.default_locale = :es
     config.i18n.available_locales = %i[es en]
 
-    config.active_job.queue_adapter = :sidekiq
+    config.active_job.queue_adapter = :solid_queue
   end
 end
