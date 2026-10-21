@@ -6,7 +6,6 @@ import { getOrderWithItems } from '@/server/queries/orders'
 import { formatMoney, formatPickupWindow } from '@/lib/ordering'
 import { Button } from '@/components/ui/button'
 import { StampCard } from '@/components/order/stamp-card'
-import { Card, CardContent } from '@/components/ui/card'
 import { Icon } from '@/components/ui/icon'
 import type { Order, OrderItem, OrderItemModifier, OrderStatus } from '@/types'
 
@@ -85,84 +84,82 @@ export function OrderStatusClient({
   const showSteps = order.status !== 'cancelled' && order.status !== 'pending_payment'
   const menuHref = order.shop?.slug ? `/${order.shop.slug}` : '/'
 
+  const tone =
+    order.status === 'ready' || order.status === 'picked_up'
+      ? 'bg-success/15 text-success'
+      : order.status === 'cancelled'
+        ? 'bg-danger/10 text-danger'
+        : 'bg-accent/15 text-accent'
+
   return (
-    <main className="min-h-screen bg-background px-4 py-6 sm:px-6 sm:py-10">
-      <div className="mx-auto max-w-xl">
-        <Link href={menuHref} className="mb-6 inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground">
+    <main className="min-h-screen bg-background">
+      <div className="mx-auto max-w-xl px-5 pb-16 pt-5 sm:pt-8">
+        <Link href={menuHref} className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground">
           <Icon name="arrow-left" className="h-4 w-4" />
           Volver al menú
         </Link>
 
-        <div className="text-center">
-          <div
-            className={[
-              'mx-auto flex h-16 w-16 items-center justify-center rounded-full',
-              order.status === 'ready' || order.status === 'picked_up'
-                ? 'bg-sage-100 text-sage-600'
-                : order.status === 'cancelled'
-                  ? 'bg-danger/10 text-danger'
-                  : 'bg-amber-100 text-amber-600',
-            ].join(' ')}
-          >
-            <Icon name={order.status === 'ready' || order.status === 'picked_up' ? 'check' : 'clock'} className="h-8 w-8" />
+        <div className="mt-8 flex items-start gap-4">
+          <div className={['flex h-14 w-14 shrink-0 items-center justify-center rounded-full', tone].join(' ')}>
+            <Icon name={order.status === 'ready' || order.status === 'picked_up' ? 'check' : 'clock'} className="h-7 w-7" />
           </div>
-          <h1 className="mt-5 font-serif text-2xl font-semibold text-foreground">{headline(order.status)}</h1>
-          <p className="mt-2 text-muted-foreground">{subhead(order.status)}</p>
+          <div>
+            {shopName && <p className="text-sm font-medium text-accent">{shopName}</p>}
+            <h1 className="mt-1 text-[2rem] font-medium leading-tight tracking-tight text-foreground">{headline(order.status)}</h1>
+            <p className="mt-2 text-base leading-6 text-muted-foreground">{subhead(order.status)}</p>
+          </div>
         </div>
 
+        <p className="mt-8 text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">Código de recogida</p>
+        <p className="mt-1 text-4xl font-medium tracking-[0.18em] text-foreground">{order.id.slice(-6).toUpperCase()}</p>
+
         {showSteps && (
-          <Card variant="outline" className="mt-8 overflow-hidden">
-            <CardContent className="p-5">
-              <div className="relative flex justify-between">
-                {statusSteps.map((step, index) => {
-                  const done = index <= progressIndex
-                  const active = index === progressIndex
-                  return (
-                    <div key={step} className="relative z-10 flex flex-1 flex-col items-center gap-2">
-                      <div
-                        className={[
-                          'flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold transition-colors',
-                          done ? 'bg-foreground text-primary-foreground' : 'border border-border bg-surface text-muted-foreground',
-                          active ? 'ring-2 ring-accent ring-offset-2' : '',
-                        ].join(' ')}
-                      >
-                        {done ? <Icon name="check" className="h-4 w-4" /> : index + 1}
-                      </div>
-                      <span className={['text-center text-[0.65rem] font-medium sm:text-xs', done ? 'text-foreground' : 'text-muted-foreground'].join(' ')}>
-                        {statusLabels[step]}
-                      </span>
-                    </div>
-                  )
-                })}
-                <div className="absolute left-0 right-0 top-4 -z-0 h-0.5 bg-border">
+          <div className="relative mt-8 flex justify-between">
+            {statusSteps.map((step, index) => {
+              const done = index <= progressIndex
+              const active = index === progressIndex && order.status !== 'picked_up'
+              return (
+                <div key={step} className="relative z-10 flex flex-1 flex-col items-center gap-2">
                   <div
-                    className="h-full bg-foreground transition-all"
-                    style={{ width: `${(Math.max(0, progressIndex) / (statusSteps.length - 1)) * 100}%` }}
-                  />
+                    className={[
+                      'flex h-9 w-9 items-center justify-center rounded-full text-xs font-medium transition-colors',
+                      done ? 'bg-primary text-primary-foreground' : 'bg-surface text-muted-foreground',
+                      active ? 'animate-soft-pulse ring-4 ring-primary/20' : '',
+                    ].join(' ')}
+                  >
+                    {done ? <Icon name="check" className="h-4 w-4" /> : index + 1}
+                  </div>
+                  <span className={['text-center text-xs', done ? 'font-medium text-foreground' : 'text-muted-foreground'].join(' ')}>
+                    {statusLabels[step]}
+                  </span>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              )
+            })}
+            <div className="absolute left-8 right-8 top-[18px] -z-0 h-0.5 bg-border">
+              <div
+                className="h-full bg-primary transition-all"
+                style={{ width: `${(Math.max(0, progressIndex) / (statusSteps.length - 1)) * 100}%` }}
+              />
+            </div>
+          </div>
         )}
 
         {(windowLabel || shopName) && order.status !== 'cancelled' && (
-          <Card variant="outline" className="mt-4 overflow-hidden">
-            <CardContent className="space-y-3 p-5">
-              <p className="text-sm font-medium text-foreground">
-                {itemCount} {itemCount === 1 ? 'producto' : 'productos'}
-                {shopName ? ` · ${shopName}` : ''}
-              </p>
-              {windowLabel && <p className="text-lg font-semibold text-foreground">{windowLabel}</p>}
-              {order.shop?.directions_url && (
-                <Button asChild variant="outline" className="w-full">
-                  <a href={order.shop.directions_url} target="_blank" rel="noreferrer">
-                    <Icon name="map-pin" className="mr-2 h-4 w-4" />
-                    Cómo llegar
-                  </a>
-                </Button>
-              )}
-            </CardContent>
-          </Card>
+          <section className="mt-8 rounded-3xl bg-surface px-5 py-5">
+            <p className="text-sm text-muted-foreground">
+              {itemCount} {itemCount === 1 ? 'producto' : 'productos'}
+            </p>
+            {windowLabel && <p className="mt-1 text-xl font-medium tracking-tight text-foreground">{windowLabel}</p>}
+            {order.shop?.address && <p className="mt-2 text-sm text-muted-foreground">{order.shop.address}</p>}
+            {order.shop?.directions_url && (
+              <Button asChild variant="outline" className="mt-4 w-full">
+                <a href={order.shop.directions_url} target="_blank" rel="noreferrer">
+                  <Icon name="map-pin" className="mr-2 h-4 w-4" />
+                  Cómo llegar
+                </a>
+              </Button>
+            )}
+          </section>
         )}
 
         {order.loyalty && (
@@ -175,53 +172,47 @@ export function OrderStatusClient({
         )}
 
         {order.status === 'pending_payment' && accessToken && (
-          <Button asChild size="lg" className="mt-4 w-full">
+          <Button asChild size="lg" className="mt-6 w-full">
             <Link href={`/checkout/${order.id}?token=${encodeURIComponent(accessToken)}`}>Completar pago</Link>
           </Button>
         )}
 
         {notificationPermission === 'default' && order.status !== 'cancelled' && order.status !== 'picked_up' && (
-          <Button variant="outline" size="sm" className="mt-4 w-full" onClick={() => void requestNotification()}>
+          <Button variant="outline" className="mt-4 w-full" onClick={() => void requestNotification()}>
             <Icon name="bell" className="mr-2 h-4 w-4" />
             Avísame cuando esté listo
           </Button>
         )}
 
-        <Card variant="outline" className="mt-6 overflow-hidden">
-          <div className="border-b border-border bg-surface px-5 py-3">
-            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Detalle del pedido</p>
-          </div>
-          <CardContent className="p-5">
-            <ul className="space-y-3">
-              {order.items.map((item) => (
-                <li key={item.id} className="flex items-start justify-between gap-4">
-                  <div className="min-w-0">
-                    <p className="font-medium text-foreground">
-                      {item.quantity}x {item.item_name_snapshot}
-                    </p>
-                    {item.modifiers && item.modifiers.length > 0 && (
-                      <p className="mt-0.5 text-sm text-muted-foreground">
-                        {item.modifiers.map((modifier) => modifier.option_name_snapshot).join(', ')}
-                      </p>
-                    )}
-                  </div>
-                </li>
-              ))}
-            </ul>
-            <div className="mt-5 space-y-2 border-t border-border pt-4 text-sm">
-              {(order.discount_cents ?? 0) > 0 && (
-                <div className="flex justify-between text-foreground">
-                  <span>Recompensa</span>
-                  <span>-{formatMoney(order.discount_cents ?? 0, order.currency)}</span>
-                </div>
-              )}
-              <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Total</span>
-                <span className="text-lg font-bold text-foreground">{formatMoney(order.total_cents, order.currency)}</span>
+        <section className="mt-8">
+          <h2 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">Tu pedido</h2>
+          <ul className="mt-3 divide-y divide-border border-y border-border">
+            {order.items.map((item) => (
+              <li key={item.id} className="py-3.5">
+                <p className="font-medium text-foreground">
+                  {item.quantity} × {item.item_name_snapshot}
+                </p>
+                {item.modifiers && item.modifiers.length > 0 && (
+                  <p className="mt-0.5 text-sm text-muted-foreground">
+                    {item.modifiers.map((modifier) => modifier.option_name_snapshot).join(', ')}
+                  </p>
+                )}
+              </li>
+            ))}
+          </ul>
+          <div className="mt-4 space-y-2 text-sm">
+            {(order.discount_cents ?? 0) > 0 && (
+              <div className="flex justify-between text-foreground">
+                <span>Recompensa</span>
+                <span className="tabular-nums">-{formatMoney(order.discount_cents ?? 0, order.currency)}</span>
               </div>
+            )}
+            <div className="flex items-baseline justify-between">
+              <span className="text-muted-foreground">Total</span>
+              <span className="text-xl font-medium tabular-nums text-foreground">{formatMoney(order.total_cents, order.currency)}</span>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </section>
       </div>
     </main>
   )

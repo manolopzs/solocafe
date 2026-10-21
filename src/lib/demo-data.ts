@@ -50,8 +50,8 @@ export const demoShop: Shop = {
 
 export const demoCategories: MenuCategory[] = [
   { id: 'cat-1', shop_id: demoShop.id, name: 'Bebidas calientes', sort_order: 1, is_active: true, created_at: '' },
-  { id: 'cat-2', shop_id: demoShop.id, name: 'Bebidas frias', sort_order: 2, is_active: true, created_at: '' },
-  { id: 'cat-3', shop_id: demoShop.id, name: 'Panaderia', sort_order: 3, is_active: true, created_at: '' },
+  { id: 'cat-2', shop_id: demoShop.id, name: 'Bebidas frías', sort_order: 2, is_active: true, created_at: '' },
+  { id: 'cat-3', shop_id: demoShop.id, name: 'Panadería', sort_order: 3, is_active: true, created_at: '' },
 ]
 
 export const demoModifierGroups: ModifierGroup[] = [

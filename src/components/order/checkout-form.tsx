@@ -9,6 +9,7 @@ import { cardExpiry, cardTitle } from '@/lib/cards'
 import type { CustomerPaymentMethod } from '@/types'
 import { Button } from '@/components/ui/button'
 import { Icon } from '@/components/ui/icon'
+import { Notice } from '@/components/ui/notice'
 
 function successUrl(orderId: string, accessToken: string, sync: boolean) {
   const token = encodeURIComponent(accessToken)
@@ -91,8 +92,7 @@ function PaymentForm({
         </label>
       )}
       {error && (
-        <div className="flex items-start gap-2 rounded-lg bg-danger/10 p-3 text-sm text-danger">
-          <Icon name="x" className="mt-0.5 h-4 w-4 shrink-0" />
+        <div role="alert" className="rounded-2xl bg-danger/10 px-3.5 py-3 text-sm text-danger">
           {error}
         </div>
       )}
@@ -177,7 +177,7 @@ function SavedCardList({
                 type="button"
                 onClick={() => pay(card.id)}
                 disabled={loadingId !== null}
-                className="flex w-full items-center justify-between gap-3 rounded-xl border border-border bg-surface px-4 py-3 text-left transition-shadow hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-70"
+                className="flex min-h-14 w-full items-center justify-between gap-3 rounded-2xl bg-surface px-4 py-3 text-left transition-shadow hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-70"
               >
                 <span className="min-w-0">
                   <span className="block font-medium text-foreground">{cardTitle(card)}</span>
@@ -192,8 +192,7 @@ function SavedCardList({
         })}
       </ul>
       {error && (
-        <div className="flex items-start gap-2 rounded-lg bg-danger/10 p-3 text-sm text-danger">
-          <Icon name="x" className="mt-0.5 h-4 w-4 shrink-0" />
+        <div role="alert" className="rounded-2xl bg-danger/10 px-3.5 py-3 text-sm text-danger">
           {error}
         </div>
       )}
@@ -216,7 +215,7 @@ export function CheckoutForm({
 }) {
   const stripePromise = getStripe()
   if (!stripePromise) {
-    return <p className="text-sm text-danger">{STRIPE_NOT_CONFIGURED_MESSAGE}</p>
+    return <Notice tone="danger">{STRIPE_NOT_CONFIGURED_MESSAGE}</Notice>
   }
 
   return (
