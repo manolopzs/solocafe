@@ -197,6 +197,112 @@ class OrdersControllerTest < ActionDispatch::IntegrationTest
     assert_empty response.parsed_body["orders"]
   end
 
+  test "marking an order ready notifies that customer and not another shop" do
+    preparing = create_order(@shop, status: "preparing")
+    other = create_order(@other_shop, status: "preparing")
+    Current.set(shop: @shop) do
+      PushDevice.register!(
+        shop: @shop,
+        user: nil,
+        attributes: {
+          platform: "web",
+          audience: "customer",
+          order_id: preparing.id,
+          endpoint: "https://push.example/customer",
+          p256dh: "customer-p256dh",
+          auth_key: "customer-auth"
+        }
+      )
+    end
+    Current.set(shop: @other_shop) do
+      PushDevice.register!(
+        shop: @other_shop,
+        user: nil,
+        attributes: {
+          platform: "web",
+          audience: "customer",
+          order_id: other.id,
+          endpoint: "https://push.example/other-customer",
+          p256dh: "other-p256dh",
+          auth_key: "other-auth"
+        }
+      )
+    end
+
+    previous = CustomerReadyPushJob.enqueue_after_transaction_commit
+    CustomerReadyPushJob.enqueue_after_transaction_commit = false
+    assert_enqueued_jobs 1, only: CustomerReadyPushJob do
+      patch shop_order_url(@shop, preparing), params: { order: { status: "ready" } }, headers: auth_headers
+    end
+    CustomerReadyPushJob.enqueue_after_transaction_commit = previous
+    job = queue_adapter.enqueued_jobs.reverse.find { |entry| entry[:job] == CustomerReadyPushJob }
+    assert_equal @shop.id, job[:args][0]
+    assert_equal preparing.id, job[:args][2]["order_id"]
+    assert_equal "Tu pedido está listo", job[:args][2]["title"]
+
+    assert_response :success
+    assert_equal "ready", preparing.reload.status
+    TenantScoped.unscoped_for_system do
+      notification = Notification.find_by!(order: preparing, notification_type: "order.ready")
+      assert_equal "web_push", notification.channel
+      assert_equal @shop.id, notification.shop_id
+      assert_equal 0, Notification.where(order: other, notification_type: "order.ready").count
+    end
+    queued = ActiveJob::Base.queue_adapter.enqueued_jobs.select { |entry| entry[:job] == CustomerReadyPushJob }
+    assert queued.all? { |entry| entry[:args][0] == @shop.id }
+  end
+
+  test "moving an order to preparing does not send the ready notification" do
+    received = create_order(@shop, status: "received")
+
+    assert_no_enqueued_jobs only: CustomerReadyPushJob do
+      patch shop_order_url(@shop, received), params: { order: { status: "preparing" } }, headers: auth_headers
+    end
+
+    assert_response :success
+    assert_equal 0, TenantScoped.unscoped_for_system { Notification.where(notification_type: "order.ready").count }
+  end
+
+  test "guest checkout stores an optional receipt email" do
+    item = MenuItem.create!(shop: @shop, name: "Café", description: "Café con leche", price_cents: 280, prep_time_min: 4, is_active: true, is_86ed: false)
+
+    travel_to Time.find_zone(@shop.timezone).local(2026, 10, 20, 10, 0, 0) do
+      post shop_orders_url(@shop), params: {
+        order: {
+          customer_name: "Ana",
+          customer_phone: "600111222",
+          customer_email: " Ana@Cafe.test ",
+          pickup_type: "asap",
+          items: [ { menu_item_id: item.id, quantity: 1, modifier_option_ids: [] } ]
+        }
+      }
+    end
+
+    assert_response :created
+    created = TenantScoped.unscoped_for_system { Order.find(response.parsed_body.dig("order", "id")) }
+    assert_equal "ana@cafe.test", created.customer_email
+    assert_equal "ana@cafe.test", response.parsed_body.dig("order", "customer_email")
+    assert_equal "Café", response.parsed_body.dig("order", "items", 0, "item_name_snapshot")
+  end
+
+  test "guest checkout rejects a malformed receipt email" do
+    item = MenuItem.create!(shop: @shop, name: "Latte", price_cents: 280, prep_time_min: 4, is_active: true, is_86ed: false)
+
+    travel_to Time.find_zone(@shop.timezone).local(2026, 10, 20, 10, 0, 0) do
+      post shop_orders_url(@shop), params: {
+        order: {
+          customer_name: "Ana",
+          customer_email: "no-es-un-correo",
+          pickup_type: "asap",
+          items: [ { menu_item_id: item.id, quantity: 1, modifier_option_ids: [] } ]
+        }
+      }
+    end
+
+    assert_response :unprocessable_entity
+    assert_equal 0, TenantScoped.unscoped_for_system { Order.where(customer_name: "Ana").count }
+  end
+
   test "public order show accepts a valid access token and hides the phone" do
     @order.update!(customer_name: "Ana", customer_phone: "5551111111")
 

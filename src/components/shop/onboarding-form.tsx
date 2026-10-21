@@ -81,7 +81,7 @@ export function OnboardingForm() {
                 <select
                   id="currency"
                   name="currency"
-                  defaultValue="MXN"
+                  defaultValue="EUR"
                   className="mt-1.5 block w-full rounded-xl border border-warm-200 bg-paper px-4 py-3 text-sm text-foreground focus:border-terracotta-400 focus:outline-none focus:ring-2 focus:ring-terracotta-400/20"
                 >
                   <option value="MXN">MXN</option>
@@ -107,7 +107,7 @@ export function OnboardingForm() {
               <select
                 id="timezone"
                 name="timezone"
-                defaultValue="America/Mexico_City"
+                defaultValue="Europe/Madrid"
                 className="mt-1.5 block w-full rounded-xl border border-warm-200 bg-paper px-4 py-3 text-sm text-foreground focus:border-terracotta-400 focus:outline-none focus:ring-2 focus:ring-terracotta-400/20"
               >
                 <option value="America/Mexico_City">Ciudad de Mexico</option>

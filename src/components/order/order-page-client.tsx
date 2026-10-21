@@ -69,6 +69,7 @@ export function OrderPageClient({
     shop_id: string
     customer_name: string
     customer_phone: string
+    customer_email?: string
     pickup_type: 'asap' | 'scheduled'
     pickup_slot_date?: string
     pickup_slot_start_time?: string
@@ -257,6 +258,7 @@ export function OrderPageClient({
   const handleSubmit = async (input: {
     customerName: string
     customerPhone: string
+    customerEmail: string
     specialInstructions: string
     pickupType: 'asap' | 'scheduled'
     pickupSlotDate?: string
@@ -269,6 +271,7 @@ export function OrderPageClient({
       shop_id: shop.id,
       customer_name: input.customerName,
       customer_phone: input.customerPhone,
+      customer_email: input.customerEmail,
       pickup_type: input.pickupType,
       pickup_slot_date: input.pickupSlotDate,
       pickup_slot_start_time: input.pickupSlotStartTime,
@@ -394,7 +397,7 @@ export function OrderPageClient({
               >
                 <div className="relative aspect-square w-full overflow-hidden rounded-lg bg-surface">
                   {item.image_url ? (
-                    <Image src={item.image_url} alt={item.name} fill className="object-cover" />
+                    <Image src={item.image_url} alt={item.name} fill sizes="144px" className="object-cover" />
                   ) : (
                     <div className="flex h-full w-full items-center justify-center text-muted-foreground">
                       <Icon name="coffee" className="h-6 w-6 opacity-30" />
@@ -496,6 +499,7 @@ export function OrderPageClient({
         onClose={() => setCheckoutOpen(false)}
         shop={{ ...shop, ordering: liveOrdering }}
         customer={customer}
+        lines={viewLines}
         total={formatPrice(totalCents)}
         blockedReason={blockedReason}
         pickupType={pickupType}

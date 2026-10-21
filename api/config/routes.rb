@@ -38,10 +38,12 @@ Rails.application.routes.draw do
 
   get "/public/pricing", to: "public/pricing#show"
   get "/public/shops", to: "public/shops#index"
+  get "/public/storefront/:slug", to: "public/storefronts#show"
   get "/public/shops/:shop_id/menu", to: "public/menus#show"
   post "/public/shops/:shop_id/cart/preview", to: "public/carts#preview"
   get "/public/shops/:shop_id/pickup_slots", to: "public/pickup_slots#index"
   get "/public/orders/:id", to: "orders#show_public"
+  post "/public/orders/:id/push_devices", to: "public/order_pushes#create"
 
   post "/payments", to: "payments#create"
   post "/payments/sync", to: "payments#sync"

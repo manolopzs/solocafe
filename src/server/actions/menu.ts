@@ -1,7 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { apiGet, apiPost, apiPatch, apiDelete } from '@/lib/api/server'
+import { apiPost, apiPatch, apiDelete, apiForm } from '@/lib/api/server'
 import { z } from 'zod'
 
 const categorySchema = z.object({
@@ -44,6 +44,37 @@ export async function updateCategory(shopId: string, id: string, input: unknown)
 
 export async function deleteCategory(shopId: string, id: string) {
   await apiDelete(`/shops/${shopId}/menu_categories/${id}`)
+  revalidatePath(`/dashboard/${shopId}/menu`)
+}
+
+export async function saveMenuItem(shopId: string, itemId: string | null, formData: FormData) {
+  const price = Number.parseFloat(String(formData.get('price') ?? ''))
+  const categoryId = String(formData.get('category_id') ?? '')
+  const imageUrl = String(formData.get('image_url') ?? '')
+  const description = String(formData.get('description') ?? '')
+  const parsed = itemSchema.parse({
+    name: String(formData.get('name') ?? ''),
+    description: description || undefined,
+    price_cents: Number.isFinite(price) ? Math.round(price * 100) : Number.NaN,
+    category_id: categoryId || undefined,
+    image_url: imageUrl || undefined,
+  })
+
+  const body = new FormData()
+  body.set('menu_item[name]', parsed.name)
+  body.set('menu_item[description]', parsed.description ?? '')
+  body.set('menu_item[price_cents]', String(parsed.price_cents))
+  body.set('menu_item[image_url]', parsed.image_url ?? '')
+  if (parsed.category_id) body.set('menu_item[category_id]', parsed.category_id)
+  const photo = formData.get('photo')
+  if (photo instanceof File && photo.size > 0) body.set('menu_item[photo]', photo)
+  if (formData.get('remove_photo') === '1') body.set('menu_item[remove_photo]', '1')
+
+  if (itemId) {
+    await apiForm(`/shops/${shopId}/menu_items/${itemId}`, body, 'PATCH')
+  } else {
+    await apiForm(`/shops/${shopId}/menu_items`, body)
+  }
   revalidatePath(`/dashboard/${shopId}/menu`)
 }
 

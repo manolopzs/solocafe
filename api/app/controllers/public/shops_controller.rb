@@ -1,15 +1,16 @@
 module Public
   class ShopsController < ApplicationController
     include ShopPersonalityPayload
+    include PublicHttpCache
 
     def index
       origin = origin_coordinates
       shops = Shop.explore(lat: origin&.first, lng: origin&.last)
 
-      render json: {
+      render_public_json({
         sort: origin ? "distance" : "name",
         shops: shops.map { |shop| public_shop(shop, with_distance: origin.present?) }
-      }
+      }, max_age: 15)
     end
 
     private

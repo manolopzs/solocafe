@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation'
-import { getOrderWithItems } from '@/server/queries/orders'
+import { getPublicOrderView } from '@/server/queries/orders'
 import { OrderStatusClient } from '@/components/order/order-status-client'
 
 export const instant = false
@@ -12,8 +12,14 @@ interface OrderStatusPageProps {
 export default async function OrderStatusPage({ params, searchParams }: OrderStatusPageProps) {
   const { orderId } = await params
   const { token } = await searchParams
-  const order = await getOrderWithItems(orderId, token)
-  if (!order) notFound()
+  const view = await getPublicOrderView(orderId, token)
+  if (!view) notFound()
 
-  return <OrderStatusClient initialOrder={order} accessToken={token} />
+  return (
+    <OrderStatusClient
+      initialOrder={view.order}
+      accessToken={token}
+      vapidPublicKey={view.vapidPublicKey}
+    />
+  )
 }

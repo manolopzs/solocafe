@@ -1,16 +1,14 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import Image from 'next/image'
 import {
-  createItem,
-  updateItem,
+  saveMenuItem,
   deleteItem,
   toggleItem86,
   linkModifierGroup,
   unlinkModifierGroup,
 } from '@/server/actions/menu'
-import { uploadImageToCloudinary } from '@/lib/cloudinary'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -131,45 +129,14 @@ function ItemForm({
   onSaved: () => void
 }) {
   const [imageUrl, setImageUrl] = useState(item?.image_url ?? '')
-  const [uploading, setUploading] = useState(false)
-  const [uploadError, setUploadError] = useState<string | null>(null)
-  const fileInputRef = useRef<HTMLInputElement>(null)
-
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    setUploading(true)
-    setUploadError(null)
-    try {
-      const result = await uploadImageToCloudinary(file)
-      setImageUrl(result.secure_url)
-    } catch (err) {
-      setUploadError(err instanceof Error ? err.message : 'Error al subir imagen')
-    } finally {
-      setUploading(false)
-      if (fileInputRef.current) fileInputRef.current.value = ''
-    }
-  }
-
-  const isConfigured = Boolean(
-    process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME && process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET
-  )
+  const [removePhoto, setRemovePhoto] = useState(false)
 
   return (
     <form
       action={async (formData: FormData) => {
-        const payload = {
-          name: formData.get('name') as string,
-          description: (formData.get('description') as string) || undefined,
-          price_cents: Math.round(parseFloat(formData.get('price') as string) * 100),
-          category_id: (formData.get('category_id') as string) || undefined,
-          image_url: imageUrl || undefined,
-        }
-        if (item) {
-          await updateItem(shopId, item.id, payload)
-        } else {
-          await createItem(shopId, payload)
-        }
+        formData.set('image_url', imageUrl)
+        formData.set('remove_photo', removePhoto ? '1' : '0')
+        await saveMenuItem(shopId, item?.id ?? null, formData)
         setImageUrl('')
         onSaved()
       }}
@@ -205,14 +172,14 @@ function ItemForm({
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
-          <Label htmlFor={item ? `category-${item.id}` : 'new-item-category'}>Categoria</Label>
+          <Label htmlFor={item ? `category-${item.id}` : 'new-item-category'}>Categoría</Label>
           <Select
             id={item ? `category-${item.id}` : 'new-item-category'}
             name="category_id"
             defaultValue={item?.category_id ?? ''}
             className="mt-1.5"
           >
-            <option value="">Sin categoria</option>
+            <option value="">Sin categoría</option>
             {categories.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name}
@@ -232,24 +199,28 @@ function ItemForm({
               placeholder="https://..."
               className="flex-1"
             />
-            {isConfigured && (
-              <>
-                <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
-                <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} disabled={uploading}>
-                  {uploading ? '...' : 'Subir'}
-                </Button>
-              </>
-            )}
           </div>
+          <Input
+            id={item ? `photo-${item.id}` : 'new-item-photo'}
+            name="photo"
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            className="mt-2"
+            onChange={() => setRemovePhoto(false)}
+          />
+          <p className="mt-1.5 text-xs text-muted-foreground">JPG, PNG o WebP, hasta 5 MB. También puedes pegar una URL.</p>
         </div>
       </div>
 
       {imageUrl && (
         <div className="relative inline-flex h-24 w-24 items-center justify-center overflow-hidden rounded-xl border border-border bg-surface">
-          <Image src={imageUrl} alt="Vista previa" fill className="object-cover" />
+          <Image src={imageUrl} alt="Vista previa" fill sizes="96px" className="object-cover" />
           <button
             type="button"
-            onClick={() => setImageUrl('')}
+            onClick={() => {
+              setImageUrl('')
+              setRemovePhoto(true)
+            }}
             className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-foreground/70 text-background transition-colors hover:bg-foreground"
           >
             <Icon name="x" className="h-3.5 w-3.5" />
@@ -257,19 +228,12 @@ function ItemForm({
         </div>
       )}
 
-      {uploadError && <p className="text-sm text-danger">{uploadError}</p>}
-      {!isConfigured && (
-        <p className="text-xs text-muted-foreground">
-          Configura Cloudinary en las variables de entorno para habilitar la subida de archivos. Mientras tanto, pega una URL de imagen.
-        </p>
-      )}
-
       <div>
-        <Label htmlFor={item ? `desc-${item.id}` : 'new-item-desc'}>Descripcion</Label>
+        <Label htmlFor={item ? `desc-${item.id}` : 'new-item-desc'}>Descripción</Label>
         <Textarea
           id={item ? `desc-${item.id}` : 'new-item-desc'}
           name="description"
-          placeholder="Descripcion corta del producto"
+          placeholder="Descripción corta del producto"
           rows={2}
           defaultValue={item?.description ?? ''}
           className="mt-1.5"
@@ -361,7 +325,7 @@ function ItemRow({
     <div className="flex items-center gap-4 rounded-xl border border-border bg-surface p-3 transition-shadow hover:shadow-sm">
       <div className="relative flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-background">
         {item.image_url ? (
-          <Image src={item.image_url} alt={item.name} fill className="object-cover" />
+          <Image src={item.image_url} alt={item.name} fill sizes="64px" className="object-cover" />
         ) : (
           <div className="h-full w-full bg-surface" />
         )}

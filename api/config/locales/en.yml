@@ -32,3 +32,6 @@ en:
   kitchen_push:
     title: New order
     body: A new order is in the kitchen.
+  customer_ready_push:
+    title: Your order is ready
+    body: Come pick it up.

@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Icon } from '@/components/ui/icon'
+import { CUSTOMER_TIME_ZONE, formatMoney } from '@/lib/ordering'
 import type { Order } from '@/types'
 
 const statusLabels: Record<string, string> = {
@@ -24,15 +25,12 @@ const statusVariant: Record<string, 'default' | 'secondary' | 'success' | 'dange
   cancelled: 'danger',
 }
 
-function formatCurrency(cents: number, currency: string) {
-  return `${currency} ${(cents / 100).toFixed(2)}`
-}
-
 function orderDate(date: string) {
-  return new Date(date).toLocaleDateString('es-MX', {
+  return new Date(date).toLocaleDateString('es-ES', {
     day: 'numeric',
     month: 'short',
     year: 'numeric',
+    timeZone: CUSTOMER_TIME_ZONE,
   })
 }
 
@@ -92,7 +90,7 @@ function OrderCard({ order }: { order: Order }) {
         </ul>
 
         <div className="mt-4 flex items-center justify-between border-t border-border pt-3">
-          <span className="font-medium tabular-nums text-foreground">{formatCurrency(order.total_cents, order.currency)}</span>
+          <span className="font-medium tabular-nums text-foreground">{formatMoney(order.total_cents, order.currency)}</span>
           <Button asChild variant="outline" size="sm">
             <Link href={`/${shopSlug}?reorder=${order.id}`}>Reordenar</Link>
           </Button>

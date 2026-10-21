@@ -2,3 +2,6 @@ es:
   kitchen_push:
     title: Nuevo pedido
     body: Hay un pedido nuevo en cocina.
+  customer_ready_push:
+    title: Tu pedido está listo
+    body: Pasa a recogerlo.

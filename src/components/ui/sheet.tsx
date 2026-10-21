@@ -8,11 +8,12 @@ export interface SheetProps {
   onClose: () => void
   title?: ReactNode
   children: ReactNode
+  footer?: ReactNode
   position?: 'bottom' | 'center' | 'right'
   className?: string
 }
 
-export function Sheet({ open, onClose, title, children, position = 'bottom', className = '' }: SheetProps) {
+export function Sheet({ open, onClose, title, children, footer, position = 'bottom', className = '' }: SheetProps) {
   const [mounted, setMounted] = useState(open)
   const [visible, setVisible] = useState(open)
   const sheetRef = useRef<HTMLDivElement>(null)
@@ -94,7 +95,7 @@ export function Sheet({ open, onClose, title, children, position = 'bottom', cla
         className={[
           'absolute bg-surface-elevated shadow-2xl transition-all duration-300 ease-out',
           isBottom
-            ? 'bottom-0 left-0 right-0 top-auto max-h-[92vh] rounded-t-[1.75rem]'
+            ? 'bottom-0 left-0 right-0 top-auto flex max-h-[92vh] flex-col overflow-hidden rounded-t-[1.75rem]'
             : isRight
               ? 'right-0 top-0 bottom-0 h-full w-full max-w-md rounded-l-2xl'
               : 'left-1/2 top-1/2 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-2xl',
@@ -133,9 +134,14 @@ export function Sheet({ open, onClose, title, children, position = 'bottom', cla
         )}
         <div className={[
           'overflow-y-auto',
-          isBottom ? 'max-h-[calc(92vh-4rem)]' : 'h-[calc(100%-4rem)]',
+          isBottom ? 'min-h-0 flex-1' : 'h-[calc(100%-4rem)]',
           'p-6',
         ].join(' ')}>{children}</div>
+        {footer && (
+          <div className="shrink-0 border-t border-border bg-surface-elevated px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-6">
+            {footer}
+          </div>
+        )}
       </div>
     </div>
   )

@@ -2,10 +2,14 @@ class PushDevice < ApplicationRecord
   include TenantScoped
 
   PLATFORMS = %w[web expo].freeze
+  AUDIENCES = %w[kitchen customer].freeze
 
   belongs_to :user, optional: true
+  belongs_to :order, optional: true
 
   validates :platform, inclusion: { in: PLATFORMS }
+  validates :audience, inclusion: { in: AUDIENCES }
+  validate :audience_matches_order
   validates :endpoint, :p256dh, :auth_key, presence: true, if: :platform_web?
   validates :token, presence: true, if: :platform_expo?
   validates :endpoint, uniqueness: { scope: :shop_id }, allow_nil: true
@@ -22,9 +26,12 @@ class PushDevice < ApplicationRecord
     p256dh = attrs[:p256dh].presence || keys[:p256dh].presence
     auth_key = attrs[:auth_key].presence || keys[:auth].presence
 
-    record = locate(shop, platform, endpoint, token) || shop.push_devices.build
+    audience = attrs[:audience].presence || "kitchen"
+    record = locate(shop, platform, endpoint, token, audience) || shop.push_devices.build
     record.user = user
     record.platform = platform
+    record.audience = audience
+    record.order_id = audience == "customer" ? attrs[:order_id] : nil
     if platform == "web"
       record.endpoint = endpoint
       record.p256dh = p256dh
@@ -44,11 +51,12 @@ class PushDevice < ApplicationRecord
     register!(shop: shop, user: user, attributes: attributes, attempt: attempt + 1)
   end
 
-  def self.locate(shop, platform, endpoint, token)
+  def self.locate(shop, platform, endpoint, token, audience = "kitchen")
+    scope = shop.push_devices.where(audience: audience)
     if platform == "web" && endpoint.present?
-      shop.push_devices.find_by(platform: "web", endpoint: endpoint)
+      scope.find_by(platform: "web", endpoint: endpoint)
     elsif platform == "expo" && token.present?
-      shop.push_devices.find_by(platform: "expo", token: token)
+      scope.find_by(platform: "expo", token: token)
     end
   end
 
@@ -61,6 +69,14 @@ class PushDevice < ApplicationRecord
   end
 
   private
+
+  def audience_matches_order
+    if audience == "customer"
+      errors.add(:order, "is required") if order_id.blank?
+    elsif order_id.present?
+      errors.add(:order, "is only for customer devices")
+    end
+  end
 
   def clear_unused_credentials
     self.endpoint = endpoint.presence
