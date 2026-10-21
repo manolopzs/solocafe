@@ -127,7 +127,9 @@ class ShopPersonalityControllerTest < ActionDispatch::IntegrationTest
   test "public shop list keeps each shop personality separate" do
     @shop.update!(brand_color: "#1f4d3a", display_font: "libre_baskerville")
 
-    get "/public/shops"
+    travel_to Time.find_zone!("America/Mexico_City").local(2026, 10, 21, 12, 0, 0) do
+      get "/public/shops"
+    end
     assert_response :success
     shops = response.parsed_body["shops"].index_by { |shop| shop["slug"] }
 

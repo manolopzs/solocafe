@@ -53,7 +53,14 @@ class Shop < ApplicationRecord
   before_validation :normalize_brand_color
   before_validation :normalize_loyalty_reward_text
 
+  class TestShopFlagRefused < StandardError; end
+
+  OBVIOUS_TEST_NAME_PHRASES = [ "analytics cafe", "reorder test" ].freeze
+  OBVIOUS_TEST_ADDRESSES = [ "test", "a" ].freeze
+
   scope :active, -> { where(status: "active") }
+  scope :published, -> { where(status: "active") }
+  scope :discoverable, -> { published.where(test_shop: false) }
 
   # Spherical haversine, kilometers. Binds are origin latitude, origin latitude, origin longitude.
   # LEAST ignores NULLs in PostgreSQL, so shops without coordinates are handled before the formula.
@@ -68,10 +75,10 @@ class Shop < ApplicationRecord
   SQL
   DISTANCE_ORDER = Arel.sql("(shops.lat IS NULL OR shops.lng IS NULL) ASC, distance_km ASC NULLS LAST, shops.name ASC")
 
-  def self.explore(lat: nil, lng: nil)
+  def self.explore(lat: nil, lng: nil, include_closed: false)
     TenantScoped.unscoped_for_system do
-      directory = active.with_attached_hero_photo
-      if lat && lng
+      directory = discoverable.with_attached_hero_photo
+      shops = if lat && lng
         directory
           .select("shops.*", sanitize_sql_array([ DISTANCE_SQL, lat, lat, lng ]))
           .order(DISTANCE_ORDER)
@@ -79,7 +86,46 @@ class Shop < ApplicationRecord
       else
         directory.order(:name).to_a
       end
+      include_closed ? shops : shops.select(&:open_now?)
     end
+  end
+
+  def self.obvious_test_shop?(shop)
+    obvious_test_name?(shop.name) || obvious_test_address?(shop.address)
+  end
+
+  def self.obvious_test_name?(name)
+    normalized = name.to_s.strip.gsub(/\s+/, " ")
+    folded = normalized.downcase
+    return true if OBVIOUS_TEST_NAME_PHRASES.any? { |phrase| folded.include?(phrase) }
+
+    normalized.match?(/\A\p{L}\z/)
+  end
+
+  def self.obvious_test_address?(address)
+    OBVIOUS_TEST_ADDRESSES.include?(address.to_s.strip.downcase)
+  end
+
+  # Marks matching shops in place. Never deletes rows and refuses production.
+  def self.flag_obvious_test_shops!(dry_run:, environment: Rails.env)
+    if environment.production?
+      raise TestShopFlagRefused, "shops:flag_test_shops refuses to run in production"
+    end
+
+    lines = []
+    find_each do |shop|
+      next unless obvious_test_shop?(shop)
+
+      if dry_run
+        lines << "dry_run #{shop.id} #{shop.name}"
+      elsif shop.test_shop?
+        lines << "already_flagged #{shop.id} #{shop.name}"
+      else
+        shop.update!(test_shop: true)
+        lines << "flagged #{shop.id} #{shop.name}"
+      end
+    end
+    lines
   end
 
   DAY_KEYS = %w[mon tue wed thu fri sat sun].freeze
