@@ -50,7 +50,7 @@ export default async function Home() {
               Solo Cafe
             </span>
           </Link>
-          <div className="hidden items-center gap-8 text-sm font-medium text-muted-foreground md:flex">
+          <div className="hidden items-center gap-8 text-sm font-medium text-muted-foreground lg:flex">
             <Link href="#plataforma" className="hover:text-foreground">Plataforma</Link>
             <Link href="#clientes" className="hover:text-foreground">Clientes</Link>
             <Link href="#cafeterias" className="hover:text-foreground">Cafeterías</Link>
@@ -60,7 +60,7 @@ export default async function Home() {
             <Button asChild variant="ghost" size="sm" className="hidden whitespace-nowrap md:inline-flex">
               <Link href="/auth/login">Soy cafetería</Link>
             </Button>
-            <Button asChild variant="ghost" size="sm" className="hidden whitespace-nowrap lg:inline-flex">
+            <Button asChild variant="ghost" size="sm" className="hidden whitespace-nowrap md:inline-flex">
               <Link href="/account/login">Soy cliente</Link>
             </Button>
             <Button asChild size="sm" className="whitespace-nowrap">
@@ -73,9 +73,9 @@ export default async function Home() {
 
       <section className="bg-background px-6 pt-16 pb-12 sm:pt-24 sm:pb-16">
         <div className="mx-auto max-w-5xl text-center">
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-border bg-surface px-4 py-1.5 text-sm text-muted-foreground shadow-xs">
-            <Icon name="coffee" className="h-4 w-4 text-accent" />
-            <span>Pedidos pagados por adelantado para tu cafetería</span>
+          <div className="mx-auto mb-6 flex w-fit max-w-full items-center gap-2 rounded-full border border-border bg-surface px-4 py-1.5 text-sm text-muted-foreground shadow-xs">
+            <Icon name="coffee" className="h-4 w-4 shrink-0 text-accent" />
+            <span className="min-w-0 text-balance">Pedidos pagados por adelantado para tu cafetería</span>
           </div>
           <h1 className="mx-auto max-w-4xl font-sans text-4xl font-semibold tracking-tight text-foreground sm:text-6xl sm:leading-[1.1]">
             Tu cafetería, con el pedido ya pagado
