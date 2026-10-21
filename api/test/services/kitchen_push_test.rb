@@ -120,21 +120,45 @@ class KitchenPushTest < ActiveSupport::TestCase
     assert_not device_exists?(@web.id)
   end
 
-  test "a push service error keeps the subscription" do
+  test "a push service error keeps the subscription and retries five times" do
     error = push_response_error(WebPush::PushServiceError, Net::HTTPInternalServerError, "500", "Error")
+    message = KitchenPush.message_for(@order)
+    attempts = count_failed_pushes(error) do
+      with_immediate_enqueue do
+        job = KitchenPushJob.new(@shop.id, @web.id, message)
+        4.times do
+          job.perform_now
+          scheduled = enqueued_jobs.last
+          assert_equal KitchenPushJob, scheduled[:job]
+          assert scheduled[:at] >= Time.current.to_f + 2
+          job = ActiveJob::Base.deserialize(scheduled)
+          clear_enqueued_jobs
+        end
 
-    assert_raises(WebPush::PushServiceError) do
-      deliver_raising_error(error)
+        assert_raises(WebPush::PushServiceError) do
+          job.perform_now
+        end
+      end
     end
+
+    assert_equal 5, attempts
+    assert_empty enqueued_jobs
     assert device_exists?(@web.id)
   end
 
-  test "a rejected VAPID response keeps the subscription" do
+  test "a rejected VAPID response keeps the subscription and is not retried" do
     error = push_response_error(WebPush::Unauthorized, Net::HTTPUnauthorized, "401", "Unauthorized")
-
-    assert_raises(WebPush::Unauthorized) do
-      deliver_raising_error(error)
+    attempts = count_failed_pushes(error) do
+      with_immediate_enqueue do
+        assert_no_enqueued_jobs only: KitchenPushJob do
+          assert_raises(WebPush::Unauthorized) do
+            KitchenPushJob.perform_now(@shop.id, @web.id, KitchenPush.message_for(@order))
+          end
+        end
+      end
     end
+
+    assert_equal 1, attempts
     assert device_exists?(@web.id)
   end
 
@@ -224,6 +248,20 @@ class KitchenPushTest < ActiveSupport::TestCase
         KitchenPushJob.perform_now(@shop.id, @web.id, KitchenPush.message_for(@order))
       end
     end
+  end
+
+  def count_failed_pushes(error)
+    attempts = 0
+    with_vapid do
+      capture_web_push(error: error) do
+        WebPush.define_singleton_method(:payload_send) do |**kwargs|
+          attempts += 1
+          raise error
+        end
+        yield
+      end
+    end
+    attempts
   end
 
   def capture_web_push(error: nil)

@@ -18,14 +18,14 @@ Rails.application.configure do
   # Enable serving of images, stylesheets, and JavaScripts from an asset server.
   # config.asset_host = "http://assets.example.com"
 
-  # Assume all access to the app is happening through a SSL-terminating reverse proxy.
-  # config.assume_ssl = true
+  # Render terminates TLS. Treat requests as HTTPS so hero photo URLs are https.
+  config.assume_ssl = true
 
   # Force all access to the app over SSL, use Strict-Transport-Security, and use secure cookies.
-  # config.force_ssl = true
+  config.force_ssl = true
 
   # Skip http-to-https redirect for the default health check endpoint.
-  # config.ssl_options = { redirect: { exclude: ->(request) { request.path == "/up" } } }
+  config.ssl_options = { redirect: { exclude: ->(request) { request.path == "/up" } } }
 
   # Log to STDOUT with the current request id as a default log tag.
   config.log_tags = [ :request_id ]
@@ -43,8 +43,9 @@ Rails.application.configure do
   # Replace the default in-process memory cache store with a durable alternative.
   # config.cache_store = :mem_cache_store
 
-  # Replace the default in-process and non-durable queuing backend for Active Job.
-  # config.active_job.queue_adapter = :resque
+  # Solid Queue runs in this process when SOLID_QUEUE_IN_PUMA is set.
+  config.active_job.queue_adapter = :solid_queue
+  config.solid_queue.silence_polling = true
 
   # Enable locale fallbacks for I18n (makes lookups for any locale fall back to
   # the I18n.default_locale when a translation cannot be found).
@@ -56,8 +57,15 @@ Rails.application.configure do
   # Only use :id for inspections in production.
   config.active_record.attributes_for_inspect = [ :id ]
 
-  # Disk service ships with Active Storage. No extra storage gem is installed.
-  config.active_storage.service = :local
+  require_relative "../active_storage_config"
+  config.active_storage.service = ActiveStorageConfig.service_name
+  unless ActiveStorageConfig.configured?
+    config.after_initialize do
+      Rails.logger.warn(
+        "Active Storage is using local disk because R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, or R2_BUCKET is missing."
+      )
+    end
+  end
 
   # Enable DNS rebinding protection and other `Host` header attacks.
   # config.hosts = [
