@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_21_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_21_130000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -224,6 +224,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_21_120000) do
     t.datetime "updated_at", null: false
     t.integer "discount_cents", default: 0, null: false
     t.boolean "loyalty_redeemed", default: false, null: false
+    t.string "customer_email"
     t.index ["customer_id"], name: "index_orders_on_customer_id"
     t.index ["pickup_slot_id"], name: "index_orders_on_pickup_slot_id"
     t.index ["shop_id"], name: "index_orders_on_shop_id"
@@ -266,6 +267,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_21_120000) do
     t.string "token"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "audience", default: "kitchen", null: false
+    t.uuid "order_id"
+    t.index ["audience", "order_id"], name: "index_push_devices_on_audience_and_order_id"
+    t.index ["order_id"], name: "index_push_devices_on_order_id"
     t.index ["shop_id", "endpoint"], name: "index_push_devices_on_shop_and_endpoint", unique: true, where: "(endpoint IS NOT NULL)"
     t.index ["shop_id", "token"], name: "index_push_devices_on_shop_and_token", unique: true, where: "(token IS NOT NULL)"
     t.index ["shop_id"], name: "index_push_devices_on_shop_id"
@@ -301,7 +306,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_21_120000) do
     t.string "name", null: false
     t.string "legal_name"
     t.string "timezone", default: "America/Mexico_City", null: false
-    t.string "currency", default: "MXN", null: false
+    t.string "currency", default: "EUR", null: false
     t.string "locale", default: "es", null: false
     t.boolean "tax_included", default: true, null: false
     t.decimal "tax_rate", precision: 5, scale: 4, default: "0.0", null: false
@@ -547,6 +552,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_21_120000) do
   add_foreign_key "orders", "shops"
   add_foreign_key "payments", "orders"
   add_foreign_key "pickup_slots", "shops"
+  add_foreign_key "push_devices", "orders"
   add_foreign_key "push_devices", "shops"
   add_foreign_key "push_devices", "users"
   add_foreign_key "shop_members", "shops"
