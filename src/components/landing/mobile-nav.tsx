@@ -21,7 +21,7 @@ export function MobileNav() {
       <Button
         variant="ghost"
         size="icon"
-        className="md:hidden"
+        className="lg:hidden"
         aria-label="Abrir menú"
         onClick={() => setOpen(true)}
       >
@@ -42,7 +42,12 @@ export function MobileNav() {
           <hr className="my-2 border-border" />
           <Button asChild variant="ghost" className="justify-start">
             <Link href="/auth/login" onClick={() => setOpen(false)}>
-              Entrar
+              Soy cafetería
+            </Link>
+          </Button>
+          <Button asChild variant="outline" className="justify-start">
+            <Link href="/account/login" onClick={() => setOpen(false)}>
+              Soy cliente
             </Link>
           </Button>
           <Button asChild className="justify-start">

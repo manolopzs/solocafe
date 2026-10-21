@@ -4,7 +4,7 @@ module Public
     include PublicHttpCache
 
     def show
-      shop = Shop.active.includes(hero_photo_attachment: :blob).find_by(slug: params[:slug])
+      shop = Shop.discoverable.includes(hero_photo_attachment: :blob).find_by(slug: params[:slug])
       return render json: { error: "Shop not found" }, status: :not_found unless shop
 
       Current.shop = shop

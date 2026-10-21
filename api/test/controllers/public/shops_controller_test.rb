@@ -37,7 +37,7 @@ class Public::ShopsControllerTest < ActionDispatch::IntegrationTest
       assert_equal "name", body["sort"]
       shops = body["shops"].index_by { |shop| shop["slug"] }
 
-      assert_equal [ "cafe-abierto", "cafe-cerrado" ], shops.keys.sort
+      assert_equal [ "cafe-abierto" ], shops.keys.sort
       shops.each_value do |shop|
         assert_equal PUBLIC_FIELDS, shop.keys.sort
       end
@@ -50,8 +50,13 @@ class Public::ShopsControllerTest < ActionDispatch::IntegrationTest
       assert_equal "fraunces", opened["display_font"]
       assert_nil opened["hero_photo_url"]
 
-      assert_equal false, shops["cafe-cerrado"]["open_now"]
-      assert_nil shops["cafe-cerrado"]["address"]
+      get "/public/shops", params: { include_closed: "1" }
+
+      assert_response :success
+      with_closed = response.parsed_body["shops"].index_by { |shop| shop["slug"] }
+      assert_equal [ "cafe-abierto", "cafe-cerrado" ], with_closed.keys.sort
+      assert_equal false, with_closed["cafe-cerrado"]["open_now"]
+      assert_nil with_closed["cafe-cerrado"]["address"]
 
       assert_not_includes response.body, open_shop.id
       assert_not_includes response.body, closed_shop.id
@@ -68,6 +73,7 @@ class Public::ShopsControllerTest < ActionDispatch::IntegrationTest
     create_shop(name: "Cafe Centro", slug: "cafe-centro", lat: 19.4, lng: -99.0)
     create_shop(name: "Cafe Zeta", slug: "cafe-zeta")
 
+    travel_to open_moment do
     get "/public/shops", params: { lat: 19.99, lng: -99.0 }
 
     assert_response :success
@@ -84,6 +90,7 @@ class Public::ShopsControllerTest < ActionDispatch::IntegrationTest
     assert_operator distances[0], :<, distances[1]
     assert_operator distances[1], :<, distances[2]
     assert_nil distances[3]
+    end
   end
 
   test "lists active shops alphabetically when location is missing or invalid" do
@@ -91,6 +98,7 @@ class Public::ShopsControllerTest < ActionDispatch::IntegrationTest
     create_shop(name: "Cafe Alba", slug: "cafe-alba", lat: 19.0, lng: -99.0)
     create_shop(name: "Cafe Zeta", slug: "cafe-zeta")
 
+    travel_to open_moment do
     get "/public/shops"
     assert_response :success
     assert_equal "name", response.parsed_body["sort"]
@@ -105,6 +113,7 @@ class Public::ShopsControllerTest < ActionDispatch::IntegrationTest
     get "/public/shops", params: { lat: 19.4 }
     assert_response :success
     assert_equal "name", response.parsed_body["sort"]
+    end
   end
 
   test "excludes shops that are not active" do
@@ -112,6 +121,7 @@ class Public::ShopsControllerTest < ActionDispatch::IntegrationTest
     create_shop(name: "Borrador", slug: "borrador", lat: 19.4, lng: -99.1, status: "draft")
     create_shop(name: "Pausa", slug: "pausa", lat: 19.4, lng: -99.1, status: "paused")
 
+    travel_to open_moment do
     get "/public/shops"
 
     assert_response :success
@@ -119,6 +129,7 @@ class Public::ShopsControllerTest < ActionDispatch::IntegrationTest
     assert_includes slugs, "viva"
     assert_not_includes slugs, "borrador"
     assert_not_includes slugs, "pausa"
+    end
   end
 
   test "lists every active shop through system scope and hides other tenants private data" do
@@ -159,6 +170,7 @@ class Public::ShopsControllerTest < ActionDispatch::IntegrationTest
       end
     end
 
+    travel_to open_moment do
     get "/public/shops"
 
     assert_response :success
@@ -172,8 +184,78 @@ class Public::ShopsControllerTest < ActionDispatch::IntegrationTest
     assert_not_includes response.body, "acct_condesa_secret"
     assert_not_includes response.body, roma.id
     assert_not_includes response.body, condesa.id
+    assert_not TenantScoped.system_access?
+    end
   ensure
     TenantScoped.define_singleton_method(:unscoped_for_system, original) if original
+  end
+
+  test "directory hides test shops and closed shops unless closed shops are requested" do
+    create_shop(name: "Cafe Serrano", slug: "cafe-serrano", address: "Calle Serrano 12, Madrid")
+    create_shop(name: "Analytics Cafe", slug: "analytics-cafe", address: "Lab", test_shop: true)
+    create_shop(name: "Cafe Noche", slug: "cafe-noche", operating_hours: closed_hours)
+
+    travel_to open_moment do
+      get "/public/shops"
+
+      assert_response :success
+      slugs = response.parsed_body["shops"].map { |shop| shop["slug"] }
+      assert_equal [ "cafe-serrano" ], slugs
+      assert_not_includes response.body, "Analytics Cafe"
+      assert_not_includes response.body, "cafe-noche"
+
+      get "/public/shops", params: { include_closed: "1" }
+
+      assert_response :success
+      with_closed = response.parsed_body["shops"].map { |shop| shop["slug"] }
+      assert_equal [ "cafe-noche", "cafe-serrano" ], with_closed
+      assert_not_includes with_closed, "analytics-cafe"
+    end
+  end
+
+  test "public shop lookup used for discovery hides unpublished and test shops" do
+    published = create_shop(name: "Cafe Publico", slug: "cafe-publico", address: "Madrid")
+    hidden = create_shop(name: "Reorder Test", slug: "reorder-test", test_shop: true)
+    draft = create_shop(name: "Borrador Publico", slug: "borrador-publico", status: "draft")
+    closed = create_shop(name: "Cafe Cerrado Slug", slug: "cafe-cerrado-slug", operating_hours: closed_hours)
+
+    get "/shops/#{published.slug}"
+    assert_response :success
+    assert_equal published.slug, response.parsed_body["shop"]["slug"]
+
+    get "/shops/#{hidden.slug}"
+    assert_response :not_found
+
+    get "/shops/#{draft.slug}"
+    assert_response :not_found
+
+    get "/shops/#{closed.slug}"
+    assert_response :success
+    assert_equal closed.slug, response.parsed_body["shop"]["slug"]
+  end
+
+  test "directory does not leak another tenant and leaves the fail-closed scope in place" do
+    open_shop = create_shop(name: "Abierta", slug: "abierta", address: "Serrano 1")
+    test_shop = create_shop(name: "Q", slug: "q-test", address: "A", test_shop: true)
+
+    Current.shop = test_shop
+    MenuItem.create!(shop: test_shop, name: "Secreto Test", price_cents: 100)
+    Current.shop = open_shop
+    MenuItem.create!(shop: open_shop, name: "Secreto Abierta", price_cents: 200)
+    Current.shop = nil
+
+    travel_to open_moment do
+      get "/public/shops"
+    end
+
+    assert_response :success
+    slugs = response.parsed_body["shops"].map { |shop| shop["slug"] }
+    assert_includes slugs, "abierta"
+    assert_not_includes slugs, "q-test"
+    assert_not_includes response.body, "Secreto Test"
+    assert_not_includes response.body, "Secreto Abierta"
+    assert_not TenantScoped.system_access?
+    assert_raises(TenantScoped::MissingShop) { MenuItem.count }
   end
 
   test "an owner can save coordinates for their shop only" do
@@ -220,5 +302,9 @@ class Public::ShopsControllerTest < ActionDispatch::IntegrationTest
 
   def closed_hours
     Shop::DAY_KEYS.index_with { { "is_open" => false } }
+  end
+
+  def open_moment
+    Time.find_zone!("America/Mexico_City").local(2026, 10, 21, 12, 0, 0)
   end
 end
