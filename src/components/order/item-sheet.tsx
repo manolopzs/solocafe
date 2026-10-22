@@ -24,7 +24,16 @@ export function ItemSheet({
   formatPrice: (cents: number) => string
 }) {
   const [quantity, setQuantity] = useState(1)
-  const [selected, setSelected] = useState<Record<string, string[]>>({})
+  const [selected, setSelected] = useState<Record<string, string[]>>(() => {
+    const defaults: Record<string, string[]> = {}
+    for (const group of groups) {
+      if (group.min_select > 0 && group.max_select === 1) {
+        const first = optionsForGroup(group.id)[0]
+        if (first) defaults[group.id] = [first.id]
+      }
+    }
+    return defaults
+  })
 
   const toggleOption = (groupId: string, optionId: string, maxSelect: number) => {
     const current = selected[groupId] ?? []
