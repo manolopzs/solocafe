@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { DM_Sans, Fraunces, Inter, Libre_Baskerville, Literata, Newsreader } from "next/font/google";
+import { BottomNav } from "@/components/order/bottom-nav";
 import "./globals.css";
 
 const dmSans = DM_Sans({
@@ -51,6 +52,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col bg-background text-foreground font-sans">
         {children}
+        <BottomNav />
       </body>
     </html>
   );

@@ -16,7 +16,7 @@ export function BagBar({
   if (count <= 0) return null
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 px-4 pb-[max(0.85rem,env(safe-area-inset-bottom))] pt-2">
+    <div className="pointer-events-none fixed inset-x-0 bottom-14 z-40 px-4 pb-[max(0.85rem,env(safe-area-inset-bottom))] pt-2">
       <button
         type="button"
         onClick={onOpen}

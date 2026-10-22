@@ -57,7 +57,7 @@ export function CheckoutScreen({
 
   return (
     <main className="min-h-screen bg-background">
-      <div className="mx-auto max-w-xl px-5 pb-16 pt-5 sm:pt-8">
+      <div className="mx-auto max-w-xl px-5 pb-24 pt-5 sm:pt-8">
         <Link href={backHref} className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground">
           <Icon name="arrow-left" className="h-4 w-4" />
           Volver al menú

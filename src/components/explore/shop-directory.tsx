@@ -19,7 +19,7 @@ export function ShopDirectory({
   sort: 'name' | 'distance'
 }) {
   return (
-    <main className="min-h-screen bg-background pb-16">
+    <main className="min-h-screen bg-background pb-24">
       <header className="sticky top-0 z-40 bg-background/90 px-4 py-3 backdrop-blur-md">
         <div className="mx-auto flex max-w-3xl items-center justify-between gap-3">
           <Link href="/" className="flex min-h-11 min-w-0 items-center gap-2.5">
