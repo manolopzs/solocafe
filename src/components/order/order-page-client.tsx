@@ -203,6 +203,15 @@ export function OrderPageClient({
     [items, favoriteIds]
   )
 
+  const featuredItems = useMemo(
+    () =>
+      items
+        .filter((item) => item.is_active && !item.is_86ed && item.image_url)
+        .sort((a, b) => a.sort_order - b.sort_order)
+        .slice(0, 6),
+    [items]
+  )
+
   const toggleFavorite = async (itemId: string) => {
     if (!customer) return
     const isFavorite = favoriteIds.has(itemId)
@@ -412,6 +421,28 @@ export function OrderPageClient({
         </section>
       )}
 
+      {featuredItems.length > 0 && (
+        <section className="mx-auto max-w-3xl px-4 pt-5 sm:px-5">
+          <h2 className="text-sm font-medium text-muted-foreground">Destacados</h2>
+          <div className="mt-3 flex snap-x snap-mandatory gap-3 overflow-x-auto pb-1 no-scrollbar">
+            {featuredItems.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => setActiveItem(item)}
+                className="w-36 shrink-0 snap-start rounded-2xl bg-surface p-2 text-left transition-transform active:scale-[0.98]"
+              >
+                <div className="relative aspect-square w-full overflow-hidden rounded-lg bg-surface">
+                  <Image src={item.image_url!} alt={item.name} fill sizes="144px" className="object-cover" />
+                </div>
+                <p className="mt-2 line-clamp-2 px-1 text-sm font-medium leading-snug text-foreground">{item.name}</p>
+                <p className="px-1 text-sm tabular-nums text-muted-foreground">{formatPrice(item.price_cents)}</p>
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
+
       <CategoryTabs categories={navItems} activeId={activeId} onSelect={scrollTo} />
 
       <main className="mx-auto max-w-3xl animate-rise px-4 py-2 sm:px-5 sm:py-6">
@@ -428,7 +459,7 @@ export function OrderPageClient({
           return (
             <section key={category.id} ref={setRef(category.id)} className="scroll-mt-16 pb-8">
               <h2 className="shop-display-font pt-4 text-[1.65rem] font-medium tracking-tight text-foreground">{category.name}</h2>
-              <div className="mt-3 grid gap-3 sm:grid-cols-2">
+              <div className="mt-3 grid grid-cols-2 gap-3">
                 {categoryItems.map((item) => (
                   <ProductCard
                     key={item.id}
@@ -450,7 +481,7 @@ export function OrderPageClient({
         {uncategorizedItems.length > 0 && (
           <section ref={setRef('uncategorized')} className="scroll-mt-16 pb-8">
             <h2 className="shop-display-font pt-4 text-[1.65rem] font-medium tracking-tight text-foreground">Otros</h2>
-            <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            <div className="mt-3 grid grid-cols-2 gap-3">
               {uncategorizedItems.map((item) => (
                 <ProductCard
                   key={item.id}

@@ -73,53 +73,84 @@ export function ItemSheet({
           {item.description && <p className="mt-2 text-sm leading-6 text-muted-foreground">{item.description}</p>}
         </div>
 
-        {groups.map((group) => (
-          <fieldset key={group.id} className="mt-7">
-            <legend className="flex w-full items-baseline justify-between gap-3">
-              <span className="text-base font-medium text-foreground">{group.name}</span>
-              <span className="text-xs text-muted-foreground">
-                {group.min_select > 0 ? `Elige ${group.min_select}` : group.max_select > 1 ? `Hasta ${group.max_select}` : 'Opcional'}
-              </span>
-            </legend>
-            <div className="mt-3 flex flex-col gap-2">
-              {optionsForGroup(group.id).map((option) => {
-                const isSelected = (selected[group.id] ?? []).includes(option.id)
-                const multiple = group.max_select > 1
-                return (
-                  <button
-                    key={option.id}
-                    type="button"
-                    onClick={() => toggleOption(group.id, option.id, group.max_select)}
-                    aria-pressed={isSelected}
-                    className={[
-                      'flex min-h-12 items-center justify-between gap-3 rounded-2xl border px-3.5 text-left text-sm transition-colors touch-manipulation',
-                      isSelected
-                        ? 'border-primary bg-primary/10 text-foreground'
-                        : 'border-border bg-surface-elevated text-foreground hover:bg-surface',
-                    ].join(' ')}
-                  >
-                    <span className="flex items-center gap-3">
-                      <span
+        {groups.map((group) => {
+          const groupOptions = optionsForGroup(group.id)
+          const useSegmented = group.max_select === 1 && groupOptions.length <= 4
+          const multiple = group.max_select > 1
+          return (
+            <fieldset key={group.id} className="mt-7">
+              <legend className="flex w-full items-baseline justify-between gap-3">
+                <span className="text-base font-medium text-foreground">{group.name}</span>
+                <span className="text-xs text-muted-foreground">
+                  {group.min_select > 0 ? `Elige ${group.min_select}` : group.max_select > 1 ? `Hasta ${group.max_select}` : 'Opcional'}
+                </span>
+              </legend>
+              {useSegmented ? (
+                <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                  {groupOptions.map((option) => {
+                    const isSelected = (selected[group.id] ?? []).includes(option.id)
+                    return (
+                      <button
+                        key={option.id}
+                        type="button"
+                        onClick={() => toggleOption(group.id, option.id, group.max_select)}
+                        aria-pressed={isSelected}
                         className={[
-                          'flex h-5 w-5 items-center justify-center border-2',
-                          multiple ? 'rounded-md' : 'rounded-full',
-                          isSelected ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-background',
+                          'rounded-2xl border px-3 py-3 text-sm font-medium transition-colors touch-manipulation',
+                          isSelected
+                            ? 'border-primary bg-primary/10 text-foreground'
+                            : 'border-border bg-surface-elevated text-foreground hover:bg-surface',
                         ].join(' ')}
-                        aria-hidden
                       >
-                        {isSelected && <Icon name="check" className="h-3 w-3" />}
-                      </span>
-                      <span className="font-medium">{option.name}</span>
-                    </span>
-                    {option.price_cents > 0 && (
-                      <span className="tabular-nums text-muted-foreground">+{formatPrice(option.price_cents)}</span>
-                    )}
-                  </button>
-                )
-              })}
-            </div>
-          </fieldset>
-        ))}
+                        <span className="block truncate">{option.name}</span>
+                        {option.price_cents > 0 && (
+                          <span className="block text-xs tabular-nums text-muted-foreground">+{formatPrice(option.price_cents)}</span>
+                        )}
+                      </button>
+                    )
+                  })}
+                </div>
+              ) : (
+                <div className="mt-3 flex flex-col gap-2">
+                  {groupOptions.map((option) => {
+                    const isSelected = (selected[group.id] ?? []).includes(option.id)
+                    return (
+                      <button
+                        key={option.id}
+                        type="button"
+                        onClick={() => toggleOption(group.id, option.id, group.max_select)}
+                        aria-pressed={isSelected}
+                        className={[
+                          'flex min-h-12 items-center justify-between gap-3 rounded-2xl border px-3.5 text-left text-sm transition-colors touch-manipulation',
+                          isSelected
+                            ? 'border-primary bg-primary/10 text-foreground'
+                            : 'border-border bg-surface-elevated text-foreground hover:bg-surface',
+                        ].join(' ')}
+                      >
+                        <span className="flex items-center gap-3">
+                          <span
+                            className={[
+                              'flex h-5 w-5 items-center justify-center border-2',
+                              multiple ? 'rounded-md' : 'rounded-full',
+                              isSelected ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-background',
+                            ].join(' ')}
+                            aria-hidden
+                          >
+                            {isSelected && <Icon name="check" className="h-3 w-3" />}
+                          </span>
+                          <span className="font-medium">{option.name}</span>
+                        </span>
+                        {option.price_cents > 0 && (
+                          <span className="tabular-nums text-muted-foreground">+{formatPrice(option.price_cents)}</span>
+                        )}
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
+            </fieldset>
+          )
+        })}
 
         <div className="sticky bottom-0 -mx-6 mt-6 border-t border-border bg-background/95 px-4 py-4 shadow-[0_-8px_24px_rgba(0,0,0,0.06)] backdrop-blur-md">
           {missingRequired && (
