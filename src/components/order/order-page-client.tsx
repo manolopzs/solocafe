@@ -428,7 +428,7 @@ export function OrderPageClient({
           return (
             <section key={category.id} ref={setRef(category.id)} className="scroll-mt-16 pb-8">
               <h2 className="shop-display-font pt-4 text-[1.65rem] font-medium tracking-tight text-foreground">{category.name}</h2>
-              <div className="sm:mt-3 sm:grid sm:grid-cols-2 sm:gap-4">
+              <div className="mt-3 grid gap-3 sm:grid-cols-2">
                 {categoryItems.map((item) => (
                   <ProductCard
                     key={item.id}
@@ -450,7 +450,7 @@ export function OrderPageClient({
         {uncategorizedItems.length > 0 && (
           <section ref={setRef('uncategorized')} className="scroll-mt-16 pb-8">
             <h2 className="shop-display-font pt-4 text-[1.65rem] font-medium tracking-tight text-foreground">Otros</h2>
-            <div className="sm:mt-3 sm:grid sm:grid-cols-2 sm:gap-4">
+            <div className="mt-3 grid gap-3 sm:grid-cols-2">
               {uncategorizedItems.map((item) => (
                 <ProductCard
                   key={item.id}

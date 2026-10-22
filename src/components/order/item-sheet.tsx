@@ -47,7 +47,7 @@ export function ItemSheet({
   return (
     <Sheet open onClose={onClose} position="bottom">
       <div className="flex flex-col">
-        <div className="relative -mx-6 -mt-2 h-52 overflow-hidden bg-surface sm:h-64">
+        <div className="relative -mx-6 -mt-2 h-64 overflow-hidden bg-surface sm:h-80">
           {item.image_url ? (
             <Image src={item.image_url} alt="" fill sizes="(max-width: 768px) 100vw, 768px" className="object-cover" />
           ) : (
@@ -121,7 +121,7 @@ export function ItemSheet({
           </fieldset>
         ))}
 
-        <div className="sticky bottom-0 -mx-6 mt-6 border-t border-border bg-surface-elevated/95 px-4 py-4 backdrop-blur-md">
+        <div className="sticky bottom-0 -mx-6 mt-6 border-t border-border bg-background/95 px-4 py-4 shadow-[0_-8px_24px_rgba(0,0,0,0.06)] backdrop-blur-md">
           {missingRequired && (
             <p className="mb-3 text-center text-sm text-muted-foreground">Elige las opciones obligatorias para continuar.</p>
           )}
@@ -135,7 +135,7 @@ export function ItemSheet({
               onClick={() => onAdd(quantity, modifierIds)}
               disabled={missingRequired}
               size="lg"
-              className="min-w-0 flex-1 px-4"
+              className="min-w-0 flex-1 px-4 text-base shadow-sm"
             >
               Agregar · {formatPrice(itemTotal * quantity)}
             </Button>
