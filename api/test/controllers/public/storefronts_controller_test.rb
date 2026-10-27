@@ -50,4 +50,31 @@ class Public::StorefrontsControllerTest < ActionDispatch::IntegrationTest
     names = response.parsed_body["items"].map { |item| item["name"] }
     assert_equal [ "Café" ], names
   end
+
+  test "hides test and unpublished shops and still opens a closed published shop" do
+    hidden = Shop.create!(name: "Reorder Test", slug: "reorder-test-store", currency: "EUR", status: "active", test_shop: true)
+    draft = Shop.create!(name: "Borrador", slug: "borrador-store", currency: "EUR", status: "draft")
+    closed = Shop.create!(
+      name: "Cafe Cerrado",
+      slug: "cafe-cerrado-store",
+      currency: "EUR",
+      status: "active",
+      operating_hours: Shop::DAY_KEYS.index_with { { "is_open" => false } }
+    )
+    Current.shop = hidden
+    MenuItem.create!(shop: hidden, name: "Secreto Test", price_cents: 100, is_active: true)
+    Current.shop = nil
+
+    get "/public/storefront/#{hidden.slug}"
+    assert_response :not_found
+    assert_not_includes response.body, "Secreto Test"
+
+    get "/public/storefront/#{draft.slug}"
+    assert_response :not_found
+
+    get "/public/storefront/#{closed.slug}"
+    assert_response :success
+    assert_equal closed.slug, response.parsed_body.dig("shop", "slug")
+    assert_not TenantScoped.system_access?
+  end
 end

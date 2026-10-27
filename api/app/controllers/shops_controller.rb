@@ -9,7 +9,7 @@ class ShopsController < ApplicationController
   end
 
   def show
-    shop = Shop.active.find_by!(slug: params[:slug])
+    shop = Shop.discoverable.find_by!(slug: params[:slug])
     render json: { shop: shop_payload(shop) }
   end
 

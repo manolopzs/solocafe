@@ -50,15 +50,18 @@ export default async function Home() {
               Solo Cafe
             </span>
           </Link>
-          <div className="hidden items-center gap-8 text-sm font-medium text-muted-foreground md:flex">
+          <div className="hidden items-center gap-8 text-sm font-medium text-muted-foreground lg:flex">
             <Link href="#plataforma" className="hover:text-foreground">Plataforma</Link>
             <Link href="#clientes" className="hover:text-foreground">Clientes</Link>
             <Link href="#cafeterias" className="hover:text-foreground">Cafeterías</Link>
             <Link href="#precios" className="hover:text-foreground">Precios</Link>
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
-            <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex whitespace-nowrap">
-              <Link href="/auth/login">Entrar</Link>
+            <Button asChild variant="ghost" size="sm" className="hidden whitespace-nowrap md:inline-flex">
+              <Link href="/auth/login">Soy cafetería</Link>
+            </Button>
+            <Button asChild variant="ghost" size="sm" className="hidden whitespace-nowrap md:inline-flex">
+              <Link href="/account/login">Soy cliente</Link>
             </Button>
             <Button asChild size="sm" className="whitespace-nowrap">
               <Link href="/auth/signup">Empezar gratis</Link>
@@ -70,15 +73,15 @@ export default async function Home() {
 
       <section className="bg-background px-6 pt-16 pb-12 sm:pt-24 sm:pb-16">
         <div className="mx-auto max-w-5xl text-center">
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-border bg-surface px-4 py-1.5 text-sm text-muted-foreground shadow-xs">
-            <Icon name="coffee" className="h-4 w-4 text-accent" />
-            <span>Conectamos personas y lugares en el momento presente</span>
+          <div className="mx-auto mb-6 flex w-fit max-w-full items-center gap-2 rounded-full border border-border bg-surface px-4 py-1.5 text-sm text-muted-foreground shadow-xs">
+            <Icon name="coffee" className="h-4 w-4 shrink-0 text-accent" />
+            <span className="min-w-0 text-balance">Pedidos pagados por adelantado para tu cafetería</span>
           </div>
           <h1 className="mx-auto max-w-4xl font-sans text-4xl font-semibold tracking-tight text-foreground sm:text-6xl sm:leading-[1.1]">
-            Tu café, listo cuando llegues
+            Tu cafetería, con el pedido ya pagado
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground sm:text-xl">
-            Clientes que ordenan y pagan desde su celular. Tú recibes el pedido, lo preparas y ellos recogen sin filas. Pago directo a tu cuenta.
+            Tus clientes ordenan y pagan desde el móvil. Tú preparas el pedido y lo entregas sin fila. El cobro entra en tu cuenta.
           </p>
           <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Button asChild size="lg" className="w-full sm:w-auto">
@@ -113,6 +116,7 @@ export default async function Home() {
                 <figcaption className="px-5 py-4">
                   <p className="text-xs font-semibold uppercase tracking-wider text-accent">{frame.title}</p>
                   <p className="mt-1 text-sm text-foreground">{frame.text}</p>
+                  <p className="mt-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Demo</p>
                 </figcaption>
               </figure>
             ))}
@@ -165,7 +169,7 @@ export default async function Home() {
               <BenefitItem text="Recibe pedidos pagados en tu cocina en tiempo real" />
               <BenefitItem text="Cobra directo con Stripe: Apple Pay, Google Pay y tarjeta" />
               <BenefitItem text="Define menú simple y capacidad por slot" />
-              <BenefitItem text="Forecasting: pedidos, productos y patrones de horario" />
+              <BenefitItem text="Previsión de pedidos, productos y horas de más demanda" />
             </ul>
             <div className="mt-8">
               <Button asChild size="lg">
@@ -183,7 +187,7 @@ export default async function Home() {
               Precios
             </h2>
             <p className="mt-4 text-muted-foreground">
-              Lo que publica la API. Sin cifras añadidas en esta página.
+              Precios en euros para tu cafetería. Durante el piloto no hay cuota ni comisión.
             </p>
           </div>
           <PricingSection pricing={pricing} />
@@ -217,15 +221,23 @@ export default async function Home() {
             </div>
             <span className="font-sans font-semibold text-foreground">Solo Cafe</span>
           </div>
-          <p className="text-sm text-muted-foreground">
-            Conectamos personas y lugares en el momento presente.
+          <p className="text-center text-sm text-muted-foreground sm:text-left">
+            Pedidos pagados por adelantado para tu cafetería.
           </p>
-          <div className="flex gap-6 text-sm text-muted-foreground">
-            <Link href="/auth/login" className="hover:text-foreground">Entrar</Link>
+          <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
+            <Link href="/auth/login" className="hover:text-foreground">Soy cafetería</Link>
+            <Link href="/account/login" className="hover:text-foreground">Soy cliente</Link>
             <Link href="/auth/signup" className="hover:text-foreground">Crear cuenta</Link>
             <Link href="/demo" className="hover:text-foreground">Demo</Link>
           </div>
         </div>
+        <nav aria-label="Información legal" className="mx-auto mt-8 flex max-w-6xl flex-wrap justify-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
+          <Link href="/aviso-legal" className="hover:text-foreground">Aviso legal</Link>
+          <Link href="/privacidad" className="hover:text-foreground">Privacidad</Link>
+          <Link href="/terminos" className="hover:text-foreground">Términos</Link>
+          <Link href="/cookies" className="hover:text-foreground">Cookies</Link>
+          <Link href="/contacto" className="hover:text-foreground">Contacto</Link>
+        </nav>
       </footer>
     </main>
   );
@@ -261,15 +273,28 @@ function isPricingTier(value: unknown): value is PricingTier {
   );
 }
 
+function hasCommercialPrice(pricing: PublicPricing | null): pricing is PublicPricing {
+  if (!pricing || pricing.tiers.length === 0) return false;
+  if (Number.isFinite(pricing.platform_fee_percent) && pricing.platform_fee_percent > 0) return true;
+  return pricing.tiers.some((tier) => tier.monthly_price_cents > 0 || tier.overage_per_order_cents > 0);
+}
+
 function PricingSection({ pricing }: { pricing: PublicPricing | null }) {
-  if (!pricing || pricing.tiers.length === 0) {
+  if (!hasCommercialPrice(pricing)) {
     return (
-      <Card className="mx-auto mt-14 max-w-2xl p-8 text-center">
-        <p className="text-xs font-semibold uppercase tracking-wider text-accent">Marcador</p>
-        <h3 className="mt-3 font-sans text-2xl font-semibold text-foreground">Precios por publicar</h3>
-        <p className="mt-3 text-muted-foreground">
-          Marcador de precios. La API no devolvió planes activos, así que esta sección no muestra cifras.
+      <Card className="mx-auto mt-14 max-w-xl p-8 text-center">
+        <p className="text-xs font-semibold uppercase tracking-wider text-accent">Modelo en euros</p>
+        <h3 className="mt-3 font-sans text-3xl font-semibold text-foreground">Gratis durante el piloto</h3>
+        <ul className="mt-6 space-y-2 text-sm text-foreground">
+          <li>Cuota mensual: {formatEuro(0)}</li>
+          <li>Comisión por pedido: {formatEuro(0)}</li>
+        </ul>
+        <p className="mt-4 text-sm text-muted-foreground">
+          El piloto en el campus IE no tiene coste. Cuando fijemos la tarifa, la verás aquí en euros antes de que se aplique.
         </p>
+        <Button asChild className="mt-6">
+          <Link href="/auth/signup">Empezar gratis</Link>
+        </Button>
       </Card>
     );
   }
@@ -281,12 +306,12 @@ function PricingSection({ pricing }: { pricing: PublicPricing | null }) {
           <Card key={tier.name} className="p-6">
             <h3 className="font-sans text-lg font-semibold text-foreground">{tier.name}</h3>
             <p className="mt-4 text-3xl font-bold text-foreground">
-              {formatCents(tier.monthly_price_cents)}
+              {formatEuro(tier.monthly_price_cents)}
               <span className="text-base font-medium text-muted-foreground"> al mes</span>
             </p>
             <ul className="mt-4 space-y-2 text-sm text-foreground">
               <li>{tier.included_orders} pedidos incluidos</li>
-              <li>{formatCents(tier.overage_per_order_cents)} por pedido extra</li>
+              <li>{formatEuro(tier.overage_per_order_cents)} por pedido extra</li>
             </ul>
             <Button asChild className="mt-6 w-full">
               <Link href="/auth/signup">Empezar gratis</Link>
@@ -294,17 +319,19 @@ function PricingSection({ pricing }: { pricing: PublicPricing | null }) {
           </Card>
         ))}
       </div>
-      {Number.isFinite(pricing.platform_fee_percent) && (
+      {Number.isFinite(pricing.platform_fee_percent) && pricing.platform_fee_percent > 0 && (
         <p className="mt-6 text-center text-sm text-muted-foreground">
-          Comisión de plataforma: {String(pricing.platform_fee_percent)}%. Los montos del plan salen de centavos guardados en la API y no traen moneda.
+          Comisión de plataforma: {String(pricing.platform_fee_percent)}% por pedido, en euros.
         </p>
       )}
     </>
   );
 }
 
-function formatCents(cents: number) {
-  return (cents / 100).toFixed(2);
+function formatEuro(cents: number) {
+  return new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR" })
+    .format(cents / 100)
+    .replace(/[\u00a0\u202f]/g, " ");
 }
 
 function BenefitItem({ text }: { text: string }) {
@@ -327,10 +354,11 @@ function DashboardMockup() {
         <div className="h-2 w-2 rounded-full bg-green-400" />
       </div>
       <div className="p-3">
+        <p className="mb-2 text-[0.6rem] font-semibold uppercase tracking-wider text-accent">Demo</p>
         <div className="mb-3 grid grid-cols-3 gap-2">
           <div className="rounded-lg bg-surface p-2">
             <p className="text-[0.6rem] text-muted-foreground">Ventas</p>
-            <p className="text-sm font-semibold text-foreground">$4,230</p>
+            <p className="text-sm font-semibold text-foreground">{formatEuro(18640)}</p>
           </div>
           <div className="rounded-lg bg-surface p-2">
             <p className="text-[0.6rem] text-muted-foreground">Pedidos</p>
@@ -338,7 +366,7 @@ function DashboardMockup() {
           </div>
           <div className="rounded-lg bg-surface p-2">
             <p className="text-[0.6rem] text-muted-foreground">Ticket</p>
-            <p className="text-sm font-semibold text-foreground">$49</p>
+            <p className="text-sm font-semibold text-foreground">{formatEuro(490)}</p>
           </div>
         </div>
         <div className="space-y-2">
@@ -376,22 +404,24 @@ function PhoneMockup() {
       </div>
       <div className="p-2.5">
         <div className="mb-2 rounded-lg bg-gradient-to-br from-amber-100 to-amber-50 p-2">
+          <p className="text-[0.55rem] font-semibold uppercase tracking-wider text-accent">Demo</p>
           <p className="text-[0.6rem] text-muted-foreground">Bienvenido a</p>
-          <p className="text-xs font-semibold text-foreground">Café de la Esquina</p>
+          <p className="text-xs font-semibold text-foreground">Café Recoletos</p>
+          <p className="text-[0.6rem] text-muted-foreground">Madrid</p>
         </div>
         <div className="space-y-2">
           <div className="flex items-center gap-2 rounded-lg bg-surface p-1.5">
             <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-amber-700 to-amber-500" />
             <div className="flex-1">
               <p className="text-[0.65rem] font-medium text-foreground">Cappuccino</p>
-              <p className="text-[0.6rem] text-muted-foreground">MXN 55.00</p>
+              <p className="text-[0.6rem] text-muted-foreground">{formatEuro(340)}</p>
             </div>
           </div>
           <div className="flex items-center gap-2 rounded-lg bg-surface p-1.5">
             <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-stone-600 to-stone-400" />
             <div className="flex-1">
-              <p className="text-[0.65rem] font-medium text-foreground">Latte Vainilla</p>
-              <p className="text-[0.6rem] text-muted-foreground">MXN 62.00</p>
+              <p className="text-[0.65rem] font-medium text-foreground">Latte vainilla</p>
+              <p className="text-[0.6rem] text-muted-foreground">{formatEuro(380)}</p>
             </div>
           </div>
         </div>
@@ -449,8 +479,10 @@ function PhoneMockupLarge() {
             <Icon name="store" className="h-6 w-6" />
           </div>
           <div>
+            <p className="text-xs font-semibold uppercase tracking-wider text-accent">Demo</p>
             <p className="text-xs text-muted-foreground">Bienvenido a</p>
-            <h3 className="font-sans text-base font-semibold text-foreground">Café de la Esquina</h3>
+            <h3 className="font-sans text-base font-semibold text-foreground">Café Recoletos</h3>
+            <p className="text-xs text-muted-foreground">Madrid</p>
           </div>
         </div>
         <div className="mb-4 flex gap-2">
@@ -469,15 +501,15 @@ function PhoneMockupLarge() {
             <div className="min-w-0 flex-1">
               <p className="text-sm font-semibold text-foreground">Cappuccino</p>
               <p className="truncate text-xs text-muted-foreground">Espresso doble con leche vaporizada</p>
-              <p className="mt-1 text-sm font-semibold text-foreground">MXN 55.00</p>
+              <p className="mt-1 text-sm font-semibold text-foreground">{formatEuro(340)}</p>
             </div>
           </div>
           <div className="flex items-center gap-3 rounded-xl bg-surface p-3">
             <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-gradient-to-br from-stone-700 via-stone-500 to-stone-300" />
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold text-foreground">Latte Vainilla</p>
+              <p className="text-sm font-semibold text-foreground">Latte vainilla</p>
               <p className="truncate text-xs text-muted-foreground">Café suave con un toque de vainilla</p>
-              <p className="mt-1 text-sm font-semibold text-foreground">MXN 62.00</p>
+              <p className="mt-1 text-sm font-semibold text-foreground">{formatEuro(380)}</p>
             </div>
           </div>
           <div className="flex items-center gap-3 rounded-xl bg-surface p-3">
@@ -485,14 +517,14 @@ function PhoneMockupLarge() {
             <div className="min-w-0 flex-1">
               <p className="text-sm font-semibold text-foreground">Americano</p>
               <p className="truncate text-xs text-muted-foreground">Espresso con agua caliente</p>
-              <p className="mt-1 text-sm font-semibold text-foreground">MXN 42.00</p>
+              <p className="mt-1 text-sm font-semibold text-foreground">{formatEuro(260)}</p>
             </div>
           </div>
         </div>
       </div>
       <div className="p-4 pt-0">
         <div className="rounded-xl bg-foreground py-3 text-center text-sm font-semibold text-primary-foreground">
-          Ver pedido · MXN 0.00
+          Ver pedido · {formatEuro(0)}
         </div>
       </div>
     </div>
@@ -525,18 +557,19 @@ function DashboardMockupLarge() {
             <h3 className="font-sans text-base font-semibold text-foreground">Panel de control</h3>
             <div className="h-7 w-7 rounded-full bg-border" />
           </div>
+          <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-accent">Demo</p>
           <div className="mb-4 grid grid-cols-3 gap-3">
             <div className="rounded-lg bg-surface p-3">
               <p className="text-xs text-muted-foreground">Ventas hoy</p>
-              <p className="mt-1 font-sans text-lg font-semibold text-foreground">$4,230</p>
+              <p className="mt-1 font-sans text-lg font-semibold text-foreground">{formatEuro(18640)}</p>
             </div>
             <div className="rounded-lg bg-surface p-3">
               <p className="text-xs text-muted-foreground">Pedidos</p>
               <p className="mt-1 font-sans text-lg font-semibold text-foreground">86</p>
             </div>
             <div className="rounded-lg bg-surface p-3">
-              <p className="text-xs text-muted-foreground">Ticket promedio</p>
-              <p className="mt-1 font-sans text-lg font-semibold text-foreground">$49</p>
+              <p className="text-xs text-muted-foreground">Ticket medio</p>
+              <p className="mt-1 font-sans text-lg font-semibold text-foreground">{formatEuro(490)}</p>
             </div>
           </div>
           <div className="mb-4 rounded-lg bg-surface p-3">

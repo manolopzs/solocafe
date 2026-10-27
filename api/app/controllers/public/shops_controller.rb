@@ -5,7 +5,11 @@ module Public
 
     def index
       origin = origin_coordinates
-      shops = Shop.explore(lat: origin&.first, lng: origin&.last)
+      shops = Shop.explore(
+        lat: origin&.first,
+        lng: origin&.last,
+        include_closed: include_closed?
+      )
 
       render_public_json({
         sort: origin ? "distance" : "name",
@@ -14,6 +18,10 @@ module Public
     end
 
     private
+
+    def include_closed?
+      ActiveModel::Type::Boolean.new.cast(params[:include_closed])
+    end
 
     def origin_coordinates
       return nil if params[:lat].blank? || params[:lng].blank?

@@ -330,6 +330,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_21_130000) do
     t.string "display_font", default: "dm_sans", null: false
     t.integer "loyalty_stamps_required", default: 10, null: false
     t.string "loyalty_reward_text", default: "Un artículo gratis", null: false
+    t.boolean "test_shop", default: false, null: false
     t.index ["owner_id"], name: "index_shops_on_owner_id"
     t.index ["slug"], name: "index_shops_on_slug", unique: true
   end
