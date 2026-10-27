@@ -4,6 +4,7 @@ import { Icon, type IconName } from "@/components/ui/icon";
 import { Card } from "@/components/ui/card";
 import { MobileNav } from "@/components/landing/mobile-nav";
 import { env } from "@/lib/env";
+import { formatMoney } from "@/lib/ordering";
 
 type PricingTier = {
   name: string;
@@ -286,8 +287,8 @@ function PricingSection({ pricing }: { pricing: PublicPricing | null }) {
         <p className="text-xs font-semibold uppercase tracking-wider text-accent">Modelo en euros</p>
         <h3 className="mt-3 font-sans text-3xl font-semibold text-foreground">Gratis durante el piloto</h3>
         <ul className="mt-6 space-y-2 text-sm text-foreground">
-          <li>Cuota mensual: {formatEuro(0)}</li>
-          <li>Comisión por pedido: {formatEuro(0)}</li>
+          <li>Cuota mensual: {formatMoney(0)}</li>
+          <li>Comisión por pedido: {formatMoney(0)}</li>
         </ul>
         <p className="mt-4 text-sm text-muted-foreground">
           El piloto en el campus IE no tiene coste. Cuando fijemos la tarifa, la verás aquí en euros antes de que se aplique.
@@ -306,12 +307,12 @@ function PricingSection({ pricing }: { pricing: PublicPricing | null }) {
           <Card key={tier.name} className="p-6">
             <h3 className="font-sans text-lg font-semibold text-foreground">{tier.name}</h3>
             <p className="mt-4 text-3xl font-bold text-foreground">
-              {formatEuro(tier.monthly_price_cents)}
+              {formatMoney(tier.monthly_price_cents)}
               <span className="text-base font-medium text-muted-foreground"> al mes</span>
             </p>
             <ul className="mt-4 space-y-2 text-sm text-foreground">
               <li>{tier.included_orders} pedidos incluidos</li>
-              <li>{formatEuro(tier.overage_per_order_cents)} por pedido extra</li>
+              <li>{formatMoney(tier.overage_per_order_cents)} por pedido extra</li>
             </ul>
             <Button asChild className="mt-6 w-full">
               <Link href="/auth/signup">Empezar gratis</Link>
@@ -326,12 +327,6 @@ function PricingSection({ pricing }: { pricing: PublicPricing | null }) {
       )}
     </>
   );
-}
-
-function formatEuro(cents: number) {
-  return new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR" })
-    .format(cents / 100)
-    .replace(/[\u00a0\u202f]/g, " ");
 }
 
 function BenefitItem({ text }: { text: string }) {
@@ -358,7 +353,7 @@ function DashboardMockup() {
         <div className="mb-3 grid grid-cols-3 gap-2">
           <div className="rounded-lg bg-surface p-2">
             <p className="text-[0.6rem] text-muted-foreground">Ventas</p>
-            <p className="text-sm font-semibold text-foreground">{formatEuro(18640)}</p>
+            <p className="text-sm font-semibold text-foreground">{formatMoney(18640)}</p>
           </div>
           <div className="rounded-lg bg-surface p-2">
             <p className="text-[0.6rem] text-muted-foreground">Pedidos</p>
@@ -366,7 +361,7 @@ function DashboardMockup() {
           </div>
           <div className="rounded-lg bg-surface p-2">
             <p className="text-[0.6rem] text-muted-foreground">Ticket</p>
-            <p className="text-sm font-semibold text-foreground">{formatEuro(490)}</p>
+            <p className="text-sm font-semibold text-foreground">{formatMoney(490)}</p>
           </div>
         </div>
         <div className="space-y-2">
@@ -414,14 +409,14 @@ function PhoneMockup() {
             <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-amber-700 to-amber-500" />
             <div className="flex-1">
               <p className="text-[0.65rem] font-medium text-foreground">Cappuccino</p>
-              <p className="text-[0.6rem] text-muted-foreground">{formatEuro(340)}</p>
+              <p className="text-[0.6rem] text-muted-foreground">{formatMoney(280)}</p>
             </div>
           </div>
           <div className="flex items-center gap-2 rounded-lg bg-surface p-1.5">
             <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-stone-600 to-stone-400" />
             <div className="flex-1">
               <p className="text-[0.65rem] font-medium text-foreground">Latte vainilla</p>
-              <p className="text-[0.6rem] text-muted-foreground">{formatEuro(380)}</p>
+              <p className="text-[0.6rem] text-muted-foreground">{formatMoney(320)}</p>
             </div>
           </div>
         </div>
@@ -501,7 +496,7 @@ function PhoneMockupLarge() {
             <div className="min-w-0 flex-1">
               <p className="text-sm font-semibold text-foreground">Cappuccino</p>
               <p className="truncate text-xs text-muted-foreground">Espresso doble con leche vaporizada</p>
-              <p className="mt-1 text-sm font-semibold text-foreground">{formatEuro(340)}</p>
+              <p className="mt-1 text-sm font-semibold text-foreground">{formatMoney(280)}</p>
             </div>
           </div>
           <div className="flex items-center gap-3 rounded-xl bg-surface p-3">
@@ -509,7 +504,7 @@ function PhoneMockupLarge() {
             <div className="min-w-0 flex-1">
               <p className="text-sm font-semibold text-foreground">Latte vainilla</p>
               <p className="truncate text-xs text-muted-foreground">Café suave con un toque de vainilla</p>
-              <p className="mt-1 text-sm font-semibold text-foreground">{formatEuro(380)}</p>
+              <p className="mt-1 text-sm font-semibold text-foreground">{formatMoney(320)}</p>
             </div>
           </div>
           <div className="flex items-center gap-3 rounded-xl bg-surface p-3">
@@ -517,14 +512,14 @@ function PhoneMockupLarge() {
             <div className="min-w-0 flex-1">
               <p className="text-sm font-semibold text-foreground">Americano</p>
               <p className="truncate text-xs text-muted-foreground">Espresso con agua caliente</p>
-              <p className="mt-1 text-sm font-semibold text-foreground">{formatEuro(260)}</p>
+              <p className="mt-1 text-sm font-semibold text-foreground">{formatMoney(220)}</p>
             </div>
           </div>
         </div>
       </div>
       <div className="p-4 pt-0">
         <div className="rounded-xl bg-foreground py-3 text-center text-sm font-semibold text-primary-foreground">
-          Ver pedido · {formatEuro(0)}
+          Ver pedido · {formatMoney(0)}
         </div>
       </div>
     </div>
@@ -561,7 +556,7 @@ function DashboardMockupLarge() {
           <div className="mb-4 grid grid-cols-3 gap-3">
             <div className="rounded-lg bg-surface p-3">
               <p className="text-xs text-muted-foreground">Ventas hoy</p>
-              <p className="mt-1 font-sans text-lg font-semibold text-foreground">{formatEuro(18640)}</p>
+              <p className="mt-1 font-sans text-lg font-semibold text-foreground">{formatMoney(18640)}</p>
             </div>
             <div className="rounded-lg bg-surface p-3">
               <p className="text-xs text-muted-foreground">Pedidos</p>
@@ -569,7 +564,7 @@ function DashboardMockupLarge() {
             </div>
             <div className="rounded-lg bg-surface p-3">
               <p className="text-xs text-muted-foreground">Ticket medio</p>
-              <p className="mt-1 font-sans text-lg font-semibold text-foreground">{formatEuro(490)}</p>
+              <p className="mt-1 font-sans text-lg font-semibold text-foreground">{formatMoney(490)}</p>
             </div>
           </div>
           <div className="mb-4 rounded-lg bg-surface p-3">

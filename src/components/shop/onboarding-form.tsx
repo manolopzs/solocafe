@@ -84,7 +84,6 @@ export function OnboardingForm() {
                   defaultValue="EUR"
                   className="mt-1.5 block w-full rounded-xl border border-warm-200 bg-paper px-4 py-3 text-sm text-foreground focus:border-terracotta-400 focus:outline-none focus:ring-2 focus:ring-terracotta-400/20"
                 >
-                  <option value="MXN">MXN</option>
                   <option value="EUR">EUR</option>
                 </select>
               </div>
@@ -110,7 +109,6 @@ export function OnboardingForm() {
                 defaultValue="Europe/Madrid"
                 className="mt-1.5 block w-full rounded-xl border border-warm-200 bg-paper px-4 py-3 text-sm text-foreground focus:border-terracotta-400 focus:outline-none focus:ring-2 focus:ring-terracotta-400/20"
               >
-                <option value="America/Mexico_City">Ciudad de Mexico</option>
                 <option value="America/New_York">Nueva York</option>
                 <option value="Europe/Madrid">Madrid</option>
                 <option value="Europe/Berlin">Berlin</option>
