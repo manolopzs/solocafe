@@ -15,6 +15,24 @@ services:
     envVars:
       - key: SECRET_KEY_BASE
         sync: false
+      - key: VAPID_PUBLIC_KEY
+        sync: false
+      - key: VAPID_PRIVATE_KEY
+        sync: false
+      - key: VAPID_SUBJECT
+        sync: false
+      - key: APP_URL
+        sync: false
+      - key: MAILER_FROM
+        sync: false
+      - key: SMTP_ADDRESS
+        sync: false
+      - key: SMTP_PORT
+        sync: false
+      - key: SMTP_USER_NAME
+        sync: false
+      - key: SMTP_PASSWORD
+        sync: false
       - key: RAILS_ENV
         value: production
       - key: RAILS_LOG_TO_STDOUT

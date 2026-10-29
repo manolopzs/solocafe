@@ -67,6 +67,27 @@ Rails.application.configure do
     end
   end
 
+  config.action_mailer.delivery_method = if ENV["SMTP_ADDRESS"].present?
+    :smtp
+  else
+    :logger
+  end
+
+  config.action_mailer.smtp_settings = {
+    address: ENV["SMTP_ADDRESS"].to_s,
+    port: ENV.fetch("SMTP_PORT", "587").to_i,
+    user_name: ENV["SMTP_USER_NAME"].to_s,
+    password: ENV["SMTP_PASSWORD"].to_s,
+    authentication: ENV.fetch("SMTP_AUTHENTICATION", "plain").to_sym,
+    enable_starttls_auto: ENV.fetch("SMTP_ENABLE_STARTTLS", "true") == "true"
+  }
+
+  config.action_mailer.default_url_options = begin
+    app_url = ENV.fetch("APP_URL", ENV.fetch("CORS_ALLOWED_ORIGINS", "https://solo-cafe-nine.vercel.app").split(",").first.to_s)
+    uri = URI.parse(app_url)
+    { host: uri.host, port: uri.port, protocol: uri.scheme }
+  end
+
   # Enable DNS rebinding protection and other `Host` header attacks.
   # config.hosts = [
   #   "example.com",     # Allow requests from example.com

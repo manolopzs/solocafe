@@ -61,6 +61,12 @@ export default function AccountLoginPage() {
           <Button type="submit" disabled={pending} size="lg" className="w-full">
             {pending ? 'Entrando...' : 'Entrar'}
           </Button>
+
+          <p className="text-center text-sm">
+            <Link href="/auth/forgot-password" className="font-medium text-accent underline-offset-2 hover:underline">
+              ¿Olvidaste tu contraseña?
+            </Link>
+          </p>
         </form>
 
         <p className="mt-6 text-center text-sm text-muted-foreground">
