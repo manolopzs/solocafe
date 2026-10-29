@@ -1,7 +1,7 @@
 'use server'
 
 import { redirect, unstable_rethrow } from 'next/navigation'
-import { apiPost } from '@/lib/api/server'
+import { apiPost, apiPatch } from '@/lib/api/server'
 import { setToken, removeToken } from '@/lib/auth'
 
 export async function loginAction(prevState: unknown, formData: FormData) {
@@ -73,4 +73,48 @@ export async function signupAction(prevState: unknown, formData: FormData) {
 export async function logoutAction() {
   await removeToken()
   redirect('/auth/login')
+}
+
+export async function forgotPasswordAction(prevState: unknown, formData: FormData) {
+  const email = formData.get('email') as string
+
+  if (!email) {
+    return { error: 'El correo electrónico es requerido' }
+  }
+
+  try {
+    await apiPost('/auth/password_resets', { email }, false)
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Error al solicitar el restablecimiento'
+    return { error: message }
+  }
+
+  return { success: 'Si el correo existe, recibirás instrucciones para restablecer tu contraseña.' }
+}
+
+export async function resetPasswordAction(prevState: unknown, formData: FormData) {
+  const token = formData.get('token') as string
+  const password = formData.get('password') as string
+  const passwordConfirmation = formData.get('passwordConfirmation') as string
+
+  if (!token || !password || !passwordConfirmation) {
+    return { error: 'Token, contraseña y confirmación son requeridos' }
+  }
+
+  if (password !== passwordConfirmation) {
+    return { error: 'Las contraseñas no coinciden' }
+  }
+
+  if (password.length < 8) {
+    return { error: 'La contraseña debe tener al menos 8 caracteres' }
+  }
+
+  try {
+    await apiPatch('/auth/password_resets/' + encodeURIComponent(token), { password }, false)
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Error al restablecer la contraseña'
+    return { error: message }
+  }
+
+  redirect('/auth/login?reset=success')
 }

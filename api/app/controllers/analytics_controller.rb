@@ -26,49 +26,39 @@ class AnalyticsController < ApplicationController
   private
 
   def peak_hours(orders)
-    return [] if orders.count.zero?
+    return [] if orders.none?
 
-    order_ids = orders.pluck(:id)
-    timezone = ActiveRecord::Base.connection.quote(Current.shop.timezone)
-
-    sql = <<~SQL
-      SELECT EXTRACT(HOUR FROM created_at AT TIME ZONE 'UTC' AT TIME ZONE #{timezone}) AS hour,
-             COUNT(*) AS order_count
-      FROM orders
-      WHERE id IN (#{order_ids.map { |id| ActiveRecord::Base.connection.quote(id) }.join(', ')})
-      GROUP BY hour
-      ORDER BY order_count DESC
-      LIMIT 5
-    SQL
-
-    ActiveRecord::Base.connection.select_all(sql).map do |row|
-      { hour: row["hour"].to_i, count: row["order_count"].to_i }
+    timezone = Current.shop.timezone
+    counts = Hash.new(0)
+    orders.find_each do |order|
+      counts[order.created_at.in_time_zone(timezone).hour] += 1
     end
+
+    counts
+      .sort_by { |_, count| -count }
+      .first(5)
+      .map { |hour, count| { hour: hour, count: count } }
   end
 
   def top_items(orders)
-    return [] if orders.count.zero?
+    return [] if orders.none?
 
     order_ids = orders.pluck(:id)
+    return [] if order_ids.empty?
 
-    sql = <<~SQL
-      SELECT item_name_snapshot AS name,
-             SUM(quantity) AS total_quantity,
-             SUM(subtotal_cents) AS total_revenue_cents
-      FROM order_items
-      WHERE order_id IN (#{order_ids.map { |id| ActiveRecord::Base.connection.quote(id) }.join(', ')})
-      GROUP BY item_name_snapshot
-      ORDER BY total_quantity DESC
-      LIMIT 5
-    SQL
+    quantities = OrderItem.where(order_id: order_ids).group(:item_name_snapshot).sum(:quantity)
+    revenues = OrderItem.where(order_id: order_ids).group(:item_name_snapshot).sum(:subtotal_cents)
 
-    ActiveRecord::Base.connection.select_all(sql).map do |row|
-      {
-        name: row["name"],
-        quantity: row["total_quantity"].to_i,
-        revenue_cents: row["total_revenue_cents"].to_i
-      }
-    end
+    quantities
+      .sort_by { |_, quantity| -quantity }
+      .first(5)
+      .map do |name, quantity|
+        {
+          name: name,
+          quantity: quantity,
+          revenue_cents: revenues[name].to_i
+        }
+      end
   end
 
   def repeat_customer_rate(orders)

@@ -4,6 +4,9 @@ Rails.application.routes.draw do
   post "/auth/signup", to: "authentication#signup"
   post "/auth/login", to: "authentication#login"
   get "/auth/me", to: "authentication#me"
+  post "/auth/password_resets", to: "password_resets#create"
+  patch "/auth/password_resets/:token", to: "password_resets#update"
+  put "/auth/password_resets/:token", to: "password_resets#update"
 
   get "/customers/me/loyalty", to: "customers#loyalty"
   get "/customers/me", to: "customers#me"
