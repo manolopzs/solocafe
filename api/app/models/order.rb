@@ -57,11 +57,35 @@ class Order < ApplicationRecord
     self.class.state_machine.fetch(status, []).include?(next_status)
   end
 
+  class InvalidStatusTransition < StandardError; end
+
   # Kitchen staff can cancel an unpaid order. Only a successful payment moves it to received.
   def staff_can_transition_to?(next_status)
     return next_status == "cancelled" if status_pending_payment?
 
     can_transition_to?(next_status)
+  end
+
+  # Applies a staff-driven status transition. Returns false when the order is already
+  # at the requested status (idempotent no-op). Raises InvalidStatusTransition for
+  # illegal transitions. Returns true and runs side effects for valid transitions.
+  def apply_staff_status!(new_status)
+    return false if new_status == status
+    raise InvalidStatusTransition, "Cannot transition from #{status} to #{new_status}" unless staff_can_transition_to?(new_status)
+
+    Current.set(shop: shop) do
+      ActiveRecord::Base.transaction do
+        old_status = status
+        update!(status: new_status)
+        if new_status == "cancelled"
+          release_slot!
+          LoyaltyStamp.unwind!(self)
+        end
+        record_status_change_event!(old_status, new_status)
+        notify_customer_ready! if new_status == "ready"
+      end
+    end
+    true
   end
 
   def apply_successful_payment!
@@ -149,4 +173,34 @@ class Order < ApplicationRecord
 
     TenantScoped.unscoped_for_system { find_by(id: verified_id) }
   end
+
+  private
+
+  def record_status_change_event!(old_status, new_status)
+    shop.events.create!(
+      order: self,
+      event_type: "order.status_changed",
+      payload: { from: old_status, to: new_status }
+    )
+  end
+
+  def notify_customer_ready!
+    has_push = shop.push_devices.where(audience: "customer", order_id: id).exists?
+    channel = if has_push
+      "web_push"
+    elsif customer_phone.present?
+      "sms"
+    else
+      "in_app"
+    end
+
+    shop.notifications.create!(
+      order: self,
+      notification_type: "order.ready",
+      channel: channel,
+      status: has_push ? "queued" : "pending"
+    )
+    CustomerReadyPush.enqueue(self)
+  end
+
 end
