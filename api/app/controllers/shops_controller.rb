@@ -76,5 +76,4 @@ class ShopsController < ApplicationController
   def seed_starter_menu?
     ActiveModel::Type::Boolean.new.cast(params[:seed_starter_menu])
   end
-
 end
