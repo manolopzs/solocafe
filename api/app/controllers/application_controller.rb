@@ -62,4 +62,11 @@ class ApplicationController < ActionController::API
       render json: { error: "Forbidden" }, status: :forbidden
     end
   end
+
+  def ensure_stripe_configured!
+    return if StripeConfig.configured?
+
+    PaymentLog.error("payment.stripe_not_configured", order_id: (@order.id if defined?(@order) && @order), shop_id: Current.shop&.id)
+    render json: { error: "stripe_not_configured" }, status: :service_unavailable
+  end
 end
