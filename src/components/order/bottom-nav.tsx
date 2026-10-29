@@ -12,11 +12,13 @@ const navItems = [
 ] as const
 
 const hiddenPrefixes = ['/dashboard', '/auth', '/account/login', '/account/signup', '/checkout']
+const hiddenPaths = ['/contacto', '/privacidad', '/terminos', '/aviso-legal', '/cookies']
 
 export function BottomNav() {
   const pathname = usePathname()
 
   if (pathname === '/') return null
+  if (hiddenPaths.includes(pathname)) return null
   if (hiddenPrefixes.some((prefix) => pathname.startsWith(prefix))) return null
 
   const isActive = (href: string) => {

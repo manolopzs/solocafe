@@ -1,6 +1,6 @@
 'use server'
 
-import { apiGet, apiPost, apiPatch, apiDelete } from '@/lib/api/server'
+import { apiGet } from '@/lib/api/server'
 import type { Shop } from '@/types'
 
 export async function getUserShops(): Promise<Shop[]> {

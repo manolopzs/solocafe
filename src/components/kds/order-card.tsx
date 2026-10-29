@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
 import { Icon } from '@/components/ui/icon'
+import { formatMoney } from '@/lib/ordering'
 import type { Order, OrderItem } from '@/types'
 
 const statusLabels: Record<string, string> = {
@@ -158,7 +159,7 @@ export function OrderCard({
         )}
 
         <p className="mt-4 text-lg font-semibold text-foreground md:text-xl">
-          Total: {order.currency ?? ''} {(order.total_cents / 100).toFixed(2)}
+          Total: {formatMoney(order.total_cents, order.currency ?? 'EUR')}
         </p>
       </div>
 

@@ -37,7 +37,7 @@ export function QrCode({
   return (
     <img
       src={dataUrl}
-      alt="Codigo QR para ordenar"
+      alt="Código QR para ordenar"
       className={['rounded-lg border border-warm-200', className].filter(Boolean).join(' ')}
       style={className ? undefined : { width: size, height: size }}
     />

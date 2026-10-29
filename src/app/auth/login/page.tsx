@@ -22,7 +22,7 @@ export default function LoginPage() {
             <span className="flex h-10 w-10 items-center justify-center rounded-full bg-accent text-accent-foreground">
               <Icon name="coffee" className="h-5 w-5" />
             </span>
-            <span className="text-lg font-semibold tracking-tight">Solo Cafe</span>
+            <span className="text-lg font-semibold tracking-tight">Solo Café</span>
           </Link>
 
           <h1 className="mt-8 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">

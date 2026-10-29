@@ -36,7 +36,7 @@ const libreBaskerville = Libre_Baskerville({
 });
 
 export const metadata: Metadata = {
-  title: "Solo Cafe - Vende directo a tus clientes",
+  title: "Solo Café - Vende directo a tus clientes",
   description: "Sistema de pedidos para recoger sin comisiones de marketplace. Tu menú, tus pagos, tu marca.",
 };
 

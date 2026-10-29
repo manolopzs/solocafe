@@ -19,7 +19,7 @@ export function LegalDraftPage({ title, children }: { title: string; children: R
             <span className="flex h-9 w-9 items-center justify-center rounded-full bg-terracotta-700 text-white">
               <Icon name="coffee" className="h-5 w-5" />
             </span>
-            <span className="font-semibold">Solo Cafe</span>
+            <span className="font-semibold">Solo Café</span>
           </Link>
           <Link href="/auth/login" className="text-sm font-medium text-terracotta-800 hover:text-foreground">
             Soy cafetería

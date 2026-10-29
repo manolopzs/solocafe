@@ -15,7 +15,7 @@ class ShopOnboarding
       sort_order: 1,
       options: [
         { name: "Entera", price_cents: 0, sort_order: 1 },
-        { name: "Deslactosada", price_cents: 30, sort_order: 2 },
+        { name: "Sin lactosa", price_cents: 30, sort_order: 2 },
         { name: "Almendra", price_cents: 50, sort_order: 3 }
       ]
     },
@@ -25,7 +25,7 @@ class ShopOnboarding
       max_select: 1,
       sort_order: 2,
       options: [
-        { name: "Chico", price_cents: 0, sort_order: 1 },
+        { name: "Pequeño", price_cents: 0, sort_order: 1 },
         { name: "Mediano", price_cents: 40, sort_order: 2 },
         { name: "Grande", price_cents: 80, sort_order: 3 }
       ]

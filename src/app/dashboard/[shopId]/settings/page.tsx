@@ -106,7 +106,7 @@ export default async function SettingsPage({
 
       <Card variant="outline">
         <CardHeader>
-          <CardTitle>Pagina publica</CardTitle>
+          <CardTitle>Página pública</CardTitle>
           <CardDescription>Enlace que ven tus clientes.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -118,7 +118,7 @@ export default async function SettingsPage({
           </div>
           <Button asChild variant="outline">
             <Link href={`/${shop.slug}`} target="_blank">
-              Ver pagina
+              Ver página
             </Link>
           </Button>
             </>

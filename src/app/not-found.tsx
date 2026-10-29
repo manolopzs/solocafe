@@ -16,7 +16,7 @@ export default function NotFound() {
         <p className="mt-6 text-sm font-semibold uppercase tracking-wider text-terracotta-700">404</p>
         <h1 className="mt-2 font-sans text-3xl font-semibold tracking-tight text-foreground">Esta página no existe</h1>
         <p className="mt-3 text-base leading-7 text-muted-foreground">
-          El enlace no corresponde a ninguna sección de Solo Cafe. Vuelve al inicio o entra como cafetería.
+          El enlace no corresponde a ninguna sección de Solo Café. Vuelve al inicio o entra como cafetería.
         </p>
         <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
           <Link

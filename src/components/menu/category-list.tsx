@@ -30,10 +30,10 @@ export function CategoryList({ shopId, categories }: { shopId: string; categorie
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">{categories.length} categorias</p>
+        <p className="text-sm text-muted-foreground">{categories.length} categorías</p>
         <Button onClick={handleOpenCreate}>
           <Icon name="plus" className="mr-2 h-4 w-4" />
-          Agregar categoria
+          Añadir categoría
         </Button>
       </div>
 
@@ -42,11 +42,11 @@ export function CategoryList({ shopId, categories }: { shopId: string; categorie
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-background">
             <Icon name="folder-open" className="h-6 w-6 text-muted-foreground" />
           </div>
-          <p className="mt-3 text-sm font-medium text-foreground">Sin categorias aun</p>
-          <p className="text-sm text-muted-foreground">Crea la primera para organizar tu menu.</p>
+          <p className="mt-3 text-sm font-medium text-foreground">Sin categorías aún</p>
+          <p className="text-sm text-muted-foreground">Crea la primera para organizar tu menú.</p>
           <Button className="mt-4" onClick={handleOpenCreate}>
             <Icon name="plus" className="mr-2 h-4 w-4" />
-            Agregar categoria
+            Añadir categoría
           </Button>
         </div>
       ) : (
@@ -116,7 +116,7 @@ export function CategoryList({ shopId, categories }: { shopId: string; categorie
             />
           </div>
           <div className="flex gap-2">
-            <Button type="submit">{editingCategory ? 'Guardar cambios' : 'Agregar categoria'}</Button>
+            <Button type="submit">{editingCategory ? 'Guardar cambios' : 'Añadir categoría'}</Button>
             <Button type="button" variant="ghost" onClick={() => setSheetOpen(false)}>
               Cancelar
             </Button>

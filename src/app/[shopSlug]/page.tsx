@@ -1,4 +1,5 @@
 import { cookies } from 'next/headers'
+import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { getCurrentCustomer, getCustomerOrder } from '@/server/queries/customers'
 import { getShopFavorites } from '@/server/queries/favorites'
@@ -11,6 +12,15 @@ import { shopThemeVars } from '@/lib/shop-theme'
 import type { Order, UsualOrder } from '@/types'
 
 export const instant = false
+
+export async function generateMetadata({ params }: { params: Promise<{ shopSlug: string }> }): Promise<Metadata> {
+  const { shopSlug } = await params
+  const storefront = await getPublicStorefront(shopSlug)
+  const shopName = storefront?.shop.name ?? 'Solo Café'
+  return {
+    title: `${shopName} · Pedido para recoger`,
+  }
+}
 
 export default async function PublicOrderPage({
   params,

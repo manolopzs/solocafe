@@ -16,6 +16,7 @@ import { Icon } from '@/components/ui/icon'
 import { Select } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { Sheet } from '@/components/ui/sheet'
+import { formatMoney } from '@/lib/ordering'
 import type { MenuItem, MenuCategory, ModifierGroup, ItemModifierLink } from '@/types'
 
 export function ItemList({
@@ -57,7 +58,7 @@ export function ItemList({
         <p className="text-sm text-muted-foreground">{items.length} productos</p>
         <Button onClick={handleOpenCreate}>
           <Icon name="plus" className="mr-2 h-4 w-4" />
-          Agregar producto
+          Añadir producto
         </Button>
       </div>
 
@@ -66,11 +67,11 @@ export function ItemList({
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-background">
             <Icon name="package" className="h-6 w-6 text-muted-foreground" />
           </div>
-          <p className="mt-3 text-sm font-medium text-foreground">Sin productos aun</p>
-          <p className="text-sm text-muted-foreground">Agrega tu primer producto para empezar a vender.</p>
+          <p className="mt-3 text-sm font-medium text-foreground">Sin productos aún</p>
+          <p className="text-sm text-muted-foreground">Añade tu primer producto para empezar a vender.</p>
           <Button className="mt-4" onClick={handleOpenCreate}>
             <Icon name="plus" className="mr-2 h-4 w-4" />
-            Agregar producto
+            Añadir producto
           </Button>
         </div>
       ) : (
@@ -251,7 +252,7 @@ function ItemForm({
 
       <div className="flex gap-2 pt-1">
         <Button type="submit" className={item ? '' : 'w-full sm:w-auto'}>
-          {item ? 'Guardar cambios' : 'Agregar producto'}
+          {item ? 'Guardar cambios' : 'Añadir producto'}
         </Button>
         {item && (
           <Button type="button" variant="ghost" onClick={onSaved}>
@@ -335,7 +336,7 @@ function ItemRow({
           <div className="min-w-0">
             <p className="truncate font-medium text-foreground">{item.name}</p>
             <p className="text-sm font-medium text-accent">
-              {currency} {(item.price_cents / 100).toFixed(2)}
+              {formatMoney(item.price_cents, currency)}
             </p>
           </div>
           <div className="flex shrink-0 items-center gap-1">

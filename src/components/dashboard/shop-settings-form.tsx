@@ -129,7 +129,6 @@ export function ShopSettingsForm({ shopId, shop }: { shopId: string; shop: Shop 
               onChange={(e) => setCurrency(e.target.value)}
               className="mt-1.5 block w-full rounded-xl border border-warm-200 bg-paper px-4 py-3 text-sm text-foreground focus:border-terracotta-400 focus:outline-none focus:ring-2 focus:ring-terracotta-400/20"
             >
-              <option value="MXN">MXN</option>
               <option value="EUR">EUR</option>
             </select>
           </div>
@@ -153,10 +152,9 @@ export function ShopSettingsForm({ shopId, shop }: { shopId: string; shop: Shop 
               onChange={(e) => setTimezone(e.target.value)}
               className="mt-1.5 block w-full rounded-xl border border-warm-200 bg-paper px-4 py-3 text-sm text-foreground focus:border-terracotta-400 focus:outline-none focus:ring-2 focus:ring-terracotta-400/20"
             >
-              <option value="America/Mexico_City">Ciudad de México</option>
-              <option value="America/New_York">Nueva York</option>
               <option value="Europe/Madrid">Madrid</option>
               <option value="Europe/Berlin">Berlín</option>
+              <option value="America/New_York">Nueva York</option>
             </select>
           </div>
           <div className="sm:col-span-2">
@@ -180,7 +178,7 @@ export function ShopSettingsForm({ shopId, shop }: { shopId: string; shop: Shop 
               max={90}
               value={lat}
               onChange={(e) => setLat(e.target.value)}
-              placeholder="19.432608"
+              placeholder="40.4168"
               className="mt-1.5"
             />
           </div>
@@ -195,7 +193,7 @@ export function ShopSettingsForm({ shopId, shop }: { shopId: string; shop: Shop 
               max={180}
               value={lng}
               onChange={(e) => setLng(e.target.value)}
-              placeholder="-99.133209"
+              placeholder="-3.7038"
               className="mt-1.5"
             />
           </div>

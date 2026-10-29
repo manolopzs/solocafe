@@ -177,7 +177,7 @@ export function ItemSheet({
               size="lg"
               className="min-w-0 flex-1 px-4 text-base shadow-sm"
             >
-              Agregar · {formatPrice(itemTotal * quantity)}
+              Añadir · {formatPrice(itemTotal * quantity)}
             </Button>
           </div>
         </div>

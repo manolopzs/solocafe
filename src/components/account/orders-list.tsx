@@ -44,7 +44,7 @@ export function OrdersList({ orders }: { orders: Order[] }) {
         </Link>
 
         <h1 className="mt-8 text-[2rem] font-medium leading-tight tracking-tight text-foreground">Tus pedidos</h1>
-        <p className="mt-2 text-base text-muted-foreground">Historial de pedidos en cafeterías que usan Solo Cafe.</p>
+        <p className="mt-2 text-base text-muted-foreground">Historial de pedidos en cafeterías que usan Solo Café.</p>
 
         <div className="mt-8 space-y-3">
           {orders.length === 0 ? (

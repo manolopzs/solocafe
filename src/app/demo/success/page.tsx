@@ -17,7 +17,7 @@ export default function DemoSuccessPage() {
         <dl className="mt-8 divide-y divide-border border-y border-border text-sm">
           <div className="flex justify-between py-3">
             <dt className="text-muted-foreground">Cafetería</dt>
-            <dd className="font-medium text-foreground">Cafe de la Esquina</dd>
+            <dd className="font-medium text-foreground">Café de la Esquina</dd>
           </div>
           <div className="flex justify-between py-3">
             <dt className="text-muted-foreground">Estado</dt>

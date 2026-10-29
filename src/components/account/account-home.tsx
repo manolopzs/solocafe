@@ -48,7 +48,7 @@ export function AccountHome({
                 name="phone"
                 type="tel"
                 defaultValue={customer.phone ?? ''}
-                placeholder="Para avisarte cuando esté listo"
+                placeholder="Para avisarte cuando esté listo (+34)"
                 className="mt-1.5"
               />
             </div>

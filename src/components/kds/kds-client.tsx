@@ -269,7 +269,7 @@ export function KdsClient({
           </span>
           <Button variant="outline" onClick={() => setMenuPanelOpen(true)}>
             <Icon name="menu" className="mr-2 h-5 w-5" />
-            Menu rapido
+            Menú rápido
           </Button>
           <Button
             variant={alertsEnabled ? 'primary' : 'outline'}
@@ -383,7 +383,7 @@ export function KdsClient({
       <Sheet
         open={menuPanelOpen}
         onClose={() => setMenuPanelOpen(false)}
-        title="Menu rapido"
+        title="Menú rápido"
         position="right"
       >
         <div className="space-y-6">

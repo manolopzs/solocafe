@@ -8,14 +8,14 @@ class ShopOnboardingTest < ActiveSupport::TestCase
     @shop = Shop.create!(
       name: "Cafe Norte",
       slug: "cafe-norte",
-      currency: "MXN",
+      currency: "EUR",
       status: "draft",
       owner: @owner
     )
     @other = Shop.create!(
       name: "Cafe Sur",
       slug: "cafe-sur",
-      currency: "MXN",
+      currency: "EUR",
       status: "draft",
       stripe_account_id: "acct_other",
       stripe_connect_status: "pending",

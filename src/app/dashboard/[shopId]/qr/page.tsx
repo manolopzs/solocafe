@@ -23,8 +23,8 @@ export default async function QrPage({
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-serif text-2xl font-semibold tracking-tight text-foreground">Codigo QR</h1>
-        <p className="mt-1 text-muted-foreground">Imprime o comparte este codigo para que tus clientes ordenen.</p>
+        <h1 className="font-serif text-2xl font-semibold tracking-tight text-foreground">Código QR</h1>
+        <p className="mt-1 text-muted-foreground">Imprime o comparte este código para que tus clientes ordenen.</p>
       </div>
 
       {!live && (
@@ -37,7 +37,7 @@ export default async function QrPage({
         <Card variant="outline">
           <CardHeader>
             <CardTitle>Vista previa</CardTitle>
-            <CardDescription>Escanea para abrir tu pagina de pedidos.</CardDescription>
+            <CardDescription>Escanea para abrir tu página de pedidos.</CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col items-center gap-4">
             <div className="rounded-2xl border border-warm-200 bg-white p-4 shadow-sm">
@@ -61,7 +61,7 @@ export default async function QrPage({
               <Button asChild className="w-full sm:w-auto">
                 <Link href={`/${shop.slug}`} target="_blank">
                   <Icon name="external-link" className="mr-2 h-4 w-4" />
-                  Ver pagina
+                  Ver página
                 </Link>
               </Button>
               <Button asChild variant="outline" className="w-full sm:w-auto">
