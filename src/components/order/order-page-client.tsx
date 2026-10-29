@@ -84,7 +84,8 @@ export function OrderPageClient({
   const reorderLines = useMemo(() => (reorderOrder ? linesFromOrder(reorderOrder) : null), [reorderOrder])
   const cart = useShopCart(shop.id, reorderLines)
   const [activeItem, setActiveItem] = useState<MenuItem | null>(null)
-  const [pickupChoice, setPickupChoice] = useState<'asap' | 'scheduled' | null>(null)
+  // Scheduling UI is hidden for now; all orders are ASAP.
+  const pickupType = 'asap' as const
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
@@ -93,8 +94,6 @@ export function OrderPageClient({
   const [redeemLoyalty, setRedeemLoyalty] = useState(false)
   const [addedItemId, setAddedItemId] = useState<string | null>(null)
   const ordering = menuOrdering ?? shop.ordering
-  const pickupType: 'asap' | 'scheduled' =
-    ordering && !ordering.asap_available && ordering.accepting_pickup ? 'scheduled' : (pickupChoice ?? 'asap')
   const { preview, loyalty, loading: previewLoading } = useCartPreview(
     shop.id,
     cart.lines,
@@ -269,9 +268,7 @@ export function OrderPageClient({
     customerPhone: string
     customerEmail: string
     specialInstructions: string
-    pickupType: 'asap' | 'scheduled'
-    pickupSlotDate?: string
-    pickupSlotStartTime?: string
+    pickupType: 'asap'
     redeemLoyalty?: boolean
   }) => {
     setLoading(true)
@@ -282,8 +279,6 @@ export function OrderPageClient({
       customer_phone: input.customerPhone,
       customer_email: input.customerEmail,
       pickup_type: input.pickupType,
-      pickup_slot_date: input.pickupSlotDate,
-      pickup_slot_start_time: input.pickupSlotStartTime,
       special_instructions: input.specialInstructions,
       redeem_loyalty: input.redeemLoyalty === true && canRedeem,
       items: cart.lines.map((line) => ({
@@ -363,7 +358,7 @@ export function OrderPageClient({
 
       {reorderCount > 0 && (
         <div className="mx-auto max-w-3xl px-4 pt-3 sm:px-5">
-          <Notice>Agregamos {reorderCount} productos de tu pedido anterior. Revisa tu pedido.</Notice>
+          <Notice>Añadimos {reorderCount} productos de tu pedido anterior. Revisa tu pedido.</Notice>
         </div>
       )}
 
@@ -533,8 +528,6 @@ export function OrderPageClient({
         lines={viewLines}
         total={formatPrice(totalCents)}
         blockedReason={blockedReason}
-        pickupType={pickupType}
-        onPickupType={setPickupChoice}
         loading={loading}
         error={error}
         rewardText={canRedeem ? loyalty?.reward_text : null}

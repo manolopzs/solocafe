@@ -48,7 +48,7 @@ export default async function Home() {
               <Icon name="coffee" className="h-5 w-5" />
             </div>
             <span className="font-sans text-xl font-semibold tracking-tight text-foreground">
-              Solo Cafe
+              Solo Café
             </span>
           </Link>
           <div className="hidden items-center gap-8 text-sm font-medium text-muted-foreground lg:flex">
@@ -105,7 +105,7 @@ export default async function Home() {
               Pedidos, cocina y pago en un solo flujo
             </h2>
             <p className="mx-auto mt-3 max-w-2xl text-muted-foreground">
-              Solo Cafe conecta a tus clientes con tu cafetería: ordenan por adelantado, tú recibes el pedido en la cocina y el pago va directo a tu cuenta.
+              Solo Café conecta a tus clientes con tu cafetería: ordenan por adelantado, tú recibes el pedido en la cocina y el pago va directo a tu cuenta.
             </p>
           </div>
           <div className="grid gap-6 lg:grid-cols-3">
@@ -220,7 +220,7 @@ export default async function Home() {
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground">
               <Icon name="coffee" className="h-4 w-4" />
             </div>
-            <span className="font-sans font-semibold text-foreground">Solo Cafe</span>
+            <span className="font-sans font-semibold text-foreground">Solo Café</span>
           </div>
           <p className="text-center text-sm text-muted-foreground sm:text-left">
             Pedidos pagados por adelantado para tu cafetería.
@@ -401,7 +401,7 @@ function PhoneMockup() {
         <div className="mb-2 rounded-lg bg-gradient-to-br from-amber-100 to-amber-50 p-2">
           <p className="text-[0.55rem] font-semibold uppercase tracking-wider text-accent">Demo</p>
           <p className="text-[0.6rem] text-muted-foreground">Bienvenido a</p>
-          <p className="text-xs font-semibold text-foreground">Café Recoletos</p>
+          <p className="text-xs font-semibold text-foreground">Café de la Esquina</p>
           <p className="text-[0.6rem] text-muted-foreground">Madrid</p>
         </div>
         <div className="space-y-2">
@@ -476,7 +476,7 @@ function PhoneMockupLarge() {
           <div>
             <p className="text-xs font-semibold uppercase tracking-wider text-accent">Demo</p>
             <p className="text-xs text-muted-foreground">Bienvenido a</p>
-            <h3 className="font-sans text-base font-semibold text-foreground">Café Recoletos</h3>
+            <h3 className="font-sans text-base font-semibold text-foreground">Café de la Esquina</h3>
             <p className="text-xs text-muted-foreground">Madrid</p>
           </div>
         </div>

@@ -5,8 +5,8 @@ class ShopTest < ActiveSupport::TestCase
     @shop = Shop.create!(
       name: "Cafe Test",
       slug: "cafe-test",
-      currency: "MXN",
-      timezone: "America/Mexico_City",
+      currency: "EUR",
+      timezone: "Europe/Madrid",
       slot_duration_minutes: 30,
       prep_time_buffer_minutes: 10,
       operating_hours: {
@@ -23,7 +23,7 @@ class ShopTest < ActiveSupport::TestCase
   end
 
   test "defaults operating_hours when blank" do
-    shop = Shop.create!(name: "Default", slug: "default-test", currency: "MXN")
+    shop = Shop.create!(name: "Default", slug: "default-test", currency: "EUR")
     assert shop.operating_hours.keys.include?("mon")
   end
 
@@ -34,12 +34,12 @@ class ShopTest < ActiveSupport::TestCase
 
   test "open_at? respects timezone" do
     monday = Date.parse("2026-10-12")
-    open_time = Time.use_zone("America/Mexico_City") do
+    open_time = Time.use_zone("Europe/Madrid") do
       Time.zone.local(monday.year, monday.month, monday.day, 7, 0)
     end
     assert @shop.open_at?(open_time)
 
-    closed_time = Time.use_zone("America/Mexico_City") do
+    closed_time = Time.use_zone("Europe/Madrid") do
       Time.zone.local(monday.year, monday.month, monday.day, 6, 30)
     end
     assert_not @shop.open_at?(closed_time)
@@ -49,8 +49,8 @@ class ShopTest < ActiveSupport::TestCase
     monday = Date.parse("2026-10-12")
     slots = @shop.generate_slots_for(monday)
     assert_equal 4, slots.length
-    assert_equal "07:00", slots.first[:start_time].in_time_zone("America/Mexico_City").strftime("%H:%M")
-    assert_equal "07:30", slots.first[:end_time].in_time_zone("America/Mexico_City").strftime("%H:%M")
+    assert_equal "07:00", slots.first[:start_time].in_time_zone("Europe/Madrid").strftime("%H:%M")
+    assert_equal "07:30", slots.first[:end_time].in_time_zone("Europe/Madrid").strftime("%H:%M")
   end
 
   test "generate_slots_for returns empty on closed day" do
@@ -73,7 +73,7 @@ class ShopTest < ActiveSupport::TestCase
       payment_status: "pending",
       subtotal_cents: 1000,
       total_cents: 1000,
-      currency: "MXN",
+      currency: "EUR",
       pickup_type: "scheduled"
     )
     SlotReservation.create!(slot: slot, order: order)
@@ -105,5 +105,13 @@ class ShopTest < ActiveSupport::TestCase
     @shop.operating_hours = { "tue" => { "is_open" => false } }
 
     assert @shop.valid?
+  end
+
+  test "obvious_test_name? flags common test cafe names" do
+    assert Shop.obvious_test_name?("Test Cafe")
+    assert Shop.obvious_test_name?("Test Café")
+    assert Shop.obvious_test_name?("Café Public Menu Test")
+    assert Shop.obvious_test_name?("Cafeteria Public Menu Test")
+    assert_not Shop.obvious_test_name?("Café de la Esquina")
   end
 end

@@ -55,7 +55,14 @@ class Shop < ApplicationRecord
 
   class TestShopFlagRefused < StandardError; end
 
-  OBVIOUS_TEST_NAME_PHRASES = [ "analytics cafe", "reorder test" ].freeze
+  OBVIOUS_TEST_NAME_PHRASES = [
+    "analytics cafe",
+    "reorder test",
+    "test cafe",
+    "test cafeteria",
+    "cafe public menu test",
+    "cafeteria public menu test",
+  ].freeze
   OBVIOUS_TEST_ADDRESSES = [ "test", "a" ].freeze
 
   scope :active, -> { where(status: "active") }
@@ -96,7 +103,7 @@ class Shop < ApplicationRecord
 
   def self.obvious_test_name?(name)
     normalized = name.to_s.strip.gsub(/\s+/, " ")
-    folded = normalized.downcase
+    folded = I18n.transliterate(normalized).downcase
     return true if OBVIOUS_TEST_NAME_PHRASES.any? { |phrase| folded.include?(phrase) }
 
     normalized.match?(/\A\p{L}\z/)

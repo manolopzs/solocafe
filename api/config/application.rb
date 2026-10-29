@@ -38,7 +38,7 @@ module Api
 
     config.api_only = true
 
-    config.time_zone = "America/Mexico_City"
+    config.time_zone = "Europe/Madrid"
     config.i18n.default_locale = :es
     config.i18n.available_locales = %i[es en]
 

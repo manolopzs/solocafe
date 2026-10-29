@@ -7,17 +7,29 @@ self.addEventListener('push', (event) => {
   }
   const title = payload.title || 'Nuevo pedido'
   const body = payload.body || 'Hay un pedido nuevo en cocina.'
-  event.waitUntil(self.registration.showNotification(title, { body, tag: 'kds-new-order' }))
+  event.waitUntil(self.registration.showNotification(title, { body, tag: 'kds-new-order', data: payload }))
 })
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close()
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
-      for (const client of windowClients) {
-        if ('focus' in client) return client.focus()
+      const payload = event.notification.data || {}
+      const targetPath = payload.url || payload.path || '/dashboard'
+      const targetUrl = new URL(targetPath, self.location.origin).href
+
+      const kdsClient = windowClients.find(
+        (client) => client.url.includes('/kds') || client.url.includes('/dashboard')
+      )
+      if (kdsClient && 'focus' in kdsClient) {
+        return kdsClient.focus()
       }
-      return self.clients.openWindow('/')
+
+      if ('openWindow' in self.clients) {
+        return self.clients.openWindow(targetUrl)
+      }
+
+      return Promise.resolve()
     })
   )
 })

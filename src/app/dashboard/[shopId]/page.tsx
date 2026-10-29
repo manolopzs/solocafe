@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge'
 import { Icon } from '@/components/ui/icon'
 import { CopyButton } from '@/components/ui/copy-button'
 import { OnboardingChecklist } from '@/components/dashboard/onboarding-checklist'
+import { formatMoney } from '@/lib/ordering'
 import type { OrderStatus, ShopOnboarding } from '@/types'
 
 export const instant = false
@@ -30,10 +31,6 @@ const statusVariant: Record<OrderStatus, 'default' | 'secondary' | 'outline' | '
   ready: 'success',
   picked_up: 'success',
   cancelled: 'danger',
-}
-
-function formatCurrency(cents: number, currency: string) {
-  return `${currency} ${(cents / 100).toFixed(2)}`
 }
 
 function formatTime(iso: string) {
@@ -111,7 +108,7 @@ export default async function ShopDashboardPage({
               <span className="text-sm">Ingresos</span>
             </div>
             <p className="mt-2 text-3xl font-semibold tracking-tight text-foreground">
-              {formatCurrency(analytics.revenue_cents, shop.currency)}
+              {formatMoney(analytics.revenue_cents, shop.currency)}
             </p>
           </CardContent>
         </Card>
@@ -122,7 +119,7 @@ export default async function ShopDashboardPage({
               <span className="text-sm">Ticket promedio</span>
             </div>
             <p className="mt-2 text-3xl font-semibold tracking-tight text-foreground">
-              {formatCurrency(analytics.average_ticket_cents, shop.currency)}
+              {formatMoney(analytics.average_ticket_cents, shop.currency)}
             </p>
           </CardContent>
         </Card>
@@ -189,7 +186,7 @@ export default async function ShopDashboardPage({
                         <td className="px-4 py-3 text-foreground">{item.name}</td>
                         <td className="px-4 py-3 text-right text-muted-foreground">{item.quantity}</td>
                         <td className="px-4 py-3 text-right font-medium text-foreground">
-                          {formatCurrency(item.revenue_cents, shop.currency)}
+                          {formatMoney(item.revenue_cents, shop.currency)}
                         </td>
                       </tr>
                     ))}
@@ -211,8 +208,8 @@ export default async function ShopDashboardPage({
               </div>
               <Icon name="arrow-right" className="h-4 w-4 text-muted-foreground" />
             </div>
-            <p className="mt-4 font-medium text-foreground">Ver pagina de pedidos</p>
-            <p className="text-sm text-muted-foreground">Abrir tienda publica</p>
+            <p className="mt-4 font-medium text-foreground">Ver página de pedidos</p>
+            <p className="text-sm text-muted-foreground">Abrir tienda pública</p>
           </Link>
         </Card>
         ) : (
@@ -234,7 +231,7 @@ export default async function ShopDashboardPage({
               </div>
               <Icon name="arrow-right" className="h-4 w-4 text-muted-foreground" />
             </div>
-            <p className="mt-4 font-medium text-foreground">Editar menu</p>
+            <p className="mt-4 font-medium text-foreground">Editar menú</p>
             <p className="text-sm text-muted-foreground">Productos y precios</p>
           </Link>
         </Card>
@@ -268,7 +265,7 @@ export default async function ShopDashboardPage({
         <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle>Pedidos recientes</CardTitle>
-            <CardDescription>Ultimos movimientos de tu tienda.</CardDescription>
+            <CardDescription>Últimos movimientos de tu tienda.</CardDescription>
           </CardHeader>
           <CardContent>
             {recentOrders.length === 0 ? (
@@ -276,8 +273,8 @@ export default async function ShopDashboardPage({
                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-background">
                   <Icon name="receipt" className="h-6 w-6 text-muted-foreground" />
                 </div>
-                <p className="mt-3 text-sm font-medium text-foreground">Sin pedidos aun</p>
-                <p className="text-sm text-muted-foreground">Los pedidos apareceran aqui.</p>
+                <p className="mt-3 text-sm font-medium text-foreground">Sin pedidos aún</p>
+                <p className="text-sm text-muted-foreground">Los pedidos aparecerán aquí.</p>
               </div>
             ) : (
               <div className="overflow-x-auto rounded-xl border border-border">
@@ -299,7 +296,7 @@ export default async function ShopDashboardPage({
                         <td className="px-4 py-3 text-muted-foreground">{formatTime(order.created_at)}</td>
                         <td className="px-4 py-3 text-foreground">{order.customer_name || 'Cliente'}</td>
                         <td className="px-4 py-3 text-right font-medium text-foreground">
-                          {formatCurrency(order.total_cents, order.currency)}
+                          {formatMoney(order.total_cents, order.currency ?? 'EUR')}
                         </td>
                       </tr>
                     ))}
@@ -315,7 +312,7 @@ export default async function ShopDashboardPage({
             <>
           <Card>
             <CardHeader>
-              <CardTitle>Tu pagina de pedidos</CardTitle>
+              <CardTitle>Tu página de pedidos</CardTitle>
               <CardDescription>Comparte este enlace con tus clientes.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -327,7 +324,7 @@ export default async function ShopDashboardPage({
                 <Button asChild>
                   <Link href={`/${shop.slug}`} target="_blank">
                     <Icon name="external-link" className="mr-2 h-4 w-4" />
-                    Ver pagina
+                    Ver página
                   </Link>
                 </Button>
                 <CopyButton text={publicUrl} />
@@ -337,8 +334,8 @@ export default async function ShopDashboardPage({
 
           <Card>
             <CardHeader>
-              <CardTitle>Codigo QR</CardTitle>
-              <CardDescription>Escanea para abrir el menu.</CardDescription>
+              <CardTitle>Código QR</CardTitle>
+              <CardDescription>Escanea para abrir el menú.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="inline-flex rounded-xl border border-border bg-background p-3">

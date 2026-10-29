@@ -12,7 +12,7 @@ export default function AvisoLegalPage() {
         Este aviso legal es un borrador pendiente de revisión legal. No sustituye el texto definitivo ni un asesoramiento jurídico.
       </p>
       <p>
-        Solo Cafe es una herramienta para que una cafetería reciba pedidos pagados para recoger. Los datos identificativos del responsable se completarán en los campos marcados antes de publicar esta página.
+        Solo Café es una herramienta para que una cafetería reciba pedidos pagados para recoger. Los datos identificativos del responsable se completarán en los campos marcados antes de publicar esta página.
       </p>
     </LegalDraftPage>
   )

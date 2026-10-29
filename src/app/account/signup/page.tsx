@@ -20,7 +20,7 @@ export default function AccountSignupPage() {
           <span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground">
             <Icon name="coffee" className="h-5 w-5" />
           </span>
-          <span className="text-lg font-medium tracking-tight">Solo Cafe</span>
+          <span className="text-lg font-medium tracking-tight">Solo Café</span>
         </Link>
 
         <h1 className="mt-10 text-[2rem] font-medium leading-tight tracking-tight text-foreground">Crea tu cuenta</h1>
@@ -37,7 +37,7 @@ export default function AccountSignupPage() {
           </div>
           <div>
             <Label htmlFor="phone">Teléfono</Label>
-            <Input id="phone" name="phone" type="tel" autoComplete="tel" placeholder="Para avisarte cuando esté listo" className="mt-1.5" />
+            <Input id="phone" name="phone" type="tel" autoComplete="tel" placeholder="Para avisarte cuando esté listo (+34)" className="mt-1.5" />
           </div>
           <div>
             <Label htmlFor="password">Contraseña</Label>

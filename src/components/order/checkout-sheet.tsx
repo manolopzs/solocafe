@@ -1,36 +1,26 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Notice } from '@/components/ui/notice'
 import { Sheet } from '@/components/ui/sheet'
-import { Skeleton } from '@/components/ui/skeleton'
 import { Textarea } from '@/components/ui/textarea'
-import { getPublicPickupSlots } from '@/server/queries/menu'
 import { checkoutBlockedCopy } from '@/lib/ordering'
 import type { CartViewLine } from '@/components/order/cart-sheet'
-import type { Customer, PickupSlot, Shop } from '@/types'
-
-function formatDateInput(date: Date) {
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  return `${year}-${month}-${day}`
-}
-
-function addDays(date: Date, days: number) {
-  const next = new Date(date)
-  next.setDate(next.getDate() + days)
-  return next
-}
+import type { Customer, Shop } from '@/types'
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
-function stripeTestMode() {
+function isTestStripeKey() {
   const key = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? ''
-  return key.length === 0 || key.startsWith('pk_test')
+  return key.startsWith('pk_test')
+}
+
+function readyEstimateLabel(shop: Shop): string {
+  const minutes = shop.prep_time_buffer_minutes ?? shop.estimated_ready_minutes ?? 5
+  return `Listo en ~${minutes} min`
 }
 
 export function CheckoutSheet({
@@ -41,8 +31,6 @@ export function CheckoutSheet({
   lines,
   total,
   blockedReason,
-  pickupType,
-  onPickupType,
   loading,
   error,
   rewardText,
@@ -57,8 +45,6 @@ export function CheckoutSheet({
   lines: CartViewLine[]
   total: string
   blockedReason: string | null
-  pickupType: 'asap' | 'scheduled'
-  onPickupType: (value: 'asap' | 'scheduled') => void
   loading: boolean
   error: string | null
   rewardText?: string | null
@@ -69,7 +55,7 @@ export function CheckoutSheet({
     customerPhone: string
     customerEmail: string
     specialInstructions: string
-    pickupType: 'asap' | 'scheduled'
+    pickupType: 'asap'
     pickupSlotDate?: string
     pickupSlotStartTime?: string
     redeemLoyalty?: boolean
@@ -79,41 +65,10 @@ export function CheckoutSheet({
   const [customerPhone, setCustomerPhone] = useState(customer?.phone ?? '')
   const [customerEmail, setCustomerEmail] = useState(customer?.email ?? '')
   const [specialInstructions, setSpecialInstructions] = useState('')
-  const [selectedDate, setSelectedDate] = useState(() => formatDateInput(new Date()))
-  const [slots, setSlots] = useState<PickupSlot[]>([])
-  const [selectedSlot, setSelectedSlot] = useState<PickupSlot | null>(null)
-  const [loadedSlotKey, setLoadedSlotKey] = useState('')
   const [localError, setLocalError] = useState<string | null>(null)
   const blockedCopy = checkoutBlockedCopy(blockedReason)
   const asapBlocked = shop.ordering?.asap_available === false
-  const slotKey = open && pickupType === 'scheduled' ? `${shop.id}:${selectedDate}` : ''
-  const slotsLoading = Boolean(slotKey) && loadedSlotKey !== slotKey
-  const visibleSlots = loadedSlotKey === slotKey ? slots : []
-  const testMode = stripeTestMode()
-
-  useEffect(() => {
-    if (!slotKey) return
-    let cancelled = false
-    getPublicPickupSlots(shop.id, selectedDate)
-      .then((data) => {
-        if (cancelled) return
-        setSlots(data)
-        setSelectedSlot((prev) => {
-          if (prev && data.find((slot) => slot.start_time === prev.start_time)) return prev
-          return data.find((slot) => slot.available > 0) ?? null
-        })
-        setLoadedSlotKey(slotKey)
-      })
-      .catch(() => {
-        if (cancelled) return
-        setSlots([])
-        setSelectedSlot(null)
-        setLoadedSlotKey(slotKey)
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [slotKey, selectedDate, shop.id])
+  const testMode = isTestStripeKey()
 
   const submit = () => {
     if (!customerName.trim()) {
@@ -125,19 +80,13 @@ export function CheckoutSheet({
       setLocalError('El correo no es válido')
       return
     }
-    if (pickupType === 'scheduled' && !selectedSlot) {
-      setLocalError('Selecciona un horario de recogida')
-      return
-    }
     setLocalError(null)
     onSubmit({
       customerName: customerName.trim(),
       customerPhone: customerPhone.trim(),
       customerEmail: email,
       specialInstructions: specialInstructions.trim(),
-      pickupType,
-      pickupSlotDate: pickupType === 'scheduled' ? selectedDate : undefined,
-      pickupSlotStartTime: pickupType === 'scheduled' ? selectedSlot?.start_time : undefined,
+      pickupType: 'asap',
       redeemLoyalty,
     })
   }
@@ -148,6 +97,7 @@ export function CheckoutSheet({
       onClose={onClose}
       title="Recoger"
       position="bottom"
+      className="sm:left-1/2 sm:right-auto sm:top-auto sm:w-full sm:max-w-[480px] sm:-translate-x-1/2 sm:rounded-t-[1.75rem]"
       footer={
         <div className="space-y-3">
           {testMode && (
@@ -157,7 +107,7 @@ export function CheckoutSheet({
           )}
           <Button
             onClick={submit}
-            disabled={Boolean(blockedReason)}
+            disabled={Boolean(blockedReason) || asapBlocked}
             loading={loading}
             size="lg"
             className="w-full touch-manipulation"
@@ -222,7 +172,7 @@ export function CheckoutSheet({
             type="tel"
             value={customerPhone}
             onChange={(event) => setCustomerPhone(event.target.value)}
-            placeholder="Para avisarte cuando esté listo"
+            placeholder="Para avisarte cuando esté listo (+34)"
             className="mt-1.5"
           />
         </div>
@@ -257,92 +207,17 @@ export function CheckoutSheet({
 
         <div>
           <p className="block text-sm font-medium text-foreground">Cuándo lo recoges</p>
-          <div className="mt-2 grid grid-cols-2 gap-2">
-            <button
-              type="button"
-              disabled={asapBlocked}
-              onClick={() => onPickupType('asap')}
-              className={[
-                'min-h-16 rounded-2xl border px-3.5 py-3 text-left text-sm transition-colors disabled:opacity-50',
-                pickupType === 'asap'
-                  ? 'border-primary bg-primary text-primary-foreground'
-                  : 'border-border bg-surface-elevated text-foreground hover:bg-surface',
-              ].join(' ')}
-            >
-              <span className="block font-medium">Lo antes posible</span>
-              <span className="mt-0.5 block text-xs opacity-80">{asapBlocked ? 'No disponible ahora' : 'Lo preparamos ya'}</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => onPickupType('scheduled')}
-              className={[
-                'min-h-16 rounded-2xl border px-3.5 py-3 text-left text-sm transition-colors',
-                pickupType === 'scheduled'
-                  ? 'border-primary bg-primary text-primary-foreground'
-                  : 'border-border bg-surface-elevated text-foreground hover:bg-surface',
-              ].join(' ')}
-            >
-              <span className="block font-medium">Programado</span>
-              <span className="mt-0.5 block text-xs opacity-80">Elige horario</span>
-            </button>
-          </div>
+          <button
+            type="button"
+            disabled={asapBlocked}
+            className="mt-2 min-h-16 w-full rounded-2xl border border-primary bg-primary px-3.5 py-3 text-left text-sm text-primary-foreground transition-colors disabled:opacity-50"
+          >
+            <span className="block font-medium">Lo antes posible</span>
+            <span className="mt-0.5 block text-xs opacity-80">
+              {asapBlocked ? 'No disponible ahora' : readyEstimateLabel(shop)}
+            </span>
+          </button>
         </div>
-
-        {pickupType === 'scheduled' && (
-          <div className="space-y-3">
-            <div>
-              <label htmlFor="pickupDate" className="block text-sm font-medium text-foreground">
-                Fecha
-              </label>
-              <Input
-                id="pickupDate"
-                type="date"
-                value={selectedDate}
-                min={formatDateInput(new Date())}
-                max={formatDateInput(addDays(new Date(), shop.max_days_ahead))}
-                onChange={(event) => {
-                  setSelectedDate(event.target.value)
-                  setSelectedSlot(null)
-                }}
-                className="mt-1.5"
-              />
-            </div>
-            <div>
-              <p className="block text-sm font-medium text-foreground">Horario</p>
-              {slotsLoading ? (
-                <div className="mt-2 grid grid-cols-3 gap-2" aria-hidden>
-                  {Array.from({ length: 6 }).map((_, index) => (
-                    <Skeleton key={index} className="h-12 rounded-2xl" />
-                  ))}
-                </div>
-              ) : visibleSlots.length === 0 ? (
-                <p className="mt-2 text-sm text-muted-foreground">No hay horarios para esta fecha.</p>
-              ) : (
-                <div className="mt-2 grid grid-cols-3 gap-2">
-                  {visibleSlots.map((slot) => (
-                    <button
-                      key={slot.start_time}
-                      type="button"
-                      disabled={slot.available <= 0}
-                      onClick={() => setSelectedSlot(slot)}
-                      className={[
-                        'min-h-12 rounded-2xl border px-2 py-2 text-center text-sm transition-colors touch-manipulation',
-                        selectedSlot?.start_time === slot.start_time
-                          ? 'border-primary bg-primary text-primary-foreground'
-                          : slot.available <= 0
-                            ? 'border-transparent bg-surface text-muted-foreground'
-                            : 'border-border bg-surface-elevated text-foreground hover:bg-surface',
-                      ].join(' ')}
-                    >
-                      <span className="block font-medium tabular-nums">{slot.start_time}</span>
-                      {slot.available <= 0 && <span className="block text-[11px]">Lleno</span>}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        )}
 
         {rewardText && (
           <label className="flex min-h-14 items-start gap-3 rounded-2xl bg-surface p-4 text-sm">

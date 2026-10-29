@@ -26,7 +26,7 @@ export function ShopDirectory({
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
               <Icon name="coffee" className="h-5 w-5" />
             </span>
-            <span className="truncate text-lg font-medium tracking-tight text-foreground">Solo Cafe</span>
+            <span className="truncate text-lg font-medium tracking-tight text-foreground">Solo Café</span>
           </Link>
           <Button asChild variant="ghost" size="sm">
             <Link href="/account/login">Entrar</Link>

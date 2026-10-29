@@ -305,7 +305,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_21_130000) do
     t.string "slug", null: false
     t.string "name", null: false
     t.string "legal_name"
-    t.string "timezone", default: "America/Mexico_City", null: false
+    t.string "timezone", default: "Europe/Madrid", null: false
     t.string "currency", default: "EUR", null: false
     t.string "locale", default: "es", null: false
     t.boolean "tax_included", default: true, null: false

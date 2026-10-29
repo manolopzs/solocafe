@@ -11,16 +11,19 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Icon } from '@/components/ui/icon'
 import { Sheet } from '@/components/ui/sheet'
+import { formatMoney } from '@/lib/ordering'
 import type { ModifierGroup, ModifierOption } from '@/types'
 
 export function ModifierList({
   shopId,
   groups,
   options,
+  currency,
 }: {
   shopId: string
   groups: ModifierGroup[]
   options: ModifierOption[]
+  currency: string
 }) {
   const [expanded, setExpanded] = useState<string | null>(null)
   const [sheetOpen, setSheetOpen] = useState(false)
@@ -31,7 +34,7 @@ export function ModifierList({
         <p className="text-sm text-muted-foreground">{groups.length} grupos</p>
         <Button onClick={() => setSheetOpen(true)}>
           <Icon name="plus" className="mr-2 h-4 w-4" />
-          Agregar grupo
+          Añadir grupo
         </Button>
       </div>
 
@@ -40,11 +43,11 @@ export function ModifierList({
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-background">
             <Icon name="sliders-horizontal" className="h-6 w-6 text-muted-foreground" />
           </div>
-          <p className="mt-3 text-sm font-medium text-foreground">Sin modificadores aun</p>
-          <p className="text-sm text-muted-foreground">Agrega opciones como tamano, leche o extras.</p>
+          <p className="mt-3 text-sm font-medium text-foreground">Sin modificadores aún</p>
+          <p className="text-sm text-muted-foreground">Añade opciones como tamaño, leche o extras.</p>
           <Button className="mt-4" onClick={() => setSheetOpen(true)}>
             <Icon name="plus" className="mr-2 h-4 w-4" />
-            Agregar grupo
+            Añadir grupo
           </Button>
         </div>
       ) : (
@@ -105,7 +108,7 @@ export function ModifierList({
                         className="sm:w-32"
                       />
                       <Button type="submit" className="w-full sm:w-auto">
-                        Agregar
+                        Añadir
                       </Button>
                     </form>
 
@@ -118,7 +121,7 @@ export function ModifierList({
                           >
                             <span className="font-medium text-foreground">{option.name}</span>
                             <div className="flex items-center gap-3">
-                              <span className="font-medium text-accent">+{(option.price_cents / 100).toFixed(2)}</span>
+                              <span className="font-medium text-accent">+{formatMoney(option.price_cents, currency)}</span>
                               <button
                                 onClick={async () => {
                                   if (confirm('Eliminar opcion?'))
@@ -167,7 +170,7 @@ export function ModifierList({
             />
           </div>
           <div className="flex gap-2">
-            <Button type="submit">Agregar grupo</Button>
+            <Button type="submit">Añadir grupo</Button>
             <Button type="button" variant="ghost" onClick={() => setSheetOpen(false)}>
               Cancelar
             </Button>

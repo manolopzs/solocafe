@@ -18,7 +18,7 @@ export default async function DashboardLayout({
 
   const nav: { href: string; label: string; icon: IconName }[] = [
     { href: `/dashboard/${shopId}`, label: 'Resumen', icon: 'store' },
-    { href: `/dashboard/${shopId}/menu`, label: 'Menu', icon: 'receipt' },
+    { href: `/dashboard/${shopId}/menu`, label: 'Menú', icon: 'receipt' },
     { href: `/dashboard/${shopId}/kds`, label: 'Cocina', icon: 'utensils' },
     { href: `/dashboard/${shopId}/qr`, label: 'QR', icon: 'qrcode' },
     { href: `/dashboard/${shopId}/settings`, label: 'Ajustes', icon: 'settings' },
@@ -33,7 +33,7 @@ export default async function DashboardLayout({
               <div className="flex h-9 w-9 items-center justify-center rounded-full bg-terracotta-500 text-white shadow-sm">
                 <Icon name="coffee" className="h-5 w-5" />
               </div>
-              <span className="font-serif text-lg font-semibold tracking-tight text-foreground">Solo Cafe</span>
+              <span className="font-serif text-lg font-semibold tracking-tight text-foreground">Solo Café</span>
             </Link>
             <span className="hidden text-sm text-muted-foreground sm:inline">/</span>
             <span className="hidden max-w-[200px] truncate text-sm font-medium text-foreground sm:inline">

@@ -67,7 +67,7 @@ export function ProductCard({
           type="button"
           onClick={onToggleFavorite}
           className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-background/85 text-foreground shadow-sm backdrop-blur-sm transition-transform active:scale-95"
-          aria-label={isFavorite ? 'Quitar de favoritos' : 'Agregar a favoritos'}
+          aria-label={isFavorite ? 'Quitar de favoritos' : 'Añadir a favoritos'}
         >
           <Icon
             name="heart"

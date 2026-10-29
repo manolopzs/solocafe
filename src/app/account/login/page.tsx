@@ -20,7 +20,7 @@ export default function AccountLoginPage() {
           <span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground">
             <Icon name="coffee" className="h-5 w-5" />
           </span>
-          <span className="text-lg font-medium tracking-tight">Solo Cafe</span>
+          <span className="text-lg font-medium tracking-tight">Solo Café</span>
         </Link>
 
         <h1 className="mt-10 text-[2rem] font-medium leading-tight tracking-tight text-foreground">Inicia sesión</h1>

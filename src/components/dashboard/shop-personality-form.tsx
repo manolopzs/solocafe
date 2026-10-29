@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select } from '@/components/ui/select'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import Image from 'next/image'
 import type { Shop } from '@/types'
 
 export function ShopPersonalityForm({ shopId, shop }: { shopId: string; shop: Shop }) {
@@ -46,7 +47,7 @@ export function ShopPersonalityForm({ shopId, shop }: { shopId: string; shop: Sh
         <CardHeader>
           <CardTitle>Personalidad</CardTitle>
           <CardDescription>
-            Foto, color y tipografía de tu página pública. El fondo crema de Solo Cafe se mantiene.
+            Foto, color y tipografía de tu página pública. El fondo crema de Solo Café se mantiene.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -54,11 +55,15 @@ export function ShopPersonalityForm({ shopId, shop }: { shopId: string; shop: Sh
             <Label htmlFor="hero_photo">Foto de portada</Label>
             <p className="mt-1 text-sm text-muted-foreground">JPG, PNG o WebP. Hasta 5 MB.</p>
             {heroPreview && (
-              <img
-                src={heroPreview}
-                alt={`Foto de portada de ${shop.name}`}
-                className="mt-3 h-40 w-full rounded-xl object-cover"
-              />
+              <div className="relative mt-3 h-40 w-full overflow-hidden rounded-xl">
+                <Image
+                  src={heroPreview}
+                  alt={`Foto de portada de ${shop.name}`}
+                  fill
+                  sizes="100vw"
+                  className="object-cover"
+                />
+              </div>
             )}
             <Input
               id="hero_photo"
