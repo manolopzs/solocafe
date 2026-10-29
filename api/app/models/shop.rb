@@ -61,7 +61,7 @@ class Shop < ApplicationRecord
     "test cafe",
     "test cafeteria",
     "cafe public menu test",
-    "cafeteria public menu test",
+    "cafeteria public menu test"
   ].freeze
   OBVIOUS_TEST_ADDRESSES = [ "test", "a" ].freeze
 
