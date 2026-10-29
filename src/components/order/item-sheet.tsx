@@ -99,7 +99,7 @@ export function ItemSheet({
           )}
 
           <p className="mt-3 text-xs text-muted-foreground">
-            Si tienes alguna alergia o intolerancia, consulta al personal antes de pedir.
+            Indicamos los 14 alÃ©rgenos de declaraciÃ³n obligatoria. Si tienes alguna alergia o intolerancia, avÃ­sanos antes de pedir. No podemos garantizar la ausencia de trazas.
           </p>
         </div>
 
