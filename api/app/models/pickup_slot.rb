@@ -47,5 +47,5 @@ class PickupSlot < ApplicationRecord
     text = value.to_s
     text.length == 5 ? "#{text}:00" : text
   end
-  private_class_method :coerce_time, :time_string
+  private_class_method :time_string
 end
