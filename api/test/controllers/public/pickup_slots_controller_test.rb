@@ -99,27 +99,27 @@ class Public::PickupSlotsControllerTest < ActionDispatch::IntegrationTest
   test "scheduled order fails when slot is full" do
     tuesday = upcoming_tuesday
     Current.shop = @shop
-    slot = @shop.pickup_slots.create!(
-      slot_date: tuesday,
-      start_time: "07:00:00",
-      end_time: "07:30:00",
-      capacity: 1
-    )
-
-    1.upto(1) do
-      order = Order.create!(
-        shop: @shop,
-        status: "received",
-        payment_status: "pending",
-        subtotal_cents: 1000,
-        total_cents: 1000,
-        currency: "MXN",
-        pickup_type: "scheduled"
+    slot = Time.use_zone(@shop.timezone) do
+      @shop.pickup_slots.create!(
+        slot_date: tuesday,
+        start_time: Time.zone.local(tuesday.year, tuesday.month, tuesday.day, 7, 0, 0),
+        end_time: Time.zone.local(tuesday.year, tuesday.month, tuesday.day, 7, 30, 0),
+        capacity: 1
       )
-      SlotReservation.create!(slot: slot, order: order)
     end
 
-    pickup_time = Time.use_zone("America/Mexico_City") do
+    order = Order.create!(
+      shop: @shop,
+      status: "received",
+      payment_status: "pending",
+      subtotal_cents: 1000,
+      total_cents: 1000,
+      currency: "MXN",
+      pickup_type: "scheduled"
+    )
+    SlotReservation.create!(slot: slot, order: order)
+
+    pickup_time = Time.use_zone(@shop.timezone) do
       Time.zone.local(tuesday.year, tuesday.month, tuesday.day, 7, 0)
     end
 

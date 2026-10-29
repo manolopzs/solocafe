@@ -268,7 +268,10 @@ class OrdersController < ApplicationController
       return [ nil, nil ]
     end
 
-    slot = Current.shop.pickup_slots.find_by(slot_date: slot_date, start_time: pickup_time.strftime("%H:%M:%S"))
+    slot = Time.use_zone(Current.shop.timezone) do
+      normalized_start = PickupSlot.coerce_time(slot_date, pickup_time)
+      Current.shop.pickup_slots.find_by(slot_date: slot_date, start_time: normalized_start)
+    end
     if slot && SlotReservation.where(slot_id: slot.id).count >= slot.capacity
       render json: { errors: [ "Selected pickup slot is full" ] }, status: :unprocessable_entity
       return [ nil, nil ]
