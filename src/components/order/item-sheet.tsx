@@ -3,9 +3,11 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { Icon } from '@/components/ui/icon'
 import { QuantityStepper } from '@/components/order/quantity-stepper'
 import { Sheet } from '@/components/ui/sheet'
+import { ALLERGEN_LABELS } from '@/lib/allergens'
 import type { MenuItem, ModifierGroup, ModifierOption } from '@/types'
 
 export function ItemSheet({
@@ -80,6 +82,25 @@ export function ItemSheet({
             <p className="shrink-0 pt-1 text-base font-medium tabular-nums text-foreground">{formatPrice(item.price_cents)}</p>
           </div>
           {item.description && <p className="mt-2 text-sm leading-6 text-muted-foreground">{item.description}</p>}
+
+          {((item.allergens ?? []).length > 0 || item.may_contain_traces) && (
+            <div className="mt-4 flex flex-wrap gap-1.5">
+              {(item.allergens ?? []).map((code) => (
+                <Badge key={code} variant="secondary" className="text-xs">
+                  {ALLERGEN_LABELS[code] ?? code}
+                </Badge>
+              ))}
+              {item.may_contain_traces && (
+                <Badge variant="warning" className="text-xs">
+                  Puede contener trazas
+                </Badge>
+              )}
+            </div>
+          )}
+
+          <p className="mt-3 text-xs text-muted-foreground">
+            Si tienes alguna alergia o intolerancia, consulta al personal antes de pedir.
+          </p>
         </div>
 
         {groups.map((group) => {

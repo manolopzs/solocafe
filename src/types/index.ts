@@ -121,6 +121,8 @@ export interface MenuItem {
   is_86ed: boolean
   prep_time_min: number
   sort_order: number
+  allergens: string[]
+  may_contain_traces: boolean
   created_at: string
   updated_at: string
   modifier_groups?: ModifierGroup[]
@@ -257,6 +259,8 @@ export interface OrderItem {
   unit_price_cents: number
   quantity: number
   subtotal_cents: number
+  allergens: string[]
+  may_contain_traces: boolean
   modifiers?: OrderItemModifier[]
 }
 

@@ -17,6 +17,7 @@ import { Select } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { Sheet } from '@/components/ui/sheet'
 import { formatMoney } from '@/lib/ordering'
+import { ALLERGEN_CODES, ALLERGEN_LABELS } from '@/lib/allergens'
 import type { MenuItem, MenuCategory, ModifierGroup, ItemModifierLink } from '@/types'
 
 export function ItemList({
@@ -131,6 +132,8 @@ function ItemForm({
 }) {
   const [imageUrl, setImageUrl] = useState(item?.image_url ?? '')
   const [removePhoto, setRemovePhoto] = useState(false)
+  const [selectedAllergens, setSelectedAllergens] = useState<string[]>(item?.allergens ?? [])
+  const [traces, setTraces] = useState(item?.may_contain_traces ?? false)
 
   return (
     <form
@@ -239,6 +242,52 @@ function ItemForm({
           defaultValue={item?.description ?? ''}
           className="mt-1.5"
         />
+      </div>
+
+      <div className="space-y-4 rounded-xl border border-border bg-surface p-4">
+        <div>
+          <Label className="text-sm font-medium">Alérgenos</Label>
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            {ALLERGEN_CODES.map((code) => {
+              const selected = selectedAllergens.includes(code)
+              return (
+                <Button
+                  key={code}
+                  type="button"
+                  variant={selected ? 'primary' : 'outline'}
+                  size="sm"
+                  onClick={() => {
+                    setSelectedAllergens((prev) =>
+                      prev.includes(code) ? prev.filter((c) => c !== code) : [...prev, code].sort()
+                    )
+                  }}
+                >
+                  {selected && <Icon name="check" className="mr-1.5 h-3.5 w-3.5" />}
+                  {ALLERGEN_LABELS[code]}
+                </Button>
+              )
+            })}
+          </div>
+          {selectedAllergens.map((code) => (
+            <input key={code} type="hidden" name="menu_item[allergens][]" value={code} />
+          ))}
+          {selectedAllergens.length === 0 && (
+            <input type="hidden" name="menu_item[allergens][]" value="" />
+          )}
+        </div>
+
+        <div>
+          <Button
+            type="button"
+            variant={traces ? 'primary' : 'outline'}
+            size="sm"
+            onClick={() => setTraces((value) => !value)}
+          >
+            {traces && <Icon name="check" className="mr-1.5 h-3.5 w-3.5" />}
+            Puede contener trazas
+          </Button>
+          <input type="hidden" name="menu_item[may_contain_traces]" value={traces ? '1' : '0'} />
+        </div>
       </div>
 
       {item && modifierGroups.length > 0 && (

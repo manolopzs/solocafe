@@ -44,7 +44,8 @@ class MenuItemsController < ApplicationController
   def item_params
     params.require(:menu_item).permit(
       :category_id, :name, :description, :price_cents,
-      :image_url, :photo, :remove_photo, :is_active, :is_86ed, :prep_time_min, :sort_order
+      :image_url, :photo, :remove_photo, :is_active, :is_86ed, :prep_time_min, :sort_order,
+      :may_contain_traces, allergens: []
     )
   end
 
@@ -59,7 +60,9 @@ class MenuItemsController < ApplicationController
       is_active: item.is_active,
       is_86ed: item.is_86ed,
       prep_time_min: item.prep_time_min,
-      sort_order: item.sort_order
+      sort_order: item.sort_order,
+      allergens: item.allergens,
+      may_contain_traces: item.may_contain_traces
     }
   end
 end

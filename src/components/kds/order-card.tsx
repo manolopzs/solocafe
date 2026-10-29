@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
 import { Icon } from '@/components/ui/icon'
 import { formatMoney } from '@/lib/ordering'
+import { ALLERGEN_LABELS } from '@/lib/allergens'
 import type { Order, OrderItem } from '@/types'
 
 const statusLabels: Record<string, string> = {
@@ -146,6 +147,18 @@ export function OrderCard({
                 <p className="mt-1 text-base text-muted-foreground md:text-xl">
                   {item.modifiers.map((m) => m.option_name_snapshot).join(', ')}
                 </p>
+              )}
+              {(item.allergens ?? []).length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-1">
+                  {(item.allergens ?? []).map((code) => (
+                    <Badge key={code} variant="warning" className="text-xs md:text-sm">
+                      {ALLERGEN_LABELS[code] ?? code}
+                    </Badge>
+                  ))}
+                </div>
+              )}
+              {item.may_contain_traces && (
+                <p className="mt-1 text-sm text-warning md:text-base">Puede contener trazas</p>
               )}
             </li>
           ))}
