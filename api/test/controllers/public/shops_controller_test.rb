@@ -297,7 +297,7 @@ class Public::ShopsControllerTest < ActionDispatch::IntegrationTest
   private
 
   def create_shop(**attrs)
-    Shop.create!({ currency: "MXN", status: "active" }.merge(attrs))
+    Shop.create!({ currency: "MXN", status: "active", timezone: "America/Mexico_City" }.merge(attrs))
   end
 
   def closed_hours

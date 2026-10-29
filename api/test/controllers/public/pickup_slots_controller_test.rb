@@ -131,7 +131,7 @@ class Public::PickupSlotsControllerTest < ActionDispatch::IntegrationTest
   private
 
   def upcoming_tuesday
-    date = Date.current + 2
+    date = Time.find_zone!("America/Mexico_City").today + 2
     date += 1 until date.tuesday?
     date
   end
