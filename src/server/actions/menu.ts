@@ -60,12 +60,18 @@ export async function saveMenuItem(shopId: string, itemId: string | null, formDa
     image_url: imageUrl || undefined,
   })
 
+  const allergens = (formData.getAll('menu_item[allergens][]') as string[]).filter(Boolean)
+  const mayContainTraces = String(formData.get('menu_item[may_contain_traces]') ?? '') === '1'
+
   const body = new FormData()
   body.set('menu_item[name]', parsed.name)
   body.set('menu_item[description]', parsed.description ?? '')
   body.set('menu_item[price_cents]', String(parsed.price_cents))
   body.set('menu_item[image_url]', parsed.image_url ?? '')
+  body.set('menu_item[may_contain_traces]', mayContainTraces ? '1' : '0')
   if (parsed.category_id) body.set('menu_item[category_id]', parsed.category_id)
+  allergens.forEach((code) => body.append('menu_item[allergens][]', code))
+  if (allergens.length === 0) body.append('menu_item[allergens][]', '')
   const photo = formData.get('photo')
   if (photo instanceof File && photo.size > 0) body.set('menu_item[photo]', photo)
   if (formData.get('remove_photo') === '1') body.set('menu_item[remove_photo]', '1')

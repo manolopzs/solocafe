@@ -576,6 +576,40 @@ class OrdersControllerTest < ActionDispatch::IntegrationTest
     assert_equal 1, LoyaltyStamp.where(customer: customer, status: "reversed").count
   end
 
+  test "order creation snapshots allergens from the menu item" do
+    item = MenuItem.create!(
+      shop: @shop,
+      name: "Croissant",
+      price_cents: 250,
+      prep_time_min: 4,
+      is_active: true,
+      is_86ed: false,
+      allergens: %w[gluten milk],
+      may_contain_traces: true
+    )
+
+    travel_to Time.find_zone(@shop.timezone).local(2026, 10, 20, 10, 0, 0) do
+      post shop_orders_url(@shop), params: {
+        order: {
+          customer_name: "Ana",
+          customer_phone: "5550002222",
+          pickup_type: "asap",
+          items: [ { menu_item_id: item.id, quantity: 1, modifier_option_ids: [] } ]
+        }
+      }
+    end
+
+    assert_response :created
+    body = response.parsed_body["order"]
+    line = body["items"].find { |i| i["item_id"] == item.id }
+    assert_equal %w[gluten milk], line["allergens"]
+    assert_equal true, line["may_contain_traces"]
+
+    order_item = TenantScoped.unscoped_for_system { OrderItem.find(line["id"]) }
+    assert_equal %w[gluten milk], order_item.allergens_snapshot
+    assert order_item.may_contain_traces_snapshot
+  end
+
   private
 
   def auth_headers

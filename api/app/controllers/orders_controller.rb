@@ -210,7 +210,9 @@ class OrdersController < ApplicationController
         item_name_snapshot: menu_item.name,
         unit_price_cents: priced.unit_price_cents,
         quantity: data[:quantity],
-        subtotal_cents: priced.subtotal_cents
+        subtotal_cents: priced.subtotal_cents,
+        allergens_snapshot: menu_item.allergens,
+        may_contain_traces_snapshot: menu_item.may_contain_traces
       )
 
       data[:modifiers].each do |option|
@@ -494,6 +496,8 @@ class OrdersController < ApplicationController
       unit_price_cents: order_item.unit_price_cents,
       quantity: order_item.quantity,
       subtotal_cents: order_item.subtotal_cents,
+      allergens: order_item.allergens_snapshot,
+      may_contain_traces: order_item.may_contain_traces_snapshot,
       modifiers: order_item.order_item_modifiers.map { |modifier| order_item_modifier_payload(modifier) }
     }
   end
