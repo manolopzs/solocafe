@@ -115,4 +115,53 @@ class OrderTest < ActiveSupport::TestCase
     assert_not Order.new(status: "picked_up").can_transition_to?("received")
     assert_not Order.new(status: "cancelled").can_transition_to?("preparing")
   end
+
+  test "apply_staff_status! is idempotent when already at target status" do
+    owner = User.create!(email: "idempotent-owner@example.com", password: "password123")
+    shop = Shop.create!(name: "Cafe Idempotent", slug: "cafe-idempotent", currency: "EUR", owner: owner)
+    order = Order.create!(
+      shop: shop,
+      status: "received",
+      payment_status: "succeeded",
+      subtotal_cents: 1000,
+      total_cents: 1000,
+      currency: "EUR",
+      pickup_type: "asap"
+    )
+    Current.shop = shop
+
+    assert_equal false, order.apply_staff_status!("received")
+    assert_equal "received", order.reload.status
+    assert_equal 0, TenantScoped.unscoped_for_system { Event.where(order: order, event_type: "order.status_changed").count }
+  ensure
+    Current.shop = nil
+  end
+
+  test "apply_staff_status! rejects illegal transitions" do
+    order = Order.new(status: "ready")
+
+    assert_raises(Order::InvalidStatusTransition) { order.apply_staff_status!("preparing") }
+    assert_raises(Order::InvalidStatusTransition) { order.apply_staff_status!("cancelled") }
+  end
+
+  test "apply_staff_status! advances and records event for valid transition" do
+    owner = User.create!(email: "valid-transition-owner@example.com", password: "password123")
+    shop = Shop.create!(name: "Cafe Valid Transition", slug: "cafe-valid-transition", currency: "EUR", owner: owner)
+    order = Order.create!(
+      shop: shop,
+      status: "received",
+      payment_status: "succeeded",
+      subtotal_cents: 1000,
+      total_cents: 1000,
+      currency: "EUR",
+      pickup_type: "asap"
+    )
+    Current.shop = shop
+
+    assert_equal true, order.apply_staff_status!("preparing")
+    assert_equal "preparing", order.reload.status
+    assert_equal 1, TenantScoped.unscoped_for_system { Event.where(order: order, event_type: "order.status_changed").count }
+  ensure
+    Current.shop = nil
+  end
 end

@@ -66,6 +66,51 @@ class OrdersControllerTest < ActionDispatch::IntegrationTest
     assert_equal 0, Event.where(order: @order, event_type: "order.kitchen_new").count
   end
 
+  test "patching an order to its current status succeeds without duplicate event" do
+    Current.shop = @shop
+    Event.create!(shop: @shop, order: @order, event_type: "order.status_changed", payload: { from: "pending_payment", to: "received" })
+
+    assert_no_difference -> { Event.where(order: @order, event_type: "order.status_changed").count } do
+      patch shop_order_url(@shop, @order), params: { order: { status: "received" } }, headers: auth_headers
+    end
+
+    assert_response :success
+    assert_equal "received", @order.reload.status
+  ensure
+    Current.shop = nil
+  end
+
+  test "patching an order to its current ready status does not renotify" do
+    ready = create_order(@shop, status: "ready")
+    Current.set(shop: @shop) do
+      PushDevice.register!(
+        shop: @shop,
+        user: nil,
+        attributes: {
+          platform: "web",
+          audience: "customer",
+          order_id: ready.id,
+          endpoint: "https://push.example/ready-idempotent",
+          p256dh: "ready-p256dh",
+          auth_key: "ready-auth"
+        }
+      )
+    end
+
+    previous = CustomerReadyPushJob.enqueue_after_transaction_commit
+    CustomerReadyPushJob.enqueue_after_transaction_commit = false
+    assert_no_enqueued_jobs only: CustomerReadyPushJob do
+      patch shop_order_url(@shop, ready), params: { order: { status: "ready" } }, headers: auth_headers
+    end
+    CustomerReadyPushJob.enqueue_after_transaction_commit = previous
+
+    assert_response :success
+    assert_equal "ready", ready.reload.status
+    TenantScoped.unscoped_for_system do
+      assert_equal 0, Notification.where(order: ready, notification_type: "order.ready").count
+    end
+  end
+
   test "kitchen view returns open paid tickets sync policy and shop alerts" do
     preparing = create_order(@shop, status: "preparing")
     ready = create_order(@shop, status: "ready", payment_status: "refunded")
