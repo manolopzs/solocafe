@@ -202,5 +202,4 @@ class Order < ApplicationRecord
     )
     CustomerReadyPush.enqueue(self)
   end
-
 end
