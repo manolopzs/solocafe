@@ -196,9 +196,9 @@ class OrdersController < ApplicationController
       currency: Current.shop.currency,
       pickup_type: order_params[:pickup_type] || "asap",
       pickup_time: pickup_time,
-      customer_name: order_params[:customer_name],
-      customer_phone: order_params[:customer_phone],
-      customer_email: order_params[:customer_email],
+      customer_name: order_params[:customer_name].presence || customer&.name || current_user&.email,
+      customer_phone: order_params[:customer_phone].presence || customer&.phone,
+      customer_email: order_params[:customer_email].presence || current_user&.email,
       special_instructions: order_params[:special_instructions]
     )
 

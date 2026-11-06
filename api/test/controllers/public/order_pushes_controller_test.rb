@@ -11,7 +11,9 @@ class Public::OrderPushesControllerTest < ActionDispatch::IntegrationTest
       subtotal_cents: 280,
       total_cents: 280,
       currency: "EUR",
-      pickup_type: "asap"
+      pickup_type: "asap",
+      customer_name: "Guest",
+      customer_phone: "5550000000"
     )
     @other_order = Order.create!(
       shop: @other,
@@ -20,7 +22,9 @@ class Public::OrderPushesControllerTest < ActionDispatch::IntegrationTest
       subtotal_cents: 280,
       total_cents: 280,
       currency: "EUR",
-      pickup_type: "asap"
+      pickup_type: "asap",
+      customer_name: "Guest",
+      customer_phone: "5550000000"
     )
   end
 

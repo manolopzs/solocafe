@@ -22,7 +22,9 @@ class StripeWebhooksControllerTest < ActionDispatch::IntegrationTest
       subtotal_cents: 1000,
       total_cents: 1000,
       currency: "MXN",
-      pickup_type: "asap"
+      pickup_type: "asap",
+      customer_name: "Guest",
+      customer_phone: "5550000000"
     )
     Payment.create!(order: @order, amount_cents: 1000, currency: "MXN", status: "pending", stripe_payment_intent_id: "pi_123")
   end
@@ -162,7 +164,9 @@ class StripeWebhooksControllerTest < ActionDispatch::IntegrationTest
       subtotal_cents: 2500,
       total_cents: 2500,
       currency: "MXN",
-      pickup_type: "asap"
+      pickup_type: "asap",
+      customer_name: "Guest",
+      customer_phone: "5550000000"
     )
     Payment.create!(order: other_order, amount_cents: 2500, currency: "MXN", status: "pending", stripe_payment_intent_id: "pi_other")
 
@@ -407,7 +411,9 @@ class StripeWebhooksControllerTest < ActionDispatch::IntegrationTest
       subtotal_cents: 500,
       total_cents: 500,
       currency: "MXN",
-      pickup_type: "asap"
+      pickup_type: "asap",
+      customer_name: "Guest",
+      customer_phone: "5550000000"
     )
     event = refund_event("evt_refund")
     later = refund_event("evt_refund_later")
@@ -731,7 +737,9 @@ class StripeWebhooksControllerTest < ActionDispatch::IntegrationTest
       subtotal_cents: 2500,
       total_cents: 2500,
       currency: "MXN",
-      pickup_type: "asap"
+      pickup_type: "asap",
+      customer_name: "Guest",
+      customer_phone: "5550000000"
     )
     Payment.create!(order: other_order, amount_cents: 2500, currency: "MXN", status: "pending", stripe_payment_intent_id: "pi_other_acct")
     event = build_event("payment_intent.succeeded", "pi_123", "ch_123", "evt_foreign", account: "acct_other")
@@ -772,7 +780,9 @@ class StripeWebhooksControllerTest < ActionDispatch::IntegrationTest
       subtotal_cents: 2500,
       total_cents: 2500,
       currency: "MXN",
-      pickup_type: "asap"
+      pickup_type: "asap",
+      customer_name: "Guest",
+      customer_phone: "5550000000"
     )
     Payment.create!(order: other_order, amount_cents: 2500, currency: "MXN", status: "pending", stripe_payment_intent_id: "pi_meta")
     event = build_event(

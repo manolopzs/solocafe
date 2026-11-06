@@ -13,7 +13,9 @@ class CustomerReadyPushTest < ActiveSupport::TestCase
       subtotal_cents: 280,
       total_cents: 280,
       currency: "EUR",
-      pickup_type: "asap"
+      pickup_type: "asap",
+      customer_name: "Guest",
+      customer_phone: "5550000000"
     )
     @customer_device = register(@shop, @order, "https://push.example/customer")
     @kitchen_device = register_kitchen(@shop, "https://push.example/kitchen")
@@ -24,7 +26,9 @@ class CustomerReadyPushTest < ActiveSupport::TestCase
       subtotal_cents: 280,
       total_cents: 280,
       currency: "EUR",
-      pickup_type: "asap"
+      pickup_type: "asap",
+      customer_name: "Guest",
+      customer_phone: "5550000000"
     ), "https://push.example/foreign")
   end
 

@@ -3,11 +3,13 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import { Icon } from '@/components/ui/icon'
 import { Input } from '@/components/ui/input'
 import { Notice } from '@/components/ui/notice'
 import { Sheet } from '@/components/ui/sheet'
-import { Textarea } from '@/components/ui/textarea'
 import { checkoutBlockedCopy } from '@/lib/ordering'
+import { QuantityStepper } from '@/components/order/quantity-stepper'
+import { updateCustomerProfile } from '@/server/actions/customers'
 import type { CartViewLine } from '@/components/order/cart-sheet'
 import type { Customer, Shop } from '@/types'
 
@@ -18,11 +20,6 @@ function isTestStripeKey() {
   return key.startsWith('pk_test')
 }
 
-function readyEstimateLabel(shop: Shop): string {
-  const minutes = shop.prep_time_buffer_minutes ?? shop.estimated_ready_minutes ?? 5
-  return `Listo en ~${minutes} min`
-}
-
 export function CheckoutSheet({
   open,
   onClose,
@@ -30,12 +27,17 @@ export function CheckoutSheet({
   customer,
   lines,
   total,
+  etaMinutes,
   blockedReason,
+  previewError,
+  onRefreshPreview,
   loading,
   error,
   rewardText,
   redeemLoyalty,
   onRedeemLoyalty,
+  onQuantity,
+  onRemove,
   onSubmit,
 }: {
   open: boolean
@@ -44,58 +46,116 @@ export function CheckoutSheet({
   customer: Customer | null
   lines: CartViewLine[]
   total: string
+  etaMinutes?: number
   blockedReason: string | null
+  previewError?: string | null
+  onRefreshPreview?: () => void
   loading: boolean
   error: string | null
   rewardText?: string | null
   redeemLoyalty?: boolean
   onRedeemLoyalty?: (value: boolean) => void
+  onQuantity: (index: number, quantity: number) => void
+  onRemove: (index: number) => void
   onSubmit: (input: {
     customerName: string
     customerPhone: string
     customerEmail: string
     specialInstructions: string
     pickupType: 'asap'
-    pickupSlotDate?: string
-    pickupSlotStartTime?: string
     redeemLoyalty?: boolean
   }) => void
 }) {
+  const isSignedIn = customer !== null
   const [customerName, setCustomerName] = useState(customer?.name ?? '')
   const [customerPhone, setCustomerPhone] = useState(customer?.phone ?? '')
   const [customerEmail, setCustomerEmail] = useState(customer?.email ?? '')
-  const [specialInstructions, setSpecialInstructions] = useState('')
+  const [editingIdentity, setEditingIdentity] = useState(false)
   const [localError, setLocalError] = useState<string | null>(null)
-  const blockedCopy = checkoutBlockedCopy(blockedReason)
+  const [savingPhone, setSavingPhone] = useState(false)
+
+  const displayName = customer?.name?.trim() || customer?.email || 'tu cuenta'
+  const needsPhone = isSignedIn && !customer?.phone && !customerPhone.trim()
   const asapBlocked = shop.ordering?.asap_available === false
   const testMode = isTestStripeKey()
+  const blockedCopy = checkoutBlockedCopy(blockedReason)
 
-  const submit = () => {
-    if (!customerName.trim()) {
-      setLocalError('Ingresa tu nombre para continuar')
-      return
-    }
+  const validateEmail = (email: string) => {
+    if (!email) return true
+    return EMAIL_PATTERN.test(email)
+  }
+
+  const submit = async () => {
+    setLocalError(null)
+
+    const name = customerName.trim()
+    const phone = customerPhone.trim()
     const email = customerEmail.trim()
-    if (email && !EMAIL_PATTERN.test(email)) {
+
+    if (!isSignedIn || editingIdentity) {
+      if (!name) {
+        setLocalError('Introduce tu nombre para continuar')
+        return
+      }
+    }
+
+    if (!isSignedIn) {
+      if (!phone && !email) {
+        setLocalError('Introduce un teléfono o un correo de contacto')
+        return
+      }
+    } else if (needsPhone) {
+      if (!phone) {
+        setLocalError('Añade tu teléfono para avisarte cuando esté listo')
+        return
+      }
+    }
+
+    if (!validateEmail(email)) {
       setLocalError('El correo no es válido')
       return
     }
-    setLocalError(null)
+
+    if (isSignedIn && customer && !customer.phone && phone) {
+      setSavingPhone(true)
+      try {
+        const formData = new FormData()
+        formData.set('name', name || customer.name || '')
+        formData.set('phone', phone)
+        await updateCustomerProfile(formData)
+      } catch (err) {
+        setSavingPhone(false)
+        setLocalError(err instanceof Error ? err.message : 'No pudimos guardar tu teléfono')
+        return
+      }
+      setSavingPhone(false)
+    }
+
+    const resolvedName =
+      isSignedIn && !editingIdentity
+        ? (customer?.name?.trim() || customer?.email || name)
+        : name
+    const resolvedPhone =
+      isSignedIn && !editingIdentity ? (customer?.phone ?? phone) : phone
+
     onSubmit({
-      customerName: customerName.trim(),
-      customerPhone: customerPhone.trim(),
-      customerEmail: email,
-      specialInstructions: specialInstructions.trim(),
+      customerName: resolvedName,
+      customerPhone: resolvedPhone,
+      customerEmail: isSignedIn && !editingIdentity ? (email || customer?.email || '') : email,
+      specialInstructions: '',
       pickupType: 'asap',
       redeemLoyalty,
     })
   }
 
+  const canSubmit =
+    lines.length > 0 && !loading && !savingPhone && !blockedReason && !asapBlocked
+
   return (
     <Sheet
       open={open}
       onClose={onClose}
-      title="Recoger"
+      title="Tu pedido"
       position="bottom"
       className="sm:left-1/2 sm:right-auto sm:top-auto sm:w-full sm:max-w-[480px] sm:-translate-x-1/2 sm:rounded-t-[1.75rem]"
       footer={
@@ -105,10 +165,26 @@ export function CheckoutSheet({
               Pago de prueba con tarjeta. No se hace ningún cargo real.
             </p>
           )}
+          {(localError || error || previewError) && (
+            <Notice tone="danger">
+              {localError || error || previewError}
+            </Notice>
+          )}
+          {previewError && onRefreshPreview && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={onRefreshPreview}
+              className="w-full"
+            >
+              Reintentar
+            </Button>
+          )}
           <Button
-            onClick={submit}
-            disabled={Boolean(blockedReason) || asapBlocked}
-            loading={loading}
+            onClick={() => void submit()}
+            disabled={!canSubmit}
+            loading={loading || savingPhone}
             size="lg"
             className="w-full touch-manipulation"
           >
@@ -118,7 +194,7 @@ export function CheckoutSheet({
       }
     >
       <div className="space-y-5">
-        {!customer && (
+        {!isSignedIn && (
           <div className="rounded-2xl bg-surface px-4 py-3.5 text-sm leading-6 text-foreground">
             ¿Quieres pedir más rápido la próxima vez?{' '}
             <Link href="/account/signup" className="font-medium text-accent underline-offset-2 hover:underline">
@@ -127,19 +203,42 @@ export function CheckoutSheet({
           </div>
         )}
 
-        {lines.length > 0 && (
+        {lines.length === 0 ? (
+          <p className="py-8 text-center text-sm text-muted-foreground">
+            Tu pedido está vacío. Añade algo del menú.
+          </p>
+        ) : (
           <section>
-            <h2 className="text-sm font-medium text-foreground">Tu pedido</h2>
-            <ul className="mt-2 divide-y divide-border border-y border-border">
-              {lines.map((line) => (
-                <li key={line.key} className="flex items-start justify-between gap-3 py-3">
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium text-foreground">
-                      {line.quantity} × {line.name}
-                    </p>
-                    {line.detail && <p className="mt-0.5 text-sm text-muted-foreground">{line.detail}</p>}
+            <ul className="divide-y divide-border border-y border-border">
+              {lines.map((line, index) => (
+                <li key={line.key} className="py-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="font-medium text-foreground">{line.name}</p>
+                      {line.detail && <p className="mt-0.5 text-sm text-muted-foreground">{line.detail}</p>}
+                      {line.unavailable && (
+                        <span className="mt-2 inline-flex rounded-full bg-danger/10 px-2.5 py-1 text-xs font-medium text-danger">
+                          Ya no disponible
+                        </span>
+                      )}
+                      <p className="mt-1 text-sm font-medium tabular-nums text-foreground">{line.lineTotal}</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => onRemove(index)}
+                      className="flex h-11 w-11 items-center justify-center rounded-full text-muted-foreground hover:bg-surface hover:text-danger"
+                      aria-label={`Eliminar ${line.name}`}
+                    >
+                      <Icon name="trash" className="h-4 w-4" />
+                    </button>
                   </div>
-                  <p className="shrink-0 text-sm tabular-nums text-foreground">{line.lineTotal}</p>
+                  <div className="mt-2">
+                    <QuantityStepper
+                      value={line.quantity}
+                      onDecrease={() => onQuantity(index, line.quantity - 1)}
+                      onIncrease={() => onQuantity(index, line.quantity + 1)}
+                    />
+                  </div>
                 </li>
               ))}
             </ul>
@@ -150,73 +249,107 @@ export function CheckoutSheet({
           </section>
         )}
 
-        <div>
-          <label htmlFor="customerName" className="block text-sm font-medium text-foreground">
-            Nombre
-          </label>
-          <Input
-            id="customerName"
-            type="text"
-            value={customerName}
-            onChange={(event) => setCustomerName(event.target.value)}
-            placeholder="¿Cómo te llaman?"
-            className="mt-1.5"
-          />
-        </div>
-        <div>
-          <label htmlFor="customerPhone" className="block text-sm font-medium text-foreground">
-            Teléfono
-          </label>
-          <Input
-            id="customerPhone"
-            type="tel"
-            value={customerPhone}
-            onChange={(event) => setCustomerPhone(event.target.value)}
-            placeholder="Para avisarte cuando esté listo (+34)"
-            className="mt-1.5"
-          />
-        </div>
-        <div>
-          <label htmlFor="customerEmail" className="block text-sm font-medium text-foreground">
-            Correo para el recibo
-          </label>
-          <Input
-            id="customerEmail"
-            type="email"
-            inputMode="email"
-            autoComplete="email"
-            value={customerEmail}
-            onChange={(event) => setCustomerEmail(event.target.value)}
-            placeholder="Opcional"
-            className="mt-1.5"
-          />
-        </div>
-        <div>
-          <label htmlFor="instructions" className="block text-sm font-medium text-foreground">
-            Instrucciones
-          </label>
-          <Textarea
-            id="instructions"
-            value={specialInstructions}
-            onChange={(event) => setSpecialInstructions(event.target.value)}
-            placeholder="Ej: leche de avena"
-            rows={2}
-            className="mt-1.5 resize-none"
-          />
+        <div className="rounded-2xl bg-surface px-4 py-3.5">
+          <p className="text-sm font-medium text-foreground">Recogida</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Lo antes posible
+            {etaMinutes !== undefined && etaMinutes > 0 && ` · ~${etaMinutes} min`}
+          </p>
         </div>
 
-        <div>
-          <p className="block text-sm font-medium text-foreground">Cuándo lo recoges</p>
-          <button
-            type="button"
-            disabled={asapBlocked}
-            className="mt-2 min-h-16 w-full rounded-2xl border border-primary bg-primary px-3.5 py-3 text-left text-sm text-primary-foreground transition-colors disabled:opacity-50"
-          >
-            <span className="block font-medium">Lo antes posible</span>
-            <span className="mt-0.5 block text-xs opacity-80">
-              {asapBlocked ? 'No disponible ahora' : readyEstimateLabel(shop)}
-            </span>
-          </button>
+        <div className="space-y-3">
+          {isSignedIn && !editingIdentity ? (
+            <>
+              <p className="rounded-2xl bg-surface px-4 py-3.5 text-sm text-foreground">
+                Pedido para <span className="font-medium">{displayName}</span>
+                {' · '}
+                <button
+                  type="button"
+                  onClick={() => setEditingIdentity(true)}
+                  className="font-medium text-accent underline-offset-2 hover:underline"
+                >
+                  cambiar
+                </button>
+              </p>
+              {needsPhone && (
+                <div>
+                  <label htmlFor="customerPhone" className="block text-sm font-medium text-foreground">
+                    Teléfono <span className="text-muted-foreground">*</span>
+                  </label>
+                  <Input
+                    id="customerPhone"
+                    type="tel"
+                    value={customerPhone}
+                    onChange={(event) => setCustomerPhone(event.target.value)}
+                    placeholder="Para avisarte cuando esté listo (+34)"
+                    className="mt-1.5"
+                  />
+                </div>
+              )}
+            </>
+          ) : (
+            <>
+              <div>
+                <label htmlFor="customerName" className="block text-sm font-medium text-foreground">
+                  Nombre
+                </label>
+                <Input
+                  id="customerName"
+                  type="text"
+                  value={customerName}
+                  onChange={(event) => setCustomerName(event.target.value)}
+                  placeholder="¿Cómo te llaman?"
+                  className="mt-1.5"
+                />
+              </div>
+              <div>
+                <label htmlFor="customerPhone" className="block text-sm font-medium text-foreground">
+                  Teléfono
+                </label>
+                <Input
+                  id="customerPhone"
+                  type="tel"
+                  value={customerPhone}
+                  onChange={(event) => setCustomerPhone(event.target.value)}
+                  placeholder="Para avisarte cuando esté listo (+34)"
+                  className="mt-1.5"
+                />
+              </div>
+            </>
+          )}
+
+          {(!isSignedIn || editingIdentity) && (
+            <div>
+              <label htmlFor="customerEmail" className="block text-sm font-medium text-foreground">
+                Correo para el recibo
+              </label>
+              <Input
+                id="customerEmail"
+                type="email"
+                inputMode="email"
+                autoComplete="email"
+                value={customerEmail}
+                onChange={(event) => setCustomerEmail(event.target.value)}
+                placeholder="Opcional"
+                className="mt-1.5"
+              />
+            </div>
+          )}
+
+          {isSignedIn && editingIdentity && (
+            <button
+              type="button"
+              onClick={() => {
+                setEditingIdentity(false)
+                setCustomerName(customer?.name ?? '')
+                setCustomerPhone(customer?.phone ?? '')
+                setCustomerEmail(customer?.email ?? '')
+              }}
+              className="text-sm font-medium text-accent underline-offset-2 hover:underline"
+            >
+              Usar datos guardados
+            </button>
+          )}
         </div>
 
         {rewardText && (
@@ -234,8 +367,8 @@ export function CheckoutSheet({
           </label>
         )}
 
-        {(localError || error || blockedCopy) && (
-          <Notice tone="danger">{localError || error || blockedCopy}</Notice>
+        {blockedCopy && (
+          <Notice tone="danger">{blockedCopy}</Notice>
         )}
       </div>
     </Sheet>

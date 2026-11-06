@@ -15,8 +15,16 @@ class Order < ApplicationRecord
   validates :currency, presence: true, inclusion: { in: %w[MXN EUR] }
   validates :customer_email, format: { with: URI::MailTo::EMAIL_REGEXP }, allow_nil: true
   validates :customer_email, length: { maximum: 254 }, allow_nil: true
+  validates :customer_name, presence: true, if: -> { customer_id.blank? }
+  validate :guest_contact_present, if: -> { customer_id.blank? }
 
   before_validation :normalize_customer_email
+
+  def guest_contact_present
+    return if customer_phone.present? || customer_email.present?
+
+    errors.add(:base, "a contact phone or email is required")
+  end
 
   enum :status, {
     pending_payment: "pending_payment",

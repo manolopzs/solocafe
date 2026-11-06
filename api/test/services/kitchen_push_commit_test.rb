@@ -26,7 +26,9 @@ class KitchenPushCommitTest < ActiveSupport::TestCase
       subtotal_cents: 1800,
       total_cents: 1800,
       currency: "MXN",
-      pickup_type: "asap"
+      pickup_type: "asap",
+      customer_name: "Guest",
+      customer_phone: "5550000000"
     )
     Current.set(shop: @shop) do
       @device = PushDevice.register!(

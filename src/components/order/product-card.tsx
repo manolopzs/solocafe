@@ -6,9 +6,11 @@ import type { MenuItem } from '@/types'
 
 export function ProductCard({
   item,
+  customizable,
   isFavorite,
   showFavorite,
   onClick,
+  onQuickAdd,
   onToggleFavorite,
   formatPrice,
   highlight,
@@ -18,6 +20,7 @@ export function ProductCard({
   isFavorite: boolean
   showFavorite: boolean
   onClick: () => void
+  onQuickAdd?: () => void
   onToggleFavorite: () => void
   formatPrice: (cents: number) => string
   highlight?: boolean
@@ -73,6 +76,19 @@ export function ProductCard({
             name="heart"
             className={['h-3.5 w-3.5', isFavorite ? 'fill-danger text-danger' : 'text-muted-foreground'].join(' ')}
           />
+        </button>
+      )}
+      {!customizable && onQuickAdd && (
+        <button
+          type="button"
+          onClick={(event) => {
+            event.stopPropagation()
+            onQuickAdd()
+          }}
+          className="absolute bottom-3 right-3 flex h-9 w-9 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-md transition-transform active:scale-90"
+          aria-label={`Añadir ${item.name}`}
+        >
+          <Icon name="plus" className="h-5 w-5" />
         </button>
       )}
     </article>

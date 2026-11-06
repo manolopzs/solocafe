@@ -22,7 +22,9 @@ class PickupEstimateTest < ActiveSupport::TestCase
         subtotal_cents: 1000,
         total_cents: 1000,
         currency: "MXN",
-        pickup_type: "asap"
+        pickup_type: "asap",
+        customer_name: "Guest",
+        customer_phone: "5550000000"
       )
     end
 
@@ -33,7 +35,9 @@ class PickupEstimateTest < ActiveSupport::TestCase
       subtotal_cents: 1000,
       total_cents: 1000,
       currency: "MXN",
-      pickup_type: "asap"
+      pickup_type: "asap",
+      customer_name: "Guest",
+      customer_phone: "5550000000"
     )
     order.order_items.create!(item: slow, item_name_snapshot: slow.name, unit_price_cents: 8000, quantity: 2, subtotal_cents: 16000)
     order.order_items.create!(item: drink, item_name_snapshot: drink.name, unit_price_cents: 5000, quantity: 1, subtotal_cents: 5000)
@@ -59,7 +63,9 @@ class PickupEstimateTest < ActiveSupport::TestCase
       subtotal_cents: 1000,
       total_cents: 1000,
       currency: "MXN",
-      pickup_type: "asap"
+      pickup_type: "asap",
+      customer_name: "Guest",
+      customer_phone: "5550000000"
     )
 
     assert_equal 0, PickupEstimate.queue_count(shop, exclude_order_id: order.id)

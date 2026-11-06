@@ -115,7 +115,9 @@ class Public::PickupSlotsControllerTest < ActionDispatch::IntegrationTest
       subtotal_cents: 1000,
       total_cents: 1000,
       currency: "MXN",
-      pickup_type: "scheduled"
+      pickup_type: "scheduled",
+      customer_name: "Guest",
+      customer_phone: "5550000000"
     )
     SlotReservation.create!(slot: slot, order: order)
 
