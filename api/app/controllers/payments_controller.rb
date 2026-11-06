@@ -402,13 +402,6 @@ class PaymentsController < ApplicationController
     StripeFees.application_fee_cents(@order.total_cents)
   end
 
-  def ensure_stripe_configured!
-    return if StripeConfig.configured?
-
-    PaymentLog.error("payment.stripe_not_configured", order_id: @order&.id, shop_id: Current.shop&.id)
-    render json: { error: "stripe_not_configured" }, status: :service_unavailable
-  end
-
   def log_stripe_error(error)
     PaymentLog.error(
       "payment.stripe_error",
