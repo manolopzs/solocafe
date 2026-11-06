@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_21_130000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_29_140100) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -141,6 +141,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_21_130000) do
     t.integer "sort_order", default: 0, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.jsonb "allergens", default: [], null: false
+    t.boolean "may_contain_traces", default: false, null: false
     t.index ["category_id"], name: "index_menu_items_on_category_id"
     t.index ["shop_id"], name: "index_menu_items_on_shop_id"
   end
@@ -200,6 +202,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_21_130000) do
     t.integer "subtotal_cents", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.jsonb "allergens_snapshot", default: [], null: false
+    t.boolean "may_contain_traces_snapshot", default: false, null: false
     t.index ["item_id"], name: "index_order_items_on_item_id"
     t.index ["order_id"], name: "index_order_items_on_order_id"
   end

@@ -69,9 +69,10 @@ class CustomerPaymentMethodsControllerTest < ActionDispatch::IntegrationTest
   test "another customer cannot list or delete these cards" do
     get "/customers/me/payment_methods", headers: bearer(@other_token)
     assert_response :success
-    ids = response.parsed_body["payment_methods"].map { |card| card["id"] }
+    cards = response.parsed_body["payment_methods"]
+    ids = cards.map { |card| card["id"] }
     assert_equal [ @other_card.id ], ids
-    assert_not_includes response.body, "4242"
+    assert_equal [ "4444" ], cards.map { |card| card["last4"] }
 
     with_detach do
       delete "/customers/me/payment_methods/#{@card.id}", headers: bearer(@other_token)
@@ -87,9 +88,17 @@ class CustomerPaymentMethodsControllerTest < ActionDispatch::IntegrationTest
     get "/shops/#{@shop.id}/orders/#{@order.id}", headers: bearer(@owner_token)
 
     assert_response :success
-    assert_not_includes response.body, "4242"
+    # Avoid raw-body substring checks for digit-only last4: UUIDs are hex and can
+    # contain "4242", which made this assertion flake under parallel CI.
     assert_not_includes response.body, "pm_ana"
     assert_not_includes response.body, "cus_ana"
+    order_json = response.parsed_body["order"] || response.parsed_body
+    assert_nil order_json["last4"]
+    assert_nil order_json["payment_method"]
+    assert_nil order_json["stripe_payment_method_id"]
+    assert_nil order_json["stripe_customer_id"]
+    assert_nil order_json.dig("payment", "last4")
+    assert_nil order_json.dig("customer", "stripe_customer_id")
 
     get "/customers/me/payment_methods", headers: bearer(@owner_token)
     assert_response :success

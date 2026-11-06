@@ -36,7 +36,9 @@ class PublicCatalog
       prep_time_min: item.prep_time_min,
       sort_order: item.sort_order,
       is_active: item.is_active,
-      is_86ed: item.is_86ed
+      is_86ed: item.is_86ed,
+      allergens: item.allergens,
+      may_contain_traces: item.may_contain_traces
     }
   end
 

@@ -60,4 +60,23 @@ class Public::MenusControllerTest < ActionDispatch::IntegrationTest
     get "/public/shops/#{@shop.id}/menu", headers: { "If-None-Match" => etag }
     assert_response :not_modified
   end
+
+  test "public menu exposes allergens and may_contain_traces" do
+    item = MenuItem.create!(
+      shop: @shop,
+      name: "Tarta de frutos secos",
+      description: "Con cacahuetes",
+      price_cents: 350,
+      is_active: true,
+      allergens: %w[peanuts nuts],
+      may_contain_traces: true
+    )
+
+    get "/public/shops/#{@shop.id}/menu"
+
+    assert_response :success
+    payload = response.parsed_body["items"].find { |row| row["id"] == item.id }
+    assert_equal %w[nuts peanuts], payload["allergens"]
+    assert_equal true, payload["may_contain_traces"]
+  end
 end

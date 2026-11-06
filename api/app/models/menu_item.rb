@@ -12,7 +12,11 @@ class MenuItem < ApplicationRecord
 
   validates :name, presence: true
   validates :price_cents, numericality: { greater_than_or_equal_to: 0 }
+  validates :may_contain_traces, inclusion: { in: [true, false] }
   validate :acceptable_photo
+  validate :allergens_are_valid
+
+  before_validation :reject_blank_allergens, :normalize_allergens
 
   def public_image_url
     return image_url unless photo.attached?
@@ -35,5 +39,20 @@ class MenuItem < ApplicationRecord
     return if blob.byte_size.to_i <= PHOTO_MAX_BYTES
 
     errors.add(:base, "La foto debe pesar hasta 5 MB.")
+  end
+
+  def reject_blank_allergens
+    self.allergens = (allergens || []).reject(&:blank?)
+  end
+
+  def normalize_allergens
+    self.allergens = (allergens || []).map(&:to_s).uniq.sort
+  end
+
+  def allergens_are_valid
+    invalid = (allergens || []).reject { |code| Allergen::CODES.include?(code) }
+    return if invalid.empty?
+
+    errors.add(:allergens, "contiene códigos no válidos: #{invalid.join(', ')}")
   end
 end

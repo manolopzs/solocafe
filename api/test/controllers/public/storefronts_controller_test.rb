@@ -27,6 +27,8 @@ class Public::StorefrontsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "returns the shop and menu in one response" do
+    @item.update!(allergens: %w[milk], may_contain_traces: true)
+
     get "/public/storefront/#{@shop.slug}"
 
     assert_response :success
@@ -35,6 +37,8 @@ class Public::StorefrontsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "EUR", body.dig("shop", "currency")
     assert_equal "Café", body.dig("items", 0, "name")
     assert_equal "Café espresso", body.dig("items", 0, "description")
+    assert_equal %w[milk], body.dig("items", 0, "allergens")
+    assert_equal true, body.dig("items", 0, "may_contain_traces")
     assert_equal "Bebidas calientes", body.dig("categories", 0, "name")
     assert_match(/public/, response.headers["Cache-Control"])
   end
