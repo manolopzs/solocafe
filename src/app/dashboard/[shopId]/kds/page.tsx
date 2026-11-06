@@ -3,6 +3,7 @@ import { getShopById } from '@/server/queries/shops'
 import { getKitchenBoard } from '@/server/queries/orders'
 import { getFullMenu } from '@/server/queries/menu'
 import { KdsClient } from '@/components/kds/kds-client'
+import { KdsAlertGate } from '@/components/kds/kds-alert-gate'
 
 export const instant = false
 
@@ -18,13 +19,15 @@ export default async function KdsPage({
   const [board, menu] = await Promise.all([getKitchenBoard(shopId), getFullMenu(shopId)])
 
   return (
-    <KdsClient
-      shopId={shopId}
-      shopName={shop.name}
-      initialOrders={board.orders}
-      initialSync={board.sync}
-      initialMenuItems={menu.items}
-      initialCategories={menu.categories}
-    />
+    <KdsAlertGate>
+      <KdsClient
+        shopId={shopId}
+        shopName={shop.name}
+        initialOrders={board.orders}
+        initialSync={board.sync}
+        initialMenuItems={menu.items}
+        initialCategories={menu.categories}
+      />
+    </KdsAlertGate>
   )
 }
