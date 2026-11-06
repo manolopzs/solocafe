@@ -12,7 +12,9 @@ class TenantScopedTest < ActiveSupport::TestCase
       subtotal_cents: 500,
       total_cents: 500,
       currency: "MXN",
-      pickup_type: "asap"
+      pickup_type: "asap",
+      customer_name: "Guest",
+      customer_phone: "5550000000"
     )
   end
 

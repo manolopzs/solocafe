@@ -74,7 +74,9 @@ class ShopTest < ActiveSupport::TestCase
       subtotal_cents: 1000,
       total_cents: 1000,
       currency: "EUR",
-      pickup_type: "scheduled"
+      pickup_type: "scheduled",
+      customer_name: "Guest",
+      customer_phone: "5550000000"
     )
     SlotReservation.create!(slot: slot, order: order)
 

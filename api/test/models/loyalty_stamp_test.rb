@@ -143,7 +143,9 @@ class LoyaltyStampTest < ActiveSupport::TestCase
       subtotal_cents: 1_000,
       total_cents: 1_000,
       currency: "MXN",
-      pickup_type: "asap"
+      pickup_type: "asap",
+      customer_name: customer&.name || "Guest",
+      customer_phone: customer&.phone || "5550000000"
     )
   end
 

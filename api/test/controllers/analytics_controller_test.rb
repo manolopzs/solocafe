@@ -47,7 +47,9 @@ class AnalyticsControllerTest < ActionDispatch::IntegrationTest
       subtotal_cents: total_cents,
       total_cents: total_cents,
       currency: "MXN",
-      pickup_type: "asap"
+      pickup_type: "asap",
+      customer_name: "Guest",
+      customer_phone: "5550000000"
     )
   end
 end

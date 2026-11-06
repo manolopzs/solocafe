@@ -23,7 +23,9 @@ class Public::CartsControllerTest < ActionDispatch::IntegrationTest
       subtotal_cents: 1000,
       total_cents: 1000,
       currency: "MXN",
-      pickup_type: "asap"
+      pickup_type: "asap",
+      customer_name: "Guest",
+      customer_phone: "5550000000"
     )
 
     travel_to Time.find_zone(@shop.timezone).local(2026, 10, 20, 10, 0, 0) do

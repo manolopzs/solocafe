@@ -25,7 +25,9 @@ class OrdersControllerTest < ActionDispatch::IntegrationTest
       subtotal_cents: 1000,
       total_cents: 1000,
       currency: "MXN",
-      pickup_type: "asap"
+      pickup_type: "asap",
+      customer_name: "Guest",
+      customer_phone: "5550000000"
     )
 
     get shop_orders_url(@shop), headers: auth_headers
@@ -46,6 +48,7 @@ class OrdersControllerTest < ActionDispatch::IntegrationTest
       total_cents: 1000,
       currency: "MXN",
       pickup_type: "asap",
+      customer_name: "Guest",
       customer_phone: "5551111111"
     )
 
@@ -455,7 +458,9 @@ class OrdersControllerTest < ActionDispatch::IntegrationTest
       subtotal_cents: 1000,
       total_cents: 1000,
       currency: "MXN",
-      pickup_type: "asap"
+      pickup_type: "asap",
+      customer_name: "Guest",
+      customer_phone: "5550000000"
     )
 
     travel_to Time.find_zone(@shop.timezone).local(2026, 10, 20, 10, 0, 0) do
@@ -645,7 +650,9 @@ class OrdersControllerTest < ActionDispatch::IntegrationTest
       subtotal_cents: 1000,
       total_cents: 1000,
       currency: "MXN",
-      pickup_type: "asap"
+      pickup_type: "asap",
+      customer_name: "Guest",
+      customer_phone: "5550000000"
     )
   end
 

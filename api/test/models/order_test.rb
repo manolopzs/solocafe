@@ -46,7 +46,9 @@ class OrderTest < ActiveSupport::TestCase
       subtotal_cents: 1000,
       total_cents: 1000,
       currency: "MXN",
-      pickup_type: "asap"
+      pickup_type: "asap",
+      customer_name: "Guest",
+      customer_phone: "5550000000"
     )
 
     order.apply_successful_payment!
@@ -70,7 +72,9 @@ class OrderTest < ActiveSupport::TestCase
       subtotal_cents: 1000,
       total_cents: 1000,
       currency: "MXN",
-      pickup_type: "asap"
+      pickup_type: "asap",
+      customer_name: "Guest",
+      customer_phone: "5550000000"
     )
     Current.shop = other
 
@@ -98,7 +102,9 @@ class OrderTest < ActiveSupport::TestCase
       subtotal_cents: 1000,
       total_cents: 1000,
       currency: "MXN",
-      pickup_type: "asap"
+      pickup_type: "asap",
+      customer_name: "Guest",
+      customer_phone: "5550000000"
     )
 
     order.apply_refund!

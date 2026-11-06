@@ -40,6 +40,7 @@ class PickupSlotTest < ActiveSupport::TestCase
             total_cents: 1000,
             currency: "MXN",
             pickup_type: "scheduled",
+            customer_name: "Guest",
             customer_phone: "555000000#{index}"
           )
           PickupSlot.reserve_for!(

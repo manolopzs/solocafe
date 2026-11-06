@@ -30,6 +30,7 @@ class PaymentsControllerTest < ActionDispatch::IntegrationTest
       total_cents: 1800,
       currency: "MXN",
       pickup_type: "asap",
+      customer_name: "Guest",
       customer_phone: "5551111111"
     )
     @other_token = JsonWebToken.encode(user_id: @other_owner.id)
