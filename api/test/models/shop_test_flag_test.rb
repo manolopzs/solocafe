@@ -83,6 +83,34 @@ class ShopTestFlagTest < ActiveSupport::TestCase
     assert_raises(TenantScoped::MissingShop) { MenuItem.count }
   end
 
+  test "discoverable scope excludes test shops" do
+    real = shop(name: "Cafe Real", slug: "cafe-real-scope", address: "Madrid")
+    test_shop = shop(name: "Analytics Cafe", slug: "analytics-scope", address: "Lab", test_shop: true)
+
+    assert_includes Shop.discoverable, real
+    assert_not_includes Shop.discoverable, test_shop
+  end
+
+  test "explore excludes test shops even when closed shops are requested" do
+    real = shop(name: "Cafe Real", slug: "cafe-real-explore", address: "Madrid")
+    test_shop = shop(name: "Reorder Test", slug: "reorder-explore", address: "Lab", test_shop: true)
+
+    slugs = Shop.explore(include_closed: true).map(&:slug)
+
+    assert_includes slugs, real.slug
+    assert_not_includes slugs, test_shop.slug
+  end
+
+  test "Solo cafe is never flagged as a test shop" do
+    solo = shop(name: "Solo cafe", slug: "solo-cafe", address: "Antonio Acuña 8")
+
+    assert_not Shop.obvious_test_shop?(solo)
+
+    Shop.flag_obvious_test_shops!(dry_run: false)
+
+    assert_not solo.reload.test_shop
+  end
+
   private
 
   def shop(**attrs)

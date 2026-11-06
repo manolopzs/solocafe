@@ -21,12 +21,12 @@ type PublicPricing = {
 const frames = [
   {
     title: "Pedido",
-    text: "El cliente elige, paga y recoge.",
+    text: "El cliente elige y recoge.",
     mockup: <PhoneMockup />,
   },
   {
     title: "Cocina",
-    text: "La barra ve cada pedido pagado.",
+    text: "La barra ve cada pedido en tiempo real.",
     mockup: <KitchenMockup />,
   },
   {
@@ -76,13 +76,13 @@ export default async function Home() {
         <div className="mx-auto max-w-5xl text-center">
           <div className="mx-auto mb-6 flex w-fit max-w-full items-center gap-2 rounded-full border border-border bg-surface px-4 py-1.5 text-sm text-muted-foreground shadow-xs">
             <Icon name="coffee" className="h-4 w-4 shrink-0 text-accent" />
-            <span className="min-w-0 text-balance">Pedidos pagados por adelantado para tu cafetería</span>
+            <span className="min-w-0 text-balance">Pedidos por adelantado para tu cafetería</span>
           </div>
           <h1 className="mx-auto max-w-4xl font-sans text-4xl font-semibold tracking-tight text-foreground sm:text-6xl sm:leading-[1.1]">
-            Tu cafetería, con el pedido ya pagado
+            Tu cafetería, con el pedido ya preparado
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground sm:text-xl">
-            Tus clientes ordenan y pagan desde el móvil. Tú preparas el pedido y lo entregas sin fila. El cobro entra en tu cuenta.
+            Tus clientes ordenan desde el móvil. Tú preparas el pedido y lo entregas sin fila. El cobro se configurará cuando activemos los pagos.
           </p>
           <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Button asChild size="lg" className="w-full sm:w-auto">
@@ -102,10 +102,10 @@ export default async function Home() {
         <div className="mx-auto max-w-6xl">
           <div className="mb-12 text-center">
             <h2 className="font-sans text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
-              Pedidos, cocina y pago en un solo flujo
+              Pedidos, cocina y recogida en un solo flujo
             </h2>
             <p className="mx-auto mt-3 max-w-2xl text-muted-foreground">
-              Solo Café conecta a tus clientes con tu cafetería: ordenan por adelantado, tú recibes el pedido en la cocina y el pago va directo a tu cuenta.
+              Solo Café conecta a tus clientes con tu cafetería: ordenan por adelantado y tú recibes el pedido en la cocina. Los pagos online se activarán más adelante.
             </p>
           </div>
           <div className="grid gap-6 lg:grid-cols-3">
@@ -133,11 +133,11 @@ export default async function Home() {
               Acceso instantáneo a tu café
             </h2>
             <p className="mt-4 text-lg text-muted-foreground">
-              Escanea el QR, elige tu bebida favorita, paga y recoge sin filas. Sin apps que descargar, sin registros obligatorios.
+              Escanea el QR, elige tu bebida favorita y recoge sin filas. Paga en la cafetería al recoger. Sin apps que descargar, sin registros obligatorios.
             </p>
             <ul className="mt-8 space-y-4">
               <BenefitItem text="Menú simple de 5 a 7 opciones con fotos y precios" />
-              <BenefitItem text="Paga con Apple Pay, Google Pay o tarjeta en segundos" />
+              <BenefitItem text="Paga cómodamente en la cafetería al recoger" />
               <BenefitItem text="Recibe tu pedido listo al llegar a la cafetería" />
               <BenefitItem text="Notificación cuando tu café está listo para recoger" />
             </ul>
@@ -164,11 +164,11 @@ export default async function Home() {
               Más tráfico, operación optimizada
             </h2>
             <p className="mt-4 text-lg text-muted-foreground">
-              Lleva más clientes a tu tienda y sirve más pedidos por hora. Define tu menú, fija tu capacidad y recibe pagos directos en tu cuenta.
+              Lleva más clientes a tu tienda y sirve más pedidos por hora. Define tu menú, fija tu capacidad y cobra en la cafetería al entregar.
             </p>
             <ul className="mt-8 space-y-4">
-              <BenefitItem text="Recibe pedidos pagados en tu cocina en tiempo real" />
-              <BenefitItem text="Cobra directo con Stripe: Apple Pay, Google Pay y tarjeta" />
+              <BenefitItem text="Recibe pedidos en tu cocina en tiempo real" />
+              <BenefitItem text="Cobra en la cafetería al entregar el pedido" />
               <BenefitItem text="Define menú simple y capacidad por slot" />
               <BenefitItem text="Previsión de pedidos, productos y horas de más demanda" />
             </ul>
@@ -201,7 +201,7 @@ export default async function Home() {
             Conecta tu cafetería con tus clientes hoy
           </h2>
           <p className="mt-4 text-lg text-primary-foreground/70">
-            Crea tu cuenta gratis y empieza a recibir pedidos pagados en minutos.
+            Crea tu cuenta gratis y empieza a recibir pedidos en minutos.
           </p>
           <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Button asChild size="lg" variant="secondary" className="w-full sm:w-auto">
@@ -237,7 +237,7 @@ export default async function Home() {
           <Link href="/privacidad" className="hover:text-foreground">Privacidad</Link>
           <Link href="/terminos" className="hover:text-foreground">Términos</Link>
           <Link href="/cookies" className="hover:text-foreground">Cookies</Link>
-          <Link href="/contacto" className="hover:text-foreground">Contacto</Link>
+          <a href="mailto:" className="hover:text-foreground">Contacto</a>
         </nav>
       </footer>
     </main>

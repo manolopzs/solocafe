@@ -7,7 +7,7 @@ const legalLinks = [
   { href: '/privacidad', label: 'Privacidad' },
   { href: '/terminos', label: 'Términos' },
   { href: '/cookies', label: 'Cookies' },
-  { href: '/contacto', label: 'Contacto' },
+  { href: 'mailto:', label: 'Contacto', external: true },
 ]
 
 export function LegalDraftPage({ title, children }: { title: string; children: ReactNode }) {
@@ -27,33 +27,22 @@ export function LegalDraftPage({ title, children }: { title: string; children: R
         </div>
       </header>
       <article className="mx-auto w-full max-w-3xl flex-1 px-6 py-12">
-        <p className="text-sm font-semibold uppercase tracking-wider text-terracotta-700">
-          Borrador pendiente de revisión legal
-        </p>
-        <h1 className="mt-3 font-sans text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">{title}</h1>
+        <h1 className="font-sans text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">{title}</h1>
         <div className="mt-6 space-y-4 text-base leading-7 text-foreground">{children}</div>
-        <dl className="mt-8 space-y-4 rounded-2xl border border-terracotta-200 bg-cream p-6 text-sm">
-          <div>
-            <dt className="font-semibold text-terracotta-800">Responsable</dt>
-            <dd className="mt-1 text-foreground">[Nombre de la empresa]</dd>
-          </div>
-          <div>
-            <dt className="font-semibold text-terracotta-800">Correo</dt>
-            <dd className="mt-1 text-foreground">[correo de contacto]</dd>
-          </div>
-          <div>
-            <dt className="font-semibold text-terracotta-800">Domicilio</dt>
-            <dd className="mt-1 text-foreground">[dirección postal]</dd>
-          </div>
-        </dl>
       </article>
       <footer className="border-t border-border px-6 py-8">
         <nav aria-label="Información legal" className="mx-auto flex max-w-3xl flex-wrap gap-x-5 gap-y-2 text-sm text-muted-foreground">
-          {legalLinks.map((link) => (
-            <Link key={link.href} href={link.href} className="hover:text-foreground">
-              {link.label}
-            </Link>
-          ))}
+          {legalLinks.map((link) =>
+            link.external ? (
+              <a key={link.href} href={link.href} className="hover:text-foreground">
+                {link.label}
+              </a>
+            ) : (
+              <Link key={link.href} href={link.href} className="hover:text-foreground">
+                {link.label}
+              </Link>
+            )
+          )}
         </nav>
       </footer>
     </main>
