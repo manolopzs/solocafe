@@ -79,10 +79,10 @@ export default async function Home() {
             <span className="min-w-0 text-balance">Pedidos por adelantado para tu cafetería</span>
           </div>
           <h1 className="mx-auto max-w-4xl font-sans text-4xl font-semibold tracking-tight text-foreground sm:text-6xl sm:leading-[1.1]">
-            Tu cafetería, con el pedido ya preparado
+            Tu cafetería, con el pedido listo al llegar
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground sm:text-xl">
-            Tus clientes ordenan desde el móvil. Tú preparas el pedido y lo entregas sin fila. El cobro se configurará cuando activemos los pagos.
+            Tus clientes ordenan desde el móvil. Tú preparas el pedido y lo entregas sin fila. Pagan en la cafetería al recoger.
           </p>
           <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Button asChild size="lg" className="w-full sm:w-auto">
@@ -105,7 +105,7 @@ export default async function Home() {
               Pedidos, cocina y recogida en un solo flujo
             </h2>
             <p className="mx-auto mt-3 max-w-2xl text-muted-foreground">
-              Solo Café conecta a tus clientes con tu cafetería: ordenan por adelantado y tú recibes el pedido en la cocina. Los pagos online se activarán más adelante.
+              Solo Café conecta a tus clientes con tu cafetería: ordenan por adelantado y tú recibes el pedido en la cocina.
             </p>
           </div>
           <div className="grid gap-6 lg:grid-cols-3">
