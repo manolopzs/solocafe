@@ -13,8 +13,11 @@ const cartItemSchema = z.object({
 
 const createOrderSchema = z.object({
   shop_id: z.string().uuid(),
-  customer_name: z.string().min(1).max(100),
-  customer_phone: z.string().max(30),
+  customer_name: z.string().max(100).default(''),
+  customer_phone: z.preprocess(
+    (value) => (typeof value === 'string' && value.trim() === '' ? undefined : value),
+    z.string().trim().max(30).optional()
+  ),
   customer_email: z.preprocess(
     (value) => (typeof value === 'string' && value.trim() === '' ? undefined : value),
     z.string().trim().email().max(254).optional()

@@ -365,6 +365,61 @@ class OrdersControllerTest < ActionDispatch::IntegrationTest
     assert_not response.parsed_body["order"].key?("customer_phone")
   end
 
+  test "guest checkout requires name and at least one contact" do
+    item = MenuItem.create!(shop: @shop, name: "Latte", price_cents: 4500, prep_time_min: 6, is_active: true, is_86ed: false)
+
+    travel_to Time.find_zone(@shop.timezone).local(2026, 10, 20, 10, 0, 0) do
+      post shop_orders_url(@shop), params: {
+        order: {
+          customer_name: "Ana",
+          pickup_type: "asap",
+          items: [ { menu_item_id: item.id, quantity: 1, modifier_option_ids: [] } ]
+        }
+      }
+    end
+
+    assert_response :unprocessable_entity
+    assert_includes response.parsed_body["errors"].join, "contact"
+
+    travel_to Time.find_zone(@shop.timezone).local(2026, 10, 20, 10, 0, 0) do
+      post shop_orders_url(@shop), params: {
+        order: {
+          customer_phone: "5550001111",
+          pickup_type: "asap",
+          items: [ { menu_item_id: item.id, quantity: 1, modifier_option_ids: [] } ]
+        }
+      }
+    end
+
+    assert_response :unprocessable_entity
+  end
+
+  test "signed-in customer can create an order without repeating identity fields" do
+    user = User.create!(email: "signedin@example.com", password: "password123")
+    customer = Customer.create!(user: user, name: "Ana", phone: "5559998888")
+    item = MenuItem.create!(shop: @shop, name: "Latte", price_cents: 4500, prep_time_min: 6, is_active: true, is_86ed: false)
+    token = JsonWebToken.encode(user_id: user.id)
+
+    travel_to Time.find_zone(@shop.timezone).local(2026, 10, 20, 10, 0, 0) do
+      post shop_orders_url(@shop),
+        params: {
+          order: {
+            pickup_type: "asap",
+            items: [ { menu_item_id: item.id, quantity: 1, modifier_option_ids: [] } ]
+          }
+        },
+        headers: { "Authorization" => "Bearer #{token}" }
+    end
+
+    assert_response :created
+    body = response.parsed_body["order"]
+    created = TenantScoped.unscoped_for_system { Order.find(body["id"]) }
+    assert_equal customer.id, created.customer_id
+    assert_equal "Ana", created.customer_name
+    assert_equal "5559998888", created.customer_phone
+    assert_equal "signedin@example.com", created.customer_email
+  end
+
   test "asap checkout is rejected when the shop is closed" do
     item = MenuItem.create!(shop: @shop, name: "Latte", price_cents: 4500, prep_time_min: 5, is_active: true, is_86ed: false)
 

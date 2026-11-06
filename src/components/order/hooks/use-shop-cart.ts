@@ -8,11 +8,18 @@ export interface StoredCartLine {
   modifierIds: string[]
 }
 
+interface StoredCart {
+  lines: StoredCartLine[]
+  savedAt: number
+}
+
 interface CartBucket {
   lines: StoredCartLine[]
   listeners: Set<() => void>
   appliedSeed: string | null
 }
+
+export const CART_TTL_MS = 4 * 60 * 60 * 1000
 
 const buckets = new Map<string, CartBucket>()
 const emptyLines: StoredCartLine[] = []
@@ -31,16 +38,27 @@ function signature(ids: string[]) {
   return ids.slice().sort().join(',')
 }
 
+function migrateStored(raw: string | null): StoredCartLine[] {
+  if (!raw) return emptyLines
+  try {
+    const parsed: unknown = JSON.parse(raw)
+    if (Array.isArray(parsed)) {
+      return parsed.filter(isLine)
+    }
+    const stored = parsed as Partial<StoredCart>
+    if (Array.isArray(stored.lines) && typeof stored.savedAt === 'number') {
+      if (Date.now() - stored.savedAt > CART_TTL_MS) return emptyLines
+      return stored.lines.filter(isLine)
+    }
+  } catch {
+    // Invalid stored cart; fall through to empty.
+  }
+  return emptyLines
+}
+
 function readStored(shopId: string): StoredCartLine[] {
   if (typeof window === 'undefined') return emptyLines
-  try {
-    const raw = window.localStorage.getItem(storageKey(shopId))
-    if (!raw) return emptyLines
-    const parsed: unknown = JSON.parse(raw)
-    return Array.isArray(parsed) ? parsed.filter(isLine) : emptyLines
-  } catch {
-    return emptyLines
-  }
+  return migrateStored(window.localStorage.getItem(storageKey(shopId)))
 }
 
 function bucket(shopId: string): CartBucket {
@@ -56,7 +74,8 @@ function persist(shopId: string, lines: StoredCartLine[]) {
   const entry = bucket(shopId)
   entry.lines = lines
   try {
-    window.localStorage.setItem(storageKey(shopId), JSON.stringify(lines))
+    const stored: StoredCart = { lines, savedAt: Date.now() }
+    window.localStorage.setItem(storageKey(shopId), JSON.stringify(stored))
   } catch {
     // Private mode can reject storage. The bag still works for this visit.
   }
@@ -83,7 +102,8 @@ export function useShopCart(shopId: string, seed: StoredCartLine[] | null = null
         entry.appliedSeed = seedKey
         entry.lines = seed
         try {
-          window.localStorage.setItem(storageKey(shopId), JSON.stringify(seed))
+          const stored: StoredCart = { lines: seed, savedAt: Date.now() }
+          window.localStorage.setItem(storageKey(shopId), JSON.stringify(stored))
         } catch {
           // Keep the seeded bag in memory when storage is unavailable.
         }
@@ -136,5 +156,9 @@ export function useShopCart(shopId: string, seed: StoredCartLine[] | null = null
     [shopId]
   )
 
-  return { lines, add, setQuantity, remove, replace }
+  const clear = useCallback(() => {
+    persist(shopId, emptyLines)
+  }, [shopId])
+
+  return { lines, add, setQuantity, remove, replace, clear }
 }

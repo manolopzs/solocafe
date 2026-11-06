@@ -7,12 +7,12 @@ import { createOrder } from '@/server/actions/orders'
 import { addFavorite, removeFavorite } from '@/server/queries/favorites'
 import { api } from '@/lib/api/client'
 import type { FullMenu } from '@/server/queries/menu'
-import { checkoutBlockedCopy, formatMoney, orderErrorCopy } from '@/lib/ordering'
+import { formatMoney, orderErrorCopy } from '@/lib/ordering'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Icon } from '@/components/ui/icon'
 import { Notice } from '@/components/ui/notice'
 import { BagBar } from '@/components/order/bag-bar'
-import { CartSheet, type CartViewLine } from '@/components/order/cart-sheet'
+import type { CartViewLine } from '@/components/order/cart-sheet'
 import { CategoryTabs } from '@/components/order/category-tabs'
 import { CheckoutSheet } from '@/components/order/checkout-sheet'
 import { ItemSheet } from '@/components/order/item-sheet'
@@ -89,18 +89,17 @@ export function OrderPageClient({
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
-  const [cartOpen, setCartOpen] = useState(() => (reorderLines?.length ?? 0) > 0)
-  const [checkoutOpen, setCheckoutOpen] = useState(false)
+  const [sheetOpen, setSheetOpen] = useState(() => (reorderLines?.length ?? 0) > 0)
   const [redeemLoyalty, setRedeemLoyalty] = useState(false)
   const [addedItemId, setAddedItemId] = useState<string | null>(null)
   const ordering = menuOrdering ?? shop.ordering
-  const { preview, loyalty, loading: previewLoading } = useCartPreview(
-    shop.id,
-    cart.lines,
-    pickupType,
-    livePreview,
-    redeemLoyalty
-  )
+  const {
+    preview,
+    loyalty,
+    loading: previewLoading,
+    error: previewError,
+    refresh: refreshPreview,
+  } = useCartPreview(shop.id, cart.lines, pickupType, livePreview, redeemLoyalty)
   const canRedeem = loyalty?.can_redeem === true
   const liveOrdering = preview?.ordering ?? ordering
 
@@ -167,9 +166,9 @@ export function OrderPageClient({
       ? 'empty'
       : previewLoading && !preview
         ? 'checking'
-        : preview?.checkout_blocked_reason ?? null
-  const blockedCopy = itemCount === 0 ? null : checkoutBlockedCopy(blockedReason)
-
+        : previewError
+          ? 'error'
+          : preview?.checkout_blocked_reason ?? null
   const itemsByCategory = useMemo(() => {
     const map = new Map<string, MenuItem[]>()
     for (const category of categories) {
@@ -240,11 +239,17 @@ export function OrderPageClient({
     setTimeout(() => setAddedItemId((id) => (id === item.id ? null : id)), 900)
   }
 
+  const quickAdd = (item: MenuItem) => {
+    cart.add(item.id, 1, [])
+    setAddedItemId(item.id)
+    setTimeout(() => setAddedItemId((id) => (id === item.id ? null : id)), 900)
+  }
+
   const reorderRecent = (order: Order) => {
     const next = linesFromOrder(order)
     if (next.length === 0) return
     cart.replace(next)
-    setCartOpen(true)
+    setSheetOpen(true)
   }
 
   const orderUsual = () => {
@@ -259,8 +264,7 @@ export function OrderPageClient({
       }))
     )
     setNotice(available.length < usualOrder.items.length ? 'Quitamos lo que ya no está disponible.' : null)
-    setCartOpen(false)
-    setCheckoutOpen(true)
+    setSheetOpen(true)
   }
 
   const handleSubmit = async (input: {
@@ -290,14 +294,18 @@ export function OrderPageClient({
     try {
       if (onCreateOrder) await onCreateOrder(payload)
       else await createOrder(payload)
+      cart.clear()
     } catch (err) {
-      if (isNextRedirect(err)) throw err
+      if (isNextRedirect(err)) {
+        cart.clear()
+        throw err
+      }
       setLoading(false)
       setError(orderErrorCopy(err instanceof Error ? err.message : ''))
     }
   }
 
-  const sheetsOpen = cartOpen || checkoutOpen
+  const sheetsOpen = sheetOpen
   const hasHero = Boolean(shop.hero_photo_url)
   const menuIsEmpty = visibleCategories.length === 0 && uncategorizedItems.length === 0
 
@@ -463,6 +471,7 @@ export function OrderPageClient({
                     isFavorite={favoriteIds.has(item.id)}
                     showFavorite={customer !== null}
                     onClick={() => setActiveItem(item)}
+                    onQuickAdd={() => quickAdd(item)}
                     onToggleFavorite={() => void toggleFavorite(item.id)}
                     formatPrice={formatPrice}
                     highlight={addedItemId === item.id}
@@ -485,6 +494,7 @@ export function OrderPageClient({
                   isFavorite={favoriteIds.has(item.id)}
                   showFavorite={customer !== null}
                   onClick={() => setActiveItem(item)}
+                  onQuickAdd={() => quickAdd(item)}
                   onToggleFavorite={() => void toggleFavorite(item.id)}
                   formatPrice={formatPrice}
                   highlight={addedItemId === item.id}
@@ -506,33 +516,24 @@ export function OrderPageClient({
         />
       )}
 
-      <CartSheet
-        open={cartOpen}
-        onClose={() => setCartOpen(false)}
-        lines={viewLines}
-        total={formatPrice(totalCents)}
-        blockedCopy={blockedCopy}
-        onQuantity={(index, quantity) => cart.setQuantity(index, quantity)}
-        onRemove={(index) => cart.remove(index)}
-        onCheckout={() => {
-          setCartOpen(false)
-          setCheckoutOpen(true)
-        }}
-      />
-
       <CheckoutSheet
-        open={checkoutOpen}
-        onClose={() => setCheckoutOpen(false)}
+        open={sheetOpen}
+        onClose={() => setSheetOpen(false)}
         shop={{ ...shop, ordering: liveOrdering }}
         customer={customer}
         lines={viewLines}
         total={formatPrice(totalCents)}
+        etaMinutes={livePreview && pickupType === 'asap' ? preview?.estimated_ready_minutes : undefined}
         blockedReason={blockedReason}
+        previewError={previewError}
+        onRefreshPreview={refreshPreview}
         loading={loading}
         error={error}
         rewardText={canRedeem ? loyalty?.reward_text : null}
         redeemLoyalty={redeemLoyalty && canRedeem}
         onRedeemLoyalty={setRedeemLoyalty}
+        onQuantity={(index, quantity) => cart.setQuantity(index, quantity)}
+        onRemove={(index) => cart.remove(index)}
         onSubmit={(input) => void handleSubmit(input)}
       />
 
@@ -541,7 +542,7 @@ export function OrderPageClient({
           count={itemCount}
           total={formatPrice(totalCents)}
           etaMinutes={livePreview && pickupType === 'asap' ? preview?.estimated_ready_minutes : undefined}
-          onOpen={() => setCartOpen(true)}
+          onOpen={() => setSheetOpen(true)}
         />
       )}
     </div>

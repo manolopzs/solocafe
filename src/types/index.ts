@@ -189,6 +189,7 @@ export interface Order {
   pickup_time: string | null
   customer_name: string | null
   customer_phone?: string | null
+  customer_email?: string | null
   special_instructions: string | null
   estimated_ready_minutes?: number
   pickup_window_starts_at?: string | null

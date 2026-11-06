@@ -9,7 +9,7 @@ export function todayHoursLabel(ordering?: ShopOrdering) {
 export function checkoutBlockedCopy(reason: string | null | undefined) {
   switch (reason) {
     case 'shop_closed':
-      return 'La cafetería está cerrada ahora. Puedes programar tu recogida.'
+      return 'La cafetería está cerrada ahora.'
     case 'not_accepting':
       return 'Ahora no tomamos pedidos para recoger.'
     case 'item_unavailable':
@@ -20,6 +20,8 @@ export function checkoutBlockedCopy(reason: string | null | undefined) {
       return 'Tu pedido está vacío.'
     case 'checking':
       return 'Revisando tu pedido.'
+    case 'error':
+      return 'No pudimos revisar tu pedido.'
     default:
       return null
   }
