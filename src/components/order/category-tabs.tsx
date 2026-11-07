@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
+import { storefrontCategoryName } from '@/lib/storefront-menu'
 import type { MenuCategory } from '@/types'
 
 export function CategoryTabs({
@@ -44,7 +45,7 @@ export function CategoryTabs({
                     : 'bg-surface text-muted-foreground hover:bg-surface-elevated hover:text-foreground',
                 ].join(' ')}
               >
-                {category.name}
+                {storefrontCategoryName(category.name)}
               </button>
             )
           })}
