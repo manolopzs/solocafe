@@ -2,6 +2,7 @@
 
 import Image from 'next/image'
 import { Icon } from '@/components/ui/icon'
+import { getMenuItemImage, storefrontItemName } from '@/lib/storefront-menu'
 import type { MenuItem } from '@/types'
 
 export function ProductCard({
@@ -25,6 +26,9 @@ export function ProductCard({
   formatPrice: (cents: number) => string
   highlight?: boolean
 }) {
+  const image = getMenuItemImage(item)
+  const displayName = storefrontItemName(item.name)
+
   return (
     <article
       className={[
@@ -39,9 +43,10 @@ export function ProductCard({
         className="block w-full text-left touch-manipulation"
       >
         <div className="relative aspect-square w-full overflow-hidden bg-surface">
-          {item.image_url ? (
+          {image ? (
             <Image
-              src={item.image_url}
+              src={image.src}
+              style={{ objectPosition: image.cardPosition }}
               alt=""
               fill
               className="object-cover transition-transform duration-300 group-hover:scale-105"
@@ -55,7 +60,7 @@ export function ProductCard({
         </div>
         <div className="p-3">
           <div className="flex items-start justify-between gap-2">
-            <h3 className="text-[15px] font-medium leading-snug text-foreground line-clamp-2">{item.name}</h3>
+            <h3 className="text-[15px] font-medium leading-snug text-foreground line-clamp-2">{displayName}</h3>
             <p className="shrink-0 pt-0.5 text-sm font-medium tabular-nums text-foreground">
               {formatPrice(item.price_cents)}
             </p>
@@ -86,7 +91,7 @@ export function ProductCard({
             onQuickAdd()
           }}
           className="absolute bottom-3 right-3 flex h-9 w-9 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-md transition-transform active:scale-90"
-          aria-label={`Añadir ${item.name}`}
+          aria-label={`Añadir ${displayName}`}
         >
           <Icon name="plus" className="h-5 w-5" />
         </button>

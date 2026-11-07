@@ -8,6 +8,7 @@ import { addFavorite, removeFavorite } from '@/server/queries/favorites'
 import { api } from '@/lib/api/client'
 import type { FullMenu } from '@/server/queries/menu'
 import { formatMoney, orderErrorCopy } from '@/lib/ordering'
+import { storefrontCategoryName } from '@/lib/storefront-menu'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Icon } from '@/components/ui/icon'
 import { Notice } from '@/components/ui/notice'
@@ -461,7 +462,7 @@ export function OrderPageClient({
           if (categoryItems.length === 0) return null
           return (
             <section key={category.id} ref={setRef(category.id)} className="scroll-mt-16 pb-8">
-              <h2 className="shop-display-font pt-4 text-[1.65rem] font-medium tracking-tight text-foreground">{category.name}</h2>
+              <h2 className="shop-display-font pt-4 text-[1.65rem] font-medium tracking-tight text-foreground">{storefrontCategoryName(category.name)}</h2>
               <div className="mt-3 grid grid-cols-2 gap-3">
                 {categoryItems.map((item) => (
                   <ProductCard
