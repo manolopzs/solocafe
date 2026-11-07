@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Icon } from '@/components/ui/icon'
 import { QuantityStepper } from '@/components/order/quantity-stepper'
 import { Sheet } from '@/components/ui/sheet'
+import { getMenuItemImage, storefrontItemName } from '@/lib/storefront-menu'
 import type { MenuItem, ModifierGroup, ModifierOption } from '@/types'
 
 export function ItemSheet({
@@ -23,6 +24,7 @@ export function ItemSheet({
   onAdd: (quantity: number, modifierIds: string[]) => void
   formatPrice: (cents: number) => string
 }) {
+  const image = getMenuItemImage(item)
   const [quantity, setQuantity] = useState(1)
   const [selected, setSelected] = useState<Record<string, string[]>>(() => {
     const defaults: Record<string, string[]> = {}
@@ -57,8 +59,15 @@ export function ItemSheet({
     <Sheet open onClose={onClose} position="bottom">
       <div className="flex flex-col">
         <div className="relative -mx-6 -mt-2 h-64 overflow-hidden bg-surface sm:h-80">
-          {item.image_url ? (
-            <Image src={item.image_url} alt="" fill sizes="(max-width: 768px) 100vw, 768px" className="object-cover" />
+          {image ? (
+            <Image
+              src={image.src}
+              style={{ objectPosition: image.sheetPosition }}
+              alt=""
+              fill
+              sizes="(max-width: 768px) 100vw, 768px"
+              className="object-cover"
+            />
           ) : (
             <div className="flex h-full w-full items-center justify-center bg-surface text-muted-foreground">
               <Icon name="coffee" className="h-14 w-14 opacity-30" />
@@ -76,7 +85,7 @@ export function ItemSheet({
 
         <div className="mt-5">
           <div className="flex items-start justify-between gap-4">
-            <h2 className="text-2xl font-medium tracking-tight text-foreground">{item.name}</h2>
+            <h2 className="text-2xl font-medium tracking-tight text-foreground">{storefrontItemName(item.name)}</h2>
             <p className="shrink-0 pt-1 text-base font-medium tabular-nums text-foreground">{formatPrice(item.price_cents)}</p>
           </div>
           {item.description && <p className="mt-2 text-sm leading-6 text-muted-foreground">{item.description}</p>}
