@@ -40,7 +40,7 @@ export default async function Home() {
   const pricing = await loadPublicPricing();
 
   return (
-    <main className="flex flex-1 flex-col">
+    <main className="flex flex-1 flex-col" data-hide-bottom-nav>
       <nav className="sticky top-0 z-50 border-b border-border bg-background/90 px-4 py-4 backdrop-blur-md sm:px-6">
         <div className="mx-auto flex max-w-6xl items-center justify-between">
           <Link href="/" className="flex shrink-0 items-center gap-2 whitespace-nowrap">
