@@ -58,10 +58,10 @@ export default async function Home() {
             <Link href="#precios" className="hover:text-foreground">Precios</Link>
           </div>
           <div className="flex shrink-0 items-center gap-1 sm:gap-3">
-            <Button asChild variant="ghost" size="sm" className="hidden whitespace-nowrap md:inline-flex">
+            <Button asChild variant="ghost" size="sm" className="max-md:hidden whitespace-nowrap">
               <Link href="/auth/login">Soy cafetería</Link>
             </Button>
-            <Button asChild variant="ghost" size="sm" className="hidden whitespace-nowrap md:inline-flex">
+            <Button asChild variant="ghost" size="sm" className="max-md:hidden whitespace-nowrap">
               <Link href="/account/login">Soy cliente</Link>
             </Button>
             <Button asChild size="sm" className="min-h-9 whitespace-nowrap">
