@@ -16,7 +16,9 @@ export function useCartPreview(
   enabled: boolean,
   redeemLoyalty = false
 ) {
-  const [preview, setPreview] = useState<CartPreview | null>(null)
+  // Keep the request key with the quote so a quote for an older bag is never
+  // shown next to the current lines (e.g. right after a quick-add).
+  const [quote, setQuote] = useState<{ key: string; data: CartPreview } | null>(null)
   const [loading, setLoading] = useState(enabled)
   const [error, setError] = useState<string | null>(null)
   const [retryAttempt, setRetryAttempt] = useState(0)
@@ -64,7 +66,7 @@ export function useCartPreview(
         ])
 
         if (cancelled) return
-        setPreview(data)
+        setQuote({ key: requestKey, data })
         setRetryAttempt(0)
         setError(null)
       } catch (err) {
@@ -78,7 +80,7 @@ export function useCartPreview(
         }
 
         const message = err instanceof Error ? err.message : ''
-        setPreview(null)
+        setQuote(null)
         setError(orderErrorCopy(message) || 'No pudimos revisar tu pedido. Toca para reintentar.')
       } finally {
         if (timeoutId) clearTimeout(timeoutId)
@@ -112,6 +114,7 @@ export function useCartPreview(
   }
 
   if (!enabled) return { preview: null, loyalty: null, loading: false, error: null, refresh }
+  const preview = quote?.key === requestKey ? quote.data : null
   return {
     preview,
     loyalty: preview?.loyalty ?? null,
