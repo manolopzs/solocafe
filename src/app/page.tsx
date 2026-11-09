@@ -40,14 +40,14 @@ export default async function Home() {
   const pricing = await loadPublicPricing();
 
   return (
-    <main className="flex flex-1 flex-col">
-      <nav className="sticky top-0 z-50 border-b border-border bg-background/90 px-6 py-4 backdrop-blur-md">
+    <main className="flex flex-1 flex-col" data-hide-bottom-nav>
+      <nav className="sticky top-0 z-50 border-b border-border bg-background/90 px-4 py-4 backdrop-blur-md sm:px-6">
         <div className="mx-auto flex max-w-6xl items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
+          <Link href="/" className="flex shrink-0 items-center gap-2 whitespace-nowrap">
             <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm">
               <Icon name="coffee" className="h-5 w-5" />
             </div>
-            <span className="font-sans text-xl font-semibold tracking-tight text-foreground">
+            <span className="font-sans text-lg font-semibold tracking-tight text-foreground sm:text-xl">
               Solo Café
             </span>
           </Link>
@@ -57,14 +57,14 @@ export default async function Home() {
             <Link href="#cafeterias" className="hover:text-foreground">Cafeterías</Link>
             <Link href="#precios" className="hover:text-foreground">Precios</Link>
           </div>
-          <div className="flex items-center gap-2 sm:gap-3">
-            <Button asChild variant="ghost" size="sm" className="hidden whitespace-nowrap md:inline-flex">
+          <div className="flex shrink-0 items-center gap-1 sm:gap-3">
+            <Button asChild variant="ghost" size="sm" className="max-md:hidden whitespace-nowrap">
               <Link href="/auth/login">Soy cafetería</Link>
             </Button>
-            <Button asChild variant="ghost" size="sm" className="hidden whitespace-nowrap md:inline-flex">
+            <Button asChild variant="ghost" size="sm" className="max-md:hidden whitespace-nowrap">
               <Link href="/account/login">Soy cliente</Link>
             </Button>
-            <Button asChild size="sm" className="whitespace-nowrap">
+            <Button asChild size="sm" className="min-h-9 whitespace-nowrap">
               <Link href="/auth/signup">Empezar gratis</Link>
             </Button>
             <MobileNav />
