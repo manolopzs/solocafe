@@ -9,10 +9,12 @@ export default function ContactoPage() {
   return (
     <LegalDraftPage title="Contacto">
       <p>
-        Esta página de contacto es un borrador pendiente de revisión legal. El canal público todavía no está publicado.
+        ¿Tienes dudas o quieres hablar con nosotros? Escríbenos un correo y te responderemos lo antes posible.
       </p>
       <p>
-        Cuando el texto esté revisado, aquí aparecerá cómo escribir al responsable. Hasta entonces el único contacto es el marcador [correo de contacto].
+        <a href="mailto:" className="text-terracotta-800 hover:underline">
+          Enviar correo
+        </a>
       </p>
     </LegalDraftPage>
   )
