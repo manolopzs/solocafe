@@ -3,6 +3,9 @@ class StripeConnectController < ApplicationController
   before_action :require_shop_member!
 
   def create
+    ensure_stripe_configured!
+    return if performed?
+
     account_id = Current.shop.stripe_account_id
 
     if account_id.present?
@@ -34,12 +37,19 @@ class StripeConnectController < ApplicationController
 
     render json: { url: account_link.url, onboarding: ShopOnboarding.snapshot(Current.shop.reload) }
   rescue Stripe::StripeError => e
-    render json: { error: e.message }, status: :bad_gateway
+    log_connect_stripe_error(e)
+    render json: {
+      error: "stripe_unavailable",
+      message: "No se pudo conectar con Stripe. Inténtalo de nuevo."
+    }, status: :bad_gateway
   rescue ActiveRecord::RecordInvalid => e
     render json: { errors: [ e.message ] }, status: :unprocessable_entity
   end
 
   def status
+    ensure_stripe_configured!
+    return if performed?
+
     if Current.shop.stripe_account_id.blank?
       render json: { onboarding: ShopOnboarding.snapshot(Current.shop) }
       return
@@ -49,7 +59,11 @@ class StripeConnectController < ApplicationController
     ShopOnboarding.apply_stripe_account!(Current.shop, account)
     render json: { onboarding: ShopOnboarding.snapshot(Current.shop.reload) }
   rescue Stripe::StripeError => e
-    render json: { error: e.message }, status: :bad_gateway
+    log_connect_stripe_error(e)
+    render json: {
+      error: "stripe_unavailable",
+      message: "No se pudo conectar con Stripe. Inténtalo de nuevo."
+    }, status: :bad_gateway
   end
 
   private
@@ -64,5 +78,11 @@ class StripeConnectController < ApplicationController
 
   def return_url
     connect_params[:return_url] || "#{request.base_url}/shops/#{Current.shop.id}/stripe/connect/return"
+  end
+
+  def log_connect_stripe_error(error)
+    Rails.logger.error(
+      "stripe_connect.error class=#{error.class.name} code=#{error.respond_to?(:code) ? error.code : nil} shop_id=#{Current.shop&.id}"
+    )
   end
 end

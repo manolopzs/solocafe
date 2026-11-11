@@ -23,7 +23,11 @@ async function request<T>(
   }
 
   const url = `${env.NEXT_PUBLIC_API_URL}${path}`
-  const response = await fetch(url, { ...options, headers }).catch((err) => {
+  const signal = options.signal ?? AbortSignal.timeout(15_000)
+  const response = await fetch(url, { ...options, headers, signal }).catch((err) => {
+    if (err instanceof Error && err.name === 'TimeoutError') {
+      throw new Error(`${url}: timeout`)
+    }
     throw new Error(`Fetch failed for ${url}: ${err instanceof Error ? err.message : String(err)}`)
   })
 
