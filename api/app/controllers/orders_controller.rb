@@ -104,23 +104,11 @@ class OrdersController < ApplicationController
       return
     end
 
-    unless order.staff_can_transition_to?(new_status)
-      render json: { errors: [ "Cannot transition from #{order.status} to #{new_status}" ] }, status: :unprocessable_entity
-      return
-    end
-
-    old_status = order.status
-    ActiveRecord::Base.transaction do
-      order.update!(status: new_status)
-      if new_status == "cancelled"
-        order.release_slot!
-        LoyaltyStamp.unwind!(order)
-      end
-      create_status_event(order, old_status, new_status)
-      notify_customer_ready!(order) if new_status == "ready"
-    end
+    order.apply_staff_status!(new_status)
     saved = Current.shop.orders.includes(ORDER_INCLUDES).find(order.id)
     render json: { order: order_payload(saved, audience: :staff) }
+  rescue Order::InvalidStatusTransition => e
+    render json: { errors: [ e.message ] }, status: :unprocessable_entity
   rescue ActiveRecord::RecordNotFound
     render json: { error: "Order not found" }, status: :not_found
   end
@@ -352,35 +340,8 @@ class OrdersController < ApplicationController
       end
   end
 
-  def create_status_event(order, from_status, to_status)
-    Current.shop.events.create!(
-      order: order,
-      event_type: "order.status_changed",
-      payload: { from: from_status, to: to_status }
-    )
-  end
-
   def push_config
     { vapid_public_key: ENV["VAPID_PUBLIC_KEY"].presence }
-  end
-
-  def notify_customer_ready!(order)
-    has_push = Current.shop.push_devices.where(audience: "customer", order_id: order.id).exists?
-    channel = if has_push
-      "web_push"
-    elsif order.customer_phone.present?
-      "sms"
-    else
-      "in_app"
-    end
-
-    Current.shop.notifications.create!(
-      order: order,
-      notification_type: "order.ready",
-      channel: channel,
-      status: has_push ? "queued" : "pending"
-    )
-    CustomerReadyPush.enqueue(order)
   end
 
   def order_params
