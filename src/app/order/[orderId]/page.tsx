@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation'
 import { getPublicOrderView } from '@/server/queries/orders'
 import { OrderStatusClient } from '@/components/order/order-status-client'
 import { PaymentReturnSync } from '@/components/order/payment-return-sync'
+import { RememberGuestOrder } from '@/components/order/remember-guest-order'
 
 export const instant = false
 
@@ -19,6 +20,7 @@ export default async function OrderStatusPage({ params, searchParams }: OrderSta
   return (
     <>
       {sync === '1' && <PaymentReturnSync orderId={orderId} accessToken={token} />}
+      {token && <RememberGuestOrder order={view.order} token={token} />}
       <OrderStatusClient
         initialOrder={view.order}
         accessToken={token}

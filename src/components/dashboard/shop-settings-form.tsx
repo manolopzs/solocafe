@@ -33,10 +33,10 @@ function settingsError(err: unknown) {
         return parsed.join(' ')
       }
     } catch {
-      return 'No se pudieron guardar los cambios. Revisa los datos e intenta de nuevo.'
+      return 'No se pudieron guardar los cambios. Revisa los datos e inténtalo de nuevo.'
     }
   }
-  return 'No se pudieron guardar los cambios. Revisa los datos e intenta de nuevo.'
+  return 'No se pudieron guardar los cambios. Revisa los datos e inténtalo de nuevo.'
 }
 
 export function ShopSettingsForm({ shopId, shop }: { shopId: string; shop: Shop }) {

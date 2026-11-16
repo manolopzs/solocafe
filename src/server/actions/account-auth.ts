@@ -9,7 +9,7 @@ export async function accountLoginAction(prevState: unknown, formData: FormData)
   const password = formData.get('password') as string
 
   if (!email || !password) {
-    return { error: 'Correo y contraseña son requeridos' }
+    return { error: 'Introduce tu correo y tu contraseña' }
   }
 
   let token: string | undefined
@@ -38,7 +38,7 @@ export async function accountSignupAction(prevState: unknown, formData: FormData
   const phone = formData.get('phone') as string
 
   if (!email || !password) {
-    return { error: 'Correo y contraseña son requeridos' }
+    return { error: 'Introduce tu correo y tu contraseña' }
   }
 
   let token: string | undefined

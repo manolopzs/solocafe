@@ -1,5 +1,15 @@
 import type { ShopOrdering } from '@/types'
 
+/**
+ * False only when the API says the owner has not saved hours yet. In that
+ * case the API still orders on default hours, but screens should not show
+ * those defaults (or "Abierto") as if they were the shop's real hours.
+ * Older payloads without the flag count as configured.
+ */
+export function hoursConfigured(source?: object | null) {
+  return (source as { hours_configured?: unknown } | null | undefined)?.hours_configured !== false
+}
+
 export function todayHoursLabel(ordering?: ShopOrdering) {
   const today = ordering?.today
   if (!today?.is_open || !today.open || !today.close) return 'Hoy cerrado'

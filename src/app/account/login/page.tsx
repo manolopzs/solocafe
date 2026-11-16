@@ -24,7 +24,7 @@ export default function AccountLoginPage() {
         </Link>
 
         <h1 className="mt-10 text-[2rem] font-medium leading-tight tracking-tight text-foreground">Inicia sesión</h1>
-        <p className="mt-2 text-base leading-6 text-muted-foreground">Accede a tu cuenta para ver tus pedidos y reordenar.</p>
+        <p className="mt-2 text-base leading-6 text-muted-foreground">Accede a tu cuenta para ver tus pedidos y repetirlos.</p>
 
         <form action={formAction} className="mt-8 space-y-4">
           <div>

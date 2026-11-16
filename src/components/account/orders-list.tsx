@@ -51,7 +51,7 @@ export function OrdersList({ orders }: { orders: Order[] }) {
             <EmptyState
               icon={<Icon name="receipt" className="h-6 w-6" />}
               title="Aún no tienes pedidos"
-              description="Cuando hagas tu primera orden aparecerá aquí."
+              description="Cuando hagas tu primer pedido, aparecerá aquí."
               action={
                 <Button asChild>
                   <Link href="/explore">Explorar cafeterías</Link>
@@ -92,7 +92,7 @@ function OrderCard({ order }: { order: Order }) {
         <div className="mt-4 flex items-center justify-between border-t border-border pt-3">
           <span className="font-medium tabular-nums text-foreground">{formatMoney(order.total_cents, order.currency)}</span>
           <Button asChild variant="outline" size="sm">
-            <Link href={`/${shopSlug}?reorder=${order.id}`}>Reordenar</Link>
+            <Link href={`/${shopSlug}?reorder=${order.id}`}>Repetir pedido</Link>
           </Button>
         </div>
       </CardContent>
