@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Icon } from '@/components/ui/icon'
+import { CUSTOMER_HOME_PATH } from '@/lib/site'
 import { CUSTOMER_TIME_ZONE, formatMoney } from '@/lib/ordering'
 import type { Order } from '@/types'
 
@@ -54,7 +55,7 @@ export function OrdersList({ orders }: { orders: Order[] }) {
               description="Cuando hagas tu primer pedido, aparecerá aquí."
               action={
                 <Button asChild>
-                  <Link href="/explore">Explorar cafeterías</Link>
+                  <Link href={CUSTOMER_HOME_PATH}>Hacer un pedido</Link>
                 </Button>
               }
             />

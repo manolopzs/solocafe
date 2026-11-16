@@ -39,16 +39,6 @@ export function ShopSwitcher({ shop }: { shop: RecentShop }) {
             <p className="text-xs text-muted-foreground">Estás en</p>
             <p className="shop-display-font mt-0.5 truncate text-lg font-medium text-foreground">{shop.name}</p>
           </div>
-          <Link
-            href="/explore"
-            onClick={() => setOpen(false)}
-            className="flex min-h-14 items-center gap-3 rounded-2xl px-3 text-base font-medium text-foreground hover:bg-surface"
-          >
-            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
-              <Icon name="search" className="h-5 w-5" />
-            </span>
-            Ver todas las cafeterías
-          </Link>
           <p className="px-3 pt-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">Recientes</p>
           {others.length === 0 ? (
             <p className="px-3 py-2 text-sm text-muted-foreground">Aún no has visitado otras cafeterías.</p>

@@ -5,8 +5,8 @@ import { usePathname } from 'next/navigation'
 import { useSyncExternalStore } from 'react'
 import { Icon } from '@/components/ui/icon'
 import { EMPTY_RECENT_SHOPS, getRecentSnapshot, subscribeRecentShops, type RecentShop } from '@/lib/recent-shops'
+import { CUSTOMER_HOME_PATH } from '@/lib/site'
 
-const EXPLORE_HREF = '/explore'
 // Slug of the /demo shop (src/lib/demo-data.ts). It has no /<slug> route.
 const DEMO_SHOP_SLUG = 'cafeteria-demo'
 
@@ -14,12 +14,12 @@ const hiddenPrefixes = ['/dashboard', '/auth', '/account/login', '/account/signu
 const hiddenPaths = ['/contacto', '/privacidad', '/terminos', '/aviso-legal', '/cookies']
 
 /**
- * Customer "Inicio": the last storefront this phone visited, or Explorar.
+ * Customer "Inicio": the last storefront this phone visited, or /inicio.
  * Never the owner landing page at "/".
  */
 export function customerHomeHref(recent: readonly RecentShop[]): string {
   const lastShop = recent.find((shop) => shop.slug && shop.slug !== DEMO_SHOP_SLUG)
-  return lastShop ? `/${encodeURIComponent(lastShop.slug)}` : EXPLORE_HREF
+  return lastShop ? `/${encodeURIComponent(lastShop.slug)}` : CUSTOMER_HOME_PATH
 }
 
 export function BottomNav() {
@@ -33,15 +33,12 @@ export function BottomNav() {
 
   const navItems = [
     { key: 'inicio', href: homeHref, label: 'Inicio', icon: 'store' },
-    { key: 'explorar', href: EXPLORE_HREF, label: 'Explorar', icon: 'search' },
     { key: 'pedidos', href: '/account/orders', label: 'Pedidos', icon: 'receipt' },
     { key: 'cuenta', href: '/account', label: 'Cuenta', icon: 'user' },
   ] as const
 
   const isActive = (key: (typeof navItems)[number]['key'], href: string) => {
-    // With no shop visited yet, Inicio is Explorar, so /explore lights Inicio (mock 02a).
-    if (key === 'inicio') return pathname === homeHref
-    if (key === 'explorar' && homeHref === EXPLORE_HREF) return false
+    if (key === 'inicio') return pathname === homeHref || pathname === CUSTOMER_HOME_PATH
     if (key === 'cuenta') return pathname === href
     return pathname === href || pathname.startsWith(`${href}/`)
   }
