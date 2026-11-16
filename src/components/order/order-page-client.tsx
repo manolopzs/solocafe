@@ -93,6 +93,7 @@ export function OrderPageClient({
   const [sheetOpen, setSheetOpen] = useState(() => (reorderLines?.length ?? 0) > 0)
   const [redeemLoyalty, setRedeemLoyalty] = useState(false)
   const [addedItemId, setAddedItemId] = useState<string | null>(null)
+  const [bagPulse, setBagPulse] = useState(0)
   const ordering = menuOrdering ?? shop.ordering
   const {
     preview,
@@ -152,6 +153,13 @@ export function OrderPageClient({
   }, [cart.lines, items, modifierOptions, preview, formatPrice])
 
   const itemCount = cart.lines.reduce((sum, line) => sum + line.quantity, 0)
+  const plainQuantities = useMemo(() => {
+    const quantities = new Map<string, number>()
+    for (const line of cart.lines) {
+      if (line.modifierIds.length === 0) quantities.set(line.itemId, (quantities.get(line.itemId) ?? 0) + line.quantity)
+    }
+    return quantities
+  }, [cart.lines])
   const catalogTotal = cart.lines.reduce((sum, line) => {
     const item = items.find((candidate) => candidate.id === line.itemId)
     const modifiers = line.modifierIds
@@ -235,6 +243,7 @@ export function OrderPageClient({
 
   const addToCart = (item: MenuItem, quantity: number, modifierIds: string[]) => {
     cart.add(item.id, quantity, modifierIds)
+    setBagPulse((n) => n + 1)
     setActiveItem(null)
     setAddedItemId(item.id)
     setTimeout(() => setAddedItemId((id) => (id === item.id ? null : id)), 900)
@@ -242,8 +251,15 @@ export function OrderPageClient({
 
   const quickAdd = (item: MenuItem) => {
     cart.add(item.id, 1, [])
+    setBagPulse((n) => n + 1)
     setAddedItemId(item.id)
     setTimeout(() => setAddedItemId((id) => (id === item.id ? null : id)), 900)
+  }
+
+  const quickRemove = (item: MenuItem) => {
+    const index = cart.lines.findIndex((line) => line.itemId === item.id && line.modifierIds.length === 0)
+    if (index === -1) return
+    cart.setQuantity(index, cart.lines[index].quantity - 1)
   }
 
   const reorderRecent = (order: Order) => {
@@ -473,6 +489,8 @@ export function OrderPageClient({
                     showFavorite={customer !== null}
                     onClick={() => setActiveItem(item)}
                     onQuickAdd={() => quickAdd(item)}
+                    quantity={plainQuantities.get(item.id) ?? 0}
+                    onDecrement={() => quickRemove(item)}
                     onToggleFavorite={() => void toggleFavorite(item.id)}
                     formatPrice={formatPrice}
                     highlight={addedItemId === item.id}
@@ -496,6 +514,8 @@ export function OrderPageClient({
                   showFavorite={customer !== null}
                   onClick={() => setActiveItem(item)}
                   onQuickAdd={() => quickAdd(item)}
+                  quantity={plainQuantities.get(item.id) ?? 0}
+                  onDecrement={() => quickRemove(item)}
                   onToggleFavorite={() => void toggleFavorite(item.id)}
                   formatPrice={formatPrice}
                   highlight={addedItemId === item.id}
@@ -544,6 +564,7 @@ export function OrderPageClient({
           total={formatPrice(totalCents)}
           etaMinutes={livePreview && pickupType === 'asap' ? preview?.estimated_ready_minutes : undefined}
           onOpen={() => setSheetOpen(true)}
+          pulseKey={bagPulse}
         />
       )}
     </div>

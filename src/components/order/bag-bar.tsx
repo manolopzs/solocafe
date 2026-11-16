@@ -7,20 +7,25 @@ export function BagBar({
   total,
   etaMinutes,
   onOpen,
+  pulseKey = 0,
 }: {
   count: number
   total: string
   etaMinutes?: number
   onOpen: () => void
+  /** Bumped on every add; the bar pulses once each time it changes. */
+  pulseKey?: number
 }) {
   if (count <= 0) return null
 
   return (
     <div className="pointer-events-none fixed inset-x-0 bottom-14 z-40 px-4 pb-[max(0.85rem,env(safe-area-inset-bottom))] pt-2">
       <button
+        key={pulseKey}
         type="button"
         onClick={onOpen}
-        className="pointer-events-auto mx-auto flex h-14 w-full max-w-3xl items-center justify-between rounded-2xl bg-cta px-4 text-cta-foreground shadow-float transition-colors hover:bg-cta-hover active:bg-cta-hover animate-rise touch-manipulation"
+        data-pulse={pulseKey > 0 ? 'true' : undefined}
+        className={`pointer-events-auto mx-auto flex h-14 w-full max-w-3xl items-center justify-between rounded-2xl bg-cta px-4 text-cta-foreground shadow-float transition-colors hover:bg-cta-hover active:bg-cta-hover ${pulseKey > 0 ? 'animate-bag-pulse' : 'animate-rise'} touch-manipulation`}
       >
         <span className="flex items-center gap-2.5 font-medium">
           <Icon name="cart" className="h-5 w-5" />
