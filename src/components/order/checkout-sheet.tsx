@@ -297,7 +297,7 @@ export function CheckoutSheet({
                   type="text"
                   value={customerName}
                   onChange={(event) => setCustomerName(event.target.value)}
-                  placeholder="¿Cómo te llaman?"
+                  placeholder="¿Cómo te llamas?"
                   className="mt-1.5"
                 />
               </div>
