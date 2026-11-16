@@ -95,6 +95,13 @@ describe('guest orders store', () => {
     })
   })
 
+  it('keeps the quoted ready time only when the order has one', () => {
+    const store = freshModule()
+    const base = { id: 'abc', status: 'received', total_cents: 400, currency: 'EUR', item_count: 1, created_at: '2026-11-16T09:00:00Z' }
+    expect(store.guestOrderFromOrder({ ...base, estimated_ready_minutes: 15 } as unknown as Order, 'tok').estimatedReadyMinutes).toBe(15)
+    expect(store.guestOrderFromOrder(base as unknown as Order, 'tok')).not.toHaveProperty('estimatedReadyMinutes')
+  })
+
   it('keeps a short summary of the items when the payload has them', () => {
     const store = freshModule()
     const order = {

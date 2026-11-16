@@ -7,6 +7,7 @@ import { Icon } from '@/components/ui/icon'
 import { CUSTOMER_HOME_PATH } from '@/lib/site'
 import { CUSTOMER_TIME_ZONE, formatMoney } from '@/lib/ordering'
 import type { Order } from '@/types'
+import { customerReorderHref } from '@/lib/guest-orders'
 
 const statusLabels: Record<string, string> = {
   pending_payment: 'Pendiente de pago',
@@ -69,7 +70,7 @@ export function OrdersList({ orders }: { orders: Order[] }) {
 }
 
 function OrderCard({ order }: { order: Order }) {
-  const shopSlug = order.shop_slug ?? 'demo'
+  const reorderHref = customerReorderHref(order)
 
   return (
     <Card variant="flat">
@@ -92,9 +93,11 @@ function OrderCard({ order }: { order: Order }) {
 
         <div className="mt-4 flex items-center justify-between border-t border-border pt-3">
           <span className="font-medium tabular-nums text-foreground">{formatMoney(order.total_cents, order.currency)}</span>
-          <Button asChild variant="outline" size="sm">
-            <Link href={`/${shopSlug}?reorder=${order.id}`}>Repetir pedido</Link>
-          </Button>
+          {reorderHref && (
+            <Button asChild variant="outline" size="sm">
+              <Link href={reorderHref}>Repetir pedido</Link>
+            </Button>
+          )}
         </div>
       </CardContent>
     </Card>
