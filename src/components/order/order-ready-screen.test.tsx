@@ -52,6 +52,14 @@ describe('Listo screen on the order status page', () => {
     expect(screen.getByText('Dilo o enséñalo en la barra')).toBeInTheDocument()
   })
 
+  it('sets the heading in sentence case, without the all-caps transform', () => {
+    render(<OrderStatusClient initialOrder={readyOrder({ customer_name: 'Lucía Pérez' })} />)
+    const heading = screen.getByRole('heading', { level: 1 })
+    expect(heading).toHaveTextContent('¡Listo,Lucía!')
+    expect(heading).not.toHaveClass('uppercase')
+    expect(heading).toHaveClass('text-heading')
+  })
+
   it('falls back to "¡Listo!" without a name', () => {
     render(<OrderStatusClient initialOrder={readyOrder({ customer_name: '  ' })} />)
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(/^¡Listo!$/)

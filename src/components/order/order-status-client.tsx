@@ -239,8 +239,10 @@ export function OrderStatusClient({
 
         {notificationPermission === 'default' && order.status !== 'cancelled' && order.status !== 'picked_up' && (
           <Button variant="outline" className="mt-4 w-full" onClick={() => void requestNotification()}>
-            <Icon name="bell" className="mr-2 h-4 w-4" />
-            Avísame cuando esté listo
+            <span className="inline-flex items-center gap-2">
+              <Icon name="bell" className="h-4 w-4" />
+              Avísame cuando esté listo
+            </span>
           </Button>
         )}
 

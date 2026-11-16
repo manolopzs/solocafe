@@ -20,6 +20,14 @@ export function readyFirstName(customerName: string | null | undefined): string 
 }
 
 /**
+ * DM Sans draws "¡" hanging below the baseline. Lift it so both marks sit on
+ * the baseline like the letters. Measured at 3x: the glyph drops ~0.19em.
+ */
+function OpeningMark() {
+  return <span className="relative -top-[0.19em]">¡</span>
+}
+
+/**
  * Full-screen "Listo" takeover for the order status page (mock 01b).
  * It sits above the customer tab bar (z-40), so the tab bar and "Avísame"
  * are out of the way once the order is ready.
@@ -49,15 +57,16 @@ export function OrderReadyScreen({ order, menuHref }: { order: ReadyOrder; menuH
           </Link>
         </div>
 
-        <h1 className="mt-8 break-words text-[4.25rem] font-bold uppercase leading-[0.9] tracking-tight text-foreground">
+        <h1 className="mt-8 break-words text-[3.75rem] font-bold leading-[1.05] tracking-[-0.01em] text-heading">
+          <OpeningMark />
           {name ? (
             <>
-              ¡Listo,
+              Listo,
               <br />
               {name}!
             </>
           ) : (
-            '¡Listo!'
+            'Listo!'
           )}
         </h1>
         <p className="mt-4 text-lg font-semibold leading-snug">Tu pedido está listo. Pasa a recogerlo.</p>
