@@ -44,6 +44,15 @@ describe('BarHandoff', () => {
     expect(onClose).toHaveBeenCalledTimes(1)
   })
 
+  it('places the code group at the optical centre between the header and Volver', () => {
+    renderHandoff()
+    const group = screen.getByTestId('bar-handoff-group')
+    expect(group.className).toContain('flex-1')
+    const spacers = Array.from(group.children).filter((child) => child.getAttribute('aria-hidden') === 'true')
+    expect(spacers.map((spacer) => spacer.className)).toEqual(['min-h-6 flex-1', 'min-h-6 flex-[2]'])
+    expect(group.contains(screen.getByTestId('bar-pickup-code'))).toBe(true)
+  })
+
   it('closes with Escape', () => {
     const onClose = renderHandoff()
     fireEvent.keyDown(document, { key: 'Escape' })

@@ -60,18 +60,23 @@ export function BarHandoff({
           <span className="truncate">{shopName}</span>
         </div>
 
-        <p className="mt-6 text-center text-eyebrow uppercase text-listo-muted">Enséñalo en la barra</p>
-        <div className="mt-3 rounded-code bg-sky-tint/70 px-6 pb-7 pt-6 text-center">
-          <p
-            className="text-[108px] font-semibold leading-none tracking-[-0.02em] tabular-nums text-foreground"
-            data-testid="bar-pickup-code"
-          >
-            {pickupCode(orderId)}
-          </p>
-          {customerName && <p className="mt-6 text-[28px] font-semibold leading-[34px] tracking-[-0.015em]">{customerName}</p>}
-          {summary && <p className={[customerName ? 'mt-1' : 'mt-6', 'text-body text-listo-muted'].join(' ')}>{summary}</p>}
+        {/* Between the header and Volver, at the optical centre: one third of the free space above, two below. */}
+        <div className="flex flex-1 flex-col" data-testid="bar-handoff-group">
+          <span className="min-h-6 flex-1" aria-hidden="true" />
+          <p className="text-center text-eyebrow uppercase text-listo-muted">Enséñalo en la barra</p>
+          <div className="mt-3 rounded-code bg-sky-tint/70 px-6 pb-9 pt-8 text-center">
+            <p
+              className="text-[108px] font-semibold leading-none tracking-[-0.02em] tabular-nums text-foreground"
+              data-testid="bar-pickup-code"
+            >
+              {pickupCode(orderId)}
+            </p>
+            {customerName && <p className="mt-6 text-[28px] font-semibold leading-[34px] tracking-[-0.015em]">{customerName}</p>}
+            {summary && <p className={[customerName ? 'mt-1' : 'mt-6', 'text-body text-listo-muted'].join(' ')}>{summary}</p>}
+          </div>
+          <p className="mx-auto mt-4 max-w-[30ch] text-center text-body-sm text-listo-muted [text-wrap:balance]">{hint}</p>
+          <span className="min-h-6 flex-[2]" aria-hidden="true" />
         </div>
-        <p className="mx-auto mt-4 max-w-[30ch] text-center text-body-sm text-listo-muted [text-wrap:balance]">{hint}</p>
       </div>
 
       <div className="fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+12px)] px-5">
