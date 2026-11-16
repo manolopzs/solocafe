@@ -49,7 +49,7 @@ describe('Listo screen on the order status page', () => {
     expect(screen.getByTestId('order-ready-screen')).toHaveClass('bg-listo-bg')
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(/^¡Listo, Ana!$/)
     expect(screen.getByTestId('ready-pickup-code')).toHaveTextContent(/^C0DE$/)
-    expect(screen.getByText('Dilo o enséñalo en la barra')).toBeInTheDocument()
+    expect(screen.getByText('Dilo, o tócalo para enseñarlo en la barra')).toBeInTheDocument()
   })
 
   it('sets the heading in sentence case, without the all-caps transform', () => {
@@ -100,6 +100,16 @@ describe('Listo screen on the order status page', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Ver detalle del pedido' }))
     expect(screen.getByText('1 × Cortado')).toBeInTheDocument()
     expect(screen.getByText('Leche de avena')).toBeInTheDocument()
+  })
+
+  it('opens the full-screen code for the bar when the code is tapped, and Volver closes it', () => {
+    render(<OrderStatusClient initialOrder={readyOrder()} />)
+    expect(screen.queryByTestId('bar-handoff')).not.toBeInTheDocument()
+    fireEvent.click(screen.getByTestId('open-bar-handoff'))
+    expect(screen.getByTestId('bar-handoff')).toBeInTheDocument()
+    expect(screen.getByTestId('bar-pickup-code')).toHaveTextContent(screen.getByTestId('ready-pickup-code').textContent ?? '')
+    fireEvent.click(screen.getByRole('button', { name: 'Volver' }))
+    expect(screen.queryByTestId('bar-handoff')).not.toBeInTheDocument()
   })
 
   it('keeps the regular tracker before the order is ready', () => {
