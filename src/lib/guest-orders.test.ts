@@ -94,4 +94,37 @@ describe('guest orders store', () => {
       createdAt: '2026-11-16T09:00:00Z',
     })
   })
+
+  it('keeps a short summary of the items when the payload has them', () => {
+    const store = freshModule()
+    const order = {
+      id: 'abc',
+      status: 'received',
+      total_cents: 600,
+      currency: 'EUR',
+      created_at: '2026-11-16T09:00:00Z',
+      shop: { id: 's', name: 'Solo cafe', slug: 'main' },
+      items: [
+        { item_id: 'i1', item_name_snapshot: 'Latte', quantity: 1 },
+        { item_id: 'i2', item_name_snapshot: 'Cortado', quantity: 2 },
+      ],
+    } as unknown as Order
+    const saved = store.guestOrderFromOrder(order, 'tok')
+    expect(saved.itemsSummary).toBe('1 × Latte, 2 × Cortado')
+    expect(saved.itemCount).toBe(3)
+  })
+
+  it('links Repetir to the shop with the order id and its token', () => {
+    const store = freshModule()
+    expect(store.guestReorderHref({ id: 'abc', token: 't/1', shopSlug: 'main' })).toBe('/main?reorder=abc&token=t%2F1')
+    expect(store.guestReorderHref({ id: 'abc', token: 't', shopSlug: null })).toBeNull()
+  })
+
+  it('drops stored entries whose summary is not text', () => {
+    window.localStorage.setItem(
+      'solo-cafe.guest-orders',
+      JSON.stringify([{ ...entry('ok', '2026-11-16T09:00:00Z'), itemsSummary: 7 }, entry('ok2', '2026-11-16T09:01:00Z')]),
+    )
+    expect(freshModule().getGuestOrdersSnapshot().map((o) => o.id)).toEqual(['ok2'])
+  })
 })
