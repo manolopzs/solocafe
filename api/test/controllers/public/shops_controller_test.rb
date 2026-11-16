@@ -1,7 +1,7 @@
 require "test_helper"
 
 class Public::ShopsControllerTest < ActionDispatch::IntegrationTest
-  PUBLIC_FIELDS = %w[address brand_color display_font hero_photo_url name open_now slug].freeze
+  PUBLIC_FIELDS = %w[address brand_color display_font hero_photo_url hours_configured name open_now slug].freeze
   DISTANCE_FIELDS = (PUBLIC_FIELDS + %w[distance_km]).sort.freeze
 
   setup do
@@ -46,6 +46,7 @@ class Public::ShopsControllerTest < ActionDispatch::IntegrationTest
       assert_equal "Cafe Abierto", opened["name"]
       assert_equal "Orizaba 10", opened["address"]
       assert_equal true, opened["open_now"]
+      assert_equal false, opened["hours_configured"]
       assert_equal "#1f4d3a", opened["brand_color"]
       assert_equal "fraunces", opened["display_font"]
       assert_nil opened["hero_photo_url"]
@@ -56,6 +57,7 @@ class Public::ShopsControllerTest < ActionDispatch::IntegrationTest
       with_closed = response.parsed_body["shops"].index_by { |shop| shop["slug"] }
       assert_equal [ "cafe-abierto", "cafe-cerrado" ], with_closed.keys.sort
       assert_equal false, with_closed["cafe-cerrado"]["open_now"]
+      assert_equal true, with_closed["cafe-cerrado"]["hours_configured"]
       assert_nil with_closed["cafe-cerrado"]["address"]
 
       assert_not_includes response.body, open_shop.id
