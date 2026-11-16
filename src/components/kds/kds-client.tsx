@@ -1,11 +1,12 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
-import { api } from '@/lib/api/client'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { api, ApiError } from '@/lib/api/client'
 import { toggleItem86 } from '@/server/actions/menu'
 import { OrderCard } from './order-card'
 import { KdsAlerts } from './kds-alerts'
 import { KdsSync, type KdsAlert, type KdsSyncPolicy } from './kds-sync'
+import { listKdsMutations, removeKdsMutation } from './kds-offline-queue'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Icon } from '@/components/ui/icon'
@@ -61,8 +62,77 @@ export function KdsClient({
   const [mobileColumn, setMobileColumn] = useState<OrderWithItems['status']>('received')
   const [link, setLink] = useState<'online' | 'offline' | 'retrying'>('online')
   const [retryInMs, setRetryInMs] = useState<number | null>(null)
+  const [usingCachedOrders, setUsingCachedOrders] = useState(false)
   const alertsRef = useRef(false)
   const syncRef = useRef<KdsSyncPolicy | null>(initialSync)
+  const drainQueueRef = useRef<() => Promise<void>>(async () => {})
+
+  const applyOrderUpdate = (updated: Order) => {
+    setOrders((prev) => {
+      if (!openStatuses.has(updated.status)) {
+        return prev.filter((order) => order.id !== updated.id)
+      }
+      const withItems = updated as OrderWithItems
+      if (!prev.some((order) => order.id === updated.id)) return [withItems, ...prev]
+      return prev.map((order) => (order.id === updated.id ? { ...order, ...withItems, items: withItems.items ?? order.items } : order))
+    })
+  }
+
+  const drainQueue = useCallback(async () => {
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) return
+    const mutations = (await listKdsMutations()).filter((m) => m.shopId === shopId)
+    for (const mutation of mutations) {
+      try {
+        const data = await api.patch<{ order: Order }>(`/shops/${mutation.shopId}/orders/${mutation.orderId}`, {
+          order: { status: mutation.status },
+        })
+        await removeKdsMutation(mutation.clientMutationId)
+        applyOrderUpdate(data.order)
+      } catch (error) {
+        if (error instanceof ApiError && error.status === 422) {
+          await removeKdsMutation(mutation.clientMutationId)
+          continue
+        }
+        // Preserve FIFO for dependent status changes on the same order.
+        break
+      }
+    }
+  }, [shopId])
+
+  useEffect(() => {
+    drainQueueRef.current = drainQueue
+  }, [drainQueue])
+
+  const syncOrdersToSW = useCallback((payload: { orders: Order[]; sync: KdsSyncPolicy; alerts: KdsAlert[] }) => {
+    if (typeof navigator === 'undefined' || !('serviceWorker' in navigator)) return
+    navigator.serviceWorker.ready
+      .then((registration) => {
+        if (registration.active) {
+          registration.active.postMessage({ type: 'KDS_ORDERS_SYNC', payload, shopId })
+        }
+      })
+      .catch(() => {})
+  }, [shopId])
+
+  const loadCachedOrders = async (): Promise<{ orders: Order[]; sync: KdsSyncPolicy } | null> => {
+    if (typeof navigator === 'undefined' || !('serviceWorker' in navigator)) return null
+    const registration = await navigator.serviceWorker.ready
+    if (!registration.active) return null
+    return new Promise((resolve) => {
+      const listener = (event: MessageEvent) => {
+        if (event.data?.type === 'KDS_CACHED_ORDERS') {
+          navigator.serviceWorker.removeEventListener('message', listener)
+          resolve(event.data.payload as { orders: Order[]; sync: KdsSyncPolicy })
+        }
+      }
+      navigator.serviceWorker.addEventListener('message', listener)
+      registration.active?.postMessage({ type: 'KDS_GET_CACHED_ORDERS' })
+      window.setTimeout(() => {
+        navigator.serviceWorker.removeEventListener('message', listener)
+        resolve(null)
+      }, 1000)
+    })
+  }
 
   useEffect(() => {
     const handleChange = () => {
@@ -142,12 +212,23 @@ export function KdsClient({
   })()
 
   useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/kds-sw.js').catch(() => {})
+    }
+
     const goOffline = () => setLink('offline')
-    const goOnline = () => setLink((current) => (current === 'offline' ? 'online' : current))
+    const goOnline = () => {
+      setLink((current) => (current === 'offline' ? 'online' : current))
+      void drainQueueRef.current()
+    }
     window.addEventListener('offline', goOffline)
     window.addEventListener('online', goOnline)
     const id = window.setTimeout(() => {
-      if (typeof navigator !== 'undefined' && navigator.onLine === false) setLink('offline')
+      if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+        setLink('offline')
+      } else {
+        void drainQueueRef.current()
+      }
     }, 0)
     return () => {
       window.clearTimeout(id)
@@ -203,11 +284,24 @@ export function KdsClient({
         }
         primed = true
         cursor = data.sync.server_time
+        setUsingCachedOrders(false)
+        syncOrdersToSW(data)
         schedule(data.sync.poll_interval_ms || KdsSync.fallbackPollMs)
       } catch {
         if (cancelled) return
         const offline = typeof navigator !== 'undefined' && navigator.onLine === false
         setLink(offline ? 'offline' : 'retrying')
+        if (offline) {
+          const cached = await loadCachedOrders()
+          if (cached && cached.orders.length > 0) {
+            setOrders(cached.orders as OrderWithItems[])
+            setUsingCachedOrders(true)
+            if (cached.sync?.server_time) {
+              syncRef.current = cached.sync
+              cursor = cached.sync.server_time
+            }
+          }
+        }
         const delay = KdsSync.delayMs(attempt, delays)
         setRetryInMs(delay)
         attempt += 1
@@ -220,7 +314,7 @@ export function KdsClient({
       cancelled = true
       window.clearTimeout(timer)
     }
-  }, [shopId, autoPoll, initialSync?.server_time])
+  }, [shopId, autoPoll, initialSync?.server_time, syncOrdersToSW])
 
   const toggleAlerts = async () => {
     const next = !alertsRef.current
@@ -233,17 +327,6 @@ export function KdsClient({
     } catch {
       // Sound and the on-screen notice still work if the device could not be stored.
     }
-  }
-
-  const applyOrderUpdate = (updated: Order) => {
-    setOrders((prev) => {
-      if (!openStatuses.has(updated.status)) {
-        return prev.filter((order) => order.id !== updated.id)
-      }
-      const withItems = updated as OrderWithItems
-      if (!prev.some((order) => order.id === updated.id)) return [withItems, ...prev]
-      return prev.map((order) => (order.id === updated.id ? { ...order, ...withItems, items: withItems.items ?? order.items } : order))
-    })
   }
 
   return (
@@ -294,6 +377,16 @@ export function KdsClient({
           {link === 'offline'
             ? 'Sin conexión. Los pedidos en pantalla siguen visibles.'
             : `Sin respuesta del servidor. Siguiente intento en ${Math.max(1, Math.ceil((retryInMs ?? 1000) / 1000))} s.`}
+        </div>
+      )}
+
+      {usingCachedOrders && (
+        <div
+          role="status"
+          data-testid="kds-cached-banner"
+          className="rounded-xl border border-warning bg-warning/10 px-4 py-4 text-base font-semibold text-warning-foreground md:px-5 md:text-lg"
+        >
+          Sin conexión. Mostrando últimos pedidos guardados.
         </div>
       )}
 

@@ -1,12 +1,18 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { api } from '@/lib/api/client'
+import { api, ApiError } from '@/lib/api/client'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
 import { Icon } from '@/components/ui/icon'
 import { formatMoney } from '@/lib/ordering'
+import {
+  enqueueKdsMutation,
+  KdsOfflineQueue,
+  removeKdsMutation,
+  type KdsQueuedMutation,
+} from './kds-offline-queue'
 import type { Order, OrderItem } from '@/types'
 
 const statusLabels: Record<string, string> = {
@@ -91,13 +97,56 @@ export function OrderCard({
   const advance = async (nextStatus: string) => {
     setIsPending(true)
     setError(null)
+
+    const mutationId = `${order.id}-${nextStatus}-${Date.now()}`
+    const optimistic = (status: string): Order => ({ ...order, status: status as Order['status'] })
+
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+      const mutation: KdsQueuedMutation = {
+        clientMutationId: mutationId,
+        orderId: order.id,
+        shopId,
+        status: nextStatus,
+        queuedAt: Date.now(),
+      }
+      try {
+        await enqueueKdsMutation(mutation)
+      } catch {
+        // fall through; the optimistic update still helps the operator
+      }
+      onUpdated(optimistic(nextStatus))
+      setError('Sin conexión. Cambio guardado para sincronizar.')
+      setIsPending(false)
+      return
+    }
+
     try {
       const data = await api.patch<{ order: Order }>(`/shops/${shopId}/orders/${order.id}`, {
         order: { status: nextStatus },
       })
       onUpdated(data.order)
-    } catch {
-      setError('No se pudo actualizar el pedido.')
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 422) {
+        await removeKdsMutation(mutationId).catch(() => {})
+        setError('No se pudo sincronizar un cambio de estado.')
+      } else if (KdsOfflineQueue.isNetworkError(error)) {
+        const mutation: KdsQueuedMutation = {
+          clientMutationId: mutationId,
+          orderId: order.id,
+          shopId,
+          status: nextStatus,
+          queuedAt: Date.now(),
+        }
+        try {
+          await enqueueKdsMutation(mutation)
+        } catch {
+          // ignore IDB errors
+        }
+        onUpdated(optimistic(nextStatus))
+        setError('Sin conexión. Cambio guardado para sincronizar.')
+      } else {
+        setError('No se pudo actualizar el pedido.')
+      }
     } finally {
       setIsPending(false)
     }
