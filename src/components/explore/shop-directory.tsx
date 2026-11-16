@@ -5,6 +5,7 @@ import { hoursConfigured } from '@/lib/ordering'
 import { Button } from '@/components/ui/button'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Icon } from '@/components/ui/icon'
+import { ExploreIntro } from '@/components/explore/explore-intro'
 import type { PublicShop } from '@/server/queries/explore'
 
 function formatDistance(km: number) {
@@ -35,16 +36,7 @@ export function ShopDirectory({
         </div>
       </header>
 
-      <section className="px-4 pb-6 pt-6">
-        <div className="mx-auto max-w-3xl">
-          <h1 className="text-[2rem] font-medium leading-tight tracking-tight text-foreground">Cafeterías para recoger</h1>
-          <p className="mt-2 max-w-md text-base leading-6 text-muted-foreground">
-            {sort === 'distance'
-              ? 'Ordenadas de la más cercana a la más lejana.'
-              : 'Elige una cafetería independiente. Activa la ubicación para ver primero las más cercanas.'}
-          </p>
-        </div>
-      </section>
+      <ExploreIntro sort={sort} />
 
       <section className="px-4">
         <div className="mx-auto max-w-3xl">

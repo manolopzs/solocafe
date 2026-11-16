@@ -39,7 +39,9 @@ export function BottomNav() {
   ] as const
 
   const isActive = (key: (typeof navItems)[number]['key'], href: string) => {
-    if (key === 'inicio') return homeHref !== EXPLORE_HREF && pathname === homeHref
+    // With no shop visited yet, Inicio is Explorar, so /explore lights Inicio (mock 02a).
+    if (key === 'inicio') return pathname === homeHref
+    if (key === 'explorar' && homeHref === EXPLORE_HREF) return false
     if (key === 'cuenta') return pathname === href
     return pathname === href || pathname.startsWith(`${href}/`)
   }
