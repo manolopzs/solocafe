@@ -185,6 +185,7 @@ export function CheckoutSheet({
             onClick={() => void submit()}
             disabled={!canSubmit}
             loading={loading || savingPhone}
+            variant="cta"
             size="lg"
             className="w-full touch-manipulation"
           >
@@ -197,7 +198,7 @@ export function CheckoutSheet({
         {!isSignedIn && (
           <div className="rounded-2xl bg-surface px-4 py-3.5 text-sm leading-6 text-foreground">
             ¿Quieres pedir más rápido la próxima vez?{' '}
-            <Link href="/account/signup" className="font-medium text-accent underline-offset-2 hover:underline">
+            <Link href="/account/signup" className="font-medium text-accent underline underline-offset-2">
               Crea una cuenta
             </Link>
           </div>
@@ -266,7 +267,7 @@ export function CheckoutSheet({
                 <button
                   type="button"
                   onClick={() => setEditingIdentity(true)}
-                  className="font-medium text-accent underline-offset-2 hover:underline"
+                  className="font-medium text-accent underline underline-offset-2"
                 >
                   cambiar
                 </button>
@@ -345,7 +346,7 @@ export function CheckoutSheet({
                 setCustomerPhone(customer?.phone ?? '')
                 setCustomerEmail(customer?.email ?? '')
               }}
-              className="text-sm font-medium text-accent underline-offset-2 hover:underline"
+              className="text-sm font-medium text-accent underline underline-offset-2"
             >
               Usar datos guardados
             </button>

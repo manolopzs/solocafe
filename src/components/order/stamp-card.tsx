@@ -47,14 +47,14 @@ export function StampCard({
                 key={index}
                 className={[
                   'h-4 w-4 rounded-full',
-                  index < filled ? 'bg-foreground' : 'border border-border bg-surface',
+                  index < filled ? 'border border-foreground bg-sky' : 'border border-border bg-surface',
                 ].join(' ')}
               />
             ))}
           </div>
         ) : (
-          <div className="h-2 overflow-hidden rounded-full bg-border" aria-hidden="true">
-            <div className="h-full rounded-full bg-foreground" style={{ width: `${(filled / required) * 100}%` }} />
+          <div className="h-2 overflow-hidden rounded-full bg-subtle" aria-hidden="true">
+            <div className="h-full rounded-full bg-sky" style={{ width: `${(filled / required) * 100}%` }} />
           </div>
         )}
 

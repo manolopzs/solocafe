@@ -1,8 +1,8 @@
 export const SITE_NAME = 'Solo Café'
 export const SITE_DESCRIPTION = 'Pide tu café desde el móvil y recógelo sin colas.'
-/** Cream page background and dark-brown brand color from globals.css. */
-export const SITE_BACKGROUND_COLOR = '#fffbf7'
-export const SITE_BRAND_COLOR = '#3d2b1f'
+/** Cream canvas and espresso brand colour from globals.css. */
+export const SITE_BACKGROUND_COLOR = '#fdf7f2'
+export const SITE_BRAND_COLOR = '#241d1a'
 
 /** Link preview image (public/og-image.png). */
 export const OG_IMAGE = {

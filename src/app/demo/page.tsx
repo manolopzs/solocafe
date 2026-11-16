@@ -19,8 +19,8 @@ export default function DemoOrderPage() {
   const router = useRouter()
 
   return (
-    <div style={shopThemeVars(shop.brand_color, shop.display_font)}>
-      <ShopHero name={shop.name} heroPhotoUrl={shop.hero_photo_url} />
+    <div style={shopThemeVars(shop.display_font)}>
+      <ShopHero name={shop.name} heroPhotoUrl={shop.hero_photo_url} brandColor={shop.brand_color} />
       <OrderPageClient
         shop={shop}
         categories={demoCategories}

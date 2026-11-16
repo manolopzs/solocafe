@@ -43,7 +43,7 @@ export function CheckoutScreen({
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-success/15 text-success">
             <Icon name="check" className="h-8 w-8" />
           </div>
-          <h1 className="mt-5 text-3xl font-medium tracking-tight text-foreground">Pedido pagado</h1>
+          <h1 className="mt-5 text-3xl font-medium tracking-tight text-heading">Pedido pagado</h1>
           <p className="mt-2 text-base leading-6 text-muted-foreground">
             Tu pedido ya fue pagado. Ve a la cafetería a recogerlo.
           </p>
@@ -64,7 +64,7 @@ export function CheckoutScreen({
         </Link>
 
         <p className="mt-8 text-sm text-muted-foreground">Pedido {orderCode}</p>
-        <h1 className="mt-1 text-[2rem] font-medium leading-tight tracking-tight text-foreground">{title}</h1>
+        <h1 className="mt-1 text-[2rem] font-medium leading-tight tracking-tight text-heading">{title}</h1>
         <p className="mt-2 flex items-center gap-1.5 text-sm text-muted-foreground">
           <Icon name="clock" className="h-4 w-4" />
           {eta}

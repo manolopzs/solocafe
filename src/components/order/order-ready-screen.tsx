@@ -37,7 +37,7 @@ export function OrderReadyScreen({ order, menuHref }: { order: ReadyOrder; menuH
 
   return (
     <main
-      className="fixed inset-0 z-50 overflow-y-auto bg-terracotta-600 text-cream"
+      className="fixed inset-0 z-50 overflow-y-auto bg-listo-bg text-foreground"
       data-testid="order-ready-screen"
       aria-live="polite"
     >
@@ -49,7 +49,7 @@ export function OrderReadyScreen({ order, menuHref }: { order: ReadyOrder; menuH
           </Link>
         </div>
 
-        <h1 className="mt-8 break-words text-[4.25rem] font-bold uppercase leading-[0.9] tracking-tight">
+        <h1 className="mt-8 break-words text-[4.25rem] font-bold uppercase leading-[0.9] tracking-tight text-foreground">
           {name ? (
             <>
               ¡Listo,
@@ -62,12 +62,12 @@ export function OrderReadyScreen({ order, menuHref }: { order: ReadyOrder; menuH
         </h1>
         <p className="mt-4 text-lg font-semibold leading-snug">Tu pedido está listo. Pasa a recogerlo.</p>
 
-        <div className="mt-7 rounded-[1.75rem] bg-cream px-6 pb-5 pt-5 text-center text-foreground">
-          <p className="text-xs font-bold uppercase tracking-[0.12em] text-muted-foreground">Tu código</p>
+        <div className="mt-7 rounded-[1.75rem] bg-listo-card px-6 pb-5 pt-5 text-center text-listo-code">
+          <p className="text-xs font-bold uppercase tracking-[0.12em] text-listo-muted">Tu código</p>
           <p className="mt-1 text-[5.5rem] font-semibold leading-none tracking-[0.06em] tabular-nums" data-testid="ready-pickup-code">
             {pickupCode(order.id)}
           </p>
-          <p className="mt-2 text-sm text-muted-foreground">Dilo o enséñalo en la barra</p>
+          <p className="mt-2 text-sm text-listo-muted">Dilo o enséñalo en la barra</p>
         </div>
 
         {signedIn ? (
@@ -87,7 +87,7 @@ export function OrderReadyScreen({ order, menuHref }: { order: ReadyOrder; menuH
                     key={index}
                     className={[
                       'h-6 w-6 rounded-full border-2',
-                      index < filled ? 'border-cream bg-cream' : 'border-cream/75',
+                      index < filled ? 'border-foreground bg-foreground' : 'border-foreground/60',
                       index === filled - 1 ? 'scale-125' : '',
                     ].join(' ')}
                   />
@@ -96,12 +96,12 @@ export function OrderReadyScreen({ order, menuHref }: { order: ReadyOrder; menuH
             )}
           </div>
         ) : (
-          <div className="mt-9 rounded-3xl border border-cream/40 px-5 py-4 text-center" data-testid="ready-guest-invite">
+          <div className="mt-9 rounded-3xl border border-foreground px-5 py-4 text-center" data-testid="ready-guest-invite">
             <p className="font-semibold">Guarda tus sellos</p>
             <p className="mt-1 text-sm opacity-90">Con una cuenta sumas un sello en cada pedido.</p>
             <Link
               href="/account/signup"
-              className="mt-3 inline-flex min-h-11 items-center justify-center rounded-full bg-cream px-5 font-semibold text-terracotta-700"
+              className="mt-3 inline-flex min-h-11 items-center justify-center rounded-full bg-primary px-5 font-semibold text-primary-foreground"
             >
               Crear cuenta
             </Link>
@@ -118,7 +118,7 @@ export function OrderReadyScreen({ order, menuHref }: { order: ReadyOrder; menuH
             {showDetails ? 'Ocultar detalle del pedido' : 'Ver detalle del pedido'}
           </button>
           {showDetails && (
-            <div className="mt-3 rounded-3xl bg-cream px-5 py-4 text-left text-foreground">
+            <div className="mt-3 rounded-3xl bg-listo-card px-5 py-4 text-left text-foreground">
               <ul className="divide-y divide-border">
                 {order.items.map((item) => (
                   <li key={item.id} className="py-2.5">

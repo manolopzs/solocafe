@@ -7,7 +7,7 @@ export interface PublicShop {
   address: string | null
   open_now: boolean
   hours_configured?: boolean
-  brand_color: string
+  brand_color: string | null
   display_font: string
   hero_photo_url: string | null
   distance_km?: number | null

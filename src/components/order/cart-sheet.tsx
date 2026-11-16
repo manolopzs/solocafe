@@ -89,7 +89,7 @@ export function CartSheet({
                 <span className="text-sm text-muted-foreground">Total</span>
                 <span className="text-xl font-medium tabular-nums">{total}</span>
               </div>
-              <Button onClick={onCheckout} disabled={Boolean(blockedCopy)} size="lg" className="w-full">
+              <Button onClick={onCheckout} disabled={Boolean(blockedCopy)} variant="cta" size="lg" className="w-full">
                 Continuar al pago
               </Button>
             </div>

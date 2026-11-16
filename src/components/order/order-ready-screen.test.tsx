@@ -46,7 +46,7 @@ function readyOrder(overrides: Partial<Order> = {}) {
 describe('Listo screen on the order status page', () => {
   it('greets the customer by first name and shows the big pickup code', () => {
     render(<OrderStatusClient initialOrder={readyOrder()} />)
-    expect(screen.getByTestId('order-ready-screen')).toHaveClass('bg-terracotta-600')
+    expect(screen.getByTestId('order-ready-screen')).toHaveClass('bg-listo-bg')
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('¡Listo,Ana!')
     expect(screen.getByTestId('ready-pickup-code')).toHaveTextContent(/^C0DE$/)
     expect(screen.getByText('Dilo o enséñalo en la barra')).toBeInTheDocument()
