@@ -73,10 +73,12 @@ export function OrderStatusClient({
   initialOrder,
   accessToken,
   vapidPublicKey = null,
+  paymentReturn = false,
 }: {
   initialOrder: Order & { items: (OrderItem & { modifiers: OrderItemModifier[] })[] }
   accessToken?: string
   vapidPublicKey?: string | null
+  paymentReturn?: boolean
 }) {
   const [order, setOrder] = useState(initialOrder)
   const [permissionOverride, setPermissionOverride] = useState<NotificationPermission | null>(null)
@@ -135,6 +137,8 @@ export function OrderStatusClient({
       : null
   const showSteps = order.status !== 'cancelled' && order.status !== 'pending_payment'
   const menuHref = order.shop?.slug ? `/${order.shop.slug}` : '/'
+  // Just back from paying, but the payment webhook hasn't landed yet.
+  const confirmingPayment = paymentReturn && order.status === 'pending_payment'
 
   const tone =
     order.status === 'ready' || order.status === 'picked_up'
@@ -159,8 +163,8 @@ export function OrderStatusClient({
           </div>
           <div>
             {shopName && <p className="text-sm font-medium text-accent">{shopName}</p>}
-            <h1 className="mt-1 text-[2rem] font-medium leading-tight tracking-tight text-foreground">{headline(order.status)}</h1>
-            <p className="mt-2 text-base leading-6 text-muted-foreground">{subhead(order.status)}</p>
+            <h1 className="mt-1 text-[2rem] font-medium leading-tight tracking-tight text-foreground">{confirmingPayment ? 'Confirmando tu pago' : headline(order.status)}</h1>
+            <p className="mt-2 text-base leading-6 text-muted-foreground">{confirmingPayment ? 'Tarda unos segundos. Esta página se actualiza sola.' : subhead(order.status)}</p>
           </div>
         </div>
 
@@ -227,7 +231,7 @@ export function OrderStatusClient({
           </div>
         )}
 
-        {order.status === 'pending_payment' && accessToken && (
+        {order.status === 'pending_payment' && !confirmingPayment && accessToken && (
           <Button asChild size="lg" className="mt-6 w-full">
             <Link href={`/checkout/${order.id}?token=${encodeURIComponent(accessToken)}`}>Completar pago</Link>
           </Button>
