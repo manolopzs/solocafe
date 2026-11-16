@@ -6,6 +6,7 @@ export interface PublicShop {
   slug: string
   address: string | null
   open_now: boolean
+  hours_configured?: boolean
   brand_color: string
   display_font: string
   hero_photo_url: string | null
