@@ -251,3 +251,7 @@ legend {
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
 }
+
+body:has([data-hide-bottom-nav]) .customer-bottom-nav {
+  display: none;
+}

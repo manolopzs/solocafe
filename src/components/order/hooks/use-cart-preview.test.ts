@@ -1,8 +1,10 @@
 /** @jest-environment jsdom */
 
-import { renderHook, waitFor } from '@testing-library/react'
+import { act, renderHook, waitFor } from '@testing-library/react'
 import { useCartPreview } from './use-cart-preview'
 import { previewPublicCart } from '@/server/actions/orders'
+import type { CartPreview } from '@/types'
+import type { StoredCartLine } from './use-shop-cart'
 
 jest.setTimeout(10000)
 
@@ -62,5 +64,37 @@ describe('useCartPreview', () => {
   it('exposes a refresh callback', () => {
     const { result } = renderHook(() => useCartPreview('shop-3', [], 'asap', true))
     expect(typeof result.current.refresh).toBe('function')
+  })
+
+  it('drops the old quote as soon as the bag changes (quick-add keeps total in sync)', async () => {
+    // Bag already holds 2 Lattes at 2,00 € each, quoted at 4,00 €.
+    mockedPreview.mockResolvedValueOnce(makePreview({ subtotal_cents: 400, total_cents: 400 }))
+    // The quote for the quick-added third Latte is still in flight.
+    let resolveNext: (value: CartPreview) => void = () => {}
+    mockedPreview.mockImplementationOnce(
+      () => new Promise<CartPreview>((resolve) => {
+        resolveNext = resolve
+      })
+    )
+
+    const twoLattes: StoredCartLine[] = [{ itemId: 'latte', quantity: 2, modifierIds: [] }]
+    const threeLattes: StoredCartLine[] = [{ itemId: 'latte', quantity: 3, modifierIds: [] }]
+    const { result, rerender } = renderHook(
+      ({ lines }: { lines: StoredCartLine[] }) => useCartPreview('shop-4', lines, 'asap', true),
+      { initialProps: { lines: twoLattes } }
+    )
+
+    await waitFor(() => expect(result.current.preview?.total_cents).toBe(400))
+
+    rerender({ lines: threeLattes })
+
+    // Before the fix this still returned the 4,00 € quote for 2 items.
+    expect(result.current.preview).toBeNull()
+
+    await waitFor(() => expect(mockedPreview).toHaveBeenCalledTimes(2))
+    await act(async () => {
+      resolveNext(makePreview({ subtotal_cents: 600, total_cents: 600 }))
+    })
+    await waitFor(() => expect(result.current.preview?.total_cents).toBe(600))
   })
 })
