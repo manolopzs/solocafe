@@ -10,6 +10,8 @@ export interface GuestOrder {
   totalCents: number
   currency: string
   itemCount: number
+  /** e.g. "1 × Latte, 2 × Cortado". Missing on orders saved before it existed. */
+  itemsSummary?: string
   createdAt: string
 }
 
@@ -38,8 +40,19 @@ export function guestOrderFromOrder(order: Order, token: string): GuestOrder {
     totalCents: order.total_cents,
     currency: order.currency,
     itemCount: order.item_count ?? (order.items ?? []).reduce((sum, item) => sum + item.quantity, 0),
+    ...(itemsSummary(order) ? { itemsSummary: itemsSummary(order) } : {}),
     createdAt: order.created_at,
   }
+}
+
+function itemsSummary(order: Order): string {
+  return (order.items ?? []).map((item) => `${item.quantity} × ${item.item_name_snapshot}`).join(', ')
+}
+
+/** Shop page link that puts this order's items back in the bag (see src/lib/reorder.ts). */
+export function guestReorderHref(order: Pick<GuestOrder, 'id' | 'token' | 'shopSlug'>): string | null {
+  if (!order.shopSlug) return null
+  return `/${encodeURIComponent(order.shopSlug)}?reorder=${encodeURIComponent(order.id)}&token=${encodeURIComponent(order.token)}`
 }
 
 function isGuestOrder(value: unknown): value is GuestOrder {
@@ -53,7 +66,8 @@ function isGuestOrder(value: unknown): value is GuestOrder {
     typeof v.status === 'string' &&
     typeof v.createdAt === 'string' &&
     typeof v.totalCents === 'number' &&
-    typeof v.currency === 'string'
+    typeof v.currency === 'string' &&
+    (v.itemsSummary === undefined || typeof v.itemsSummary === 'string')
   )
 }
 

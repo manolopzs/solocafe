@@ -1,10 +1,11 @@
 import { cookies } from 'next/headers'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
+import { reorderableOrder } from '@/lib/reorder'
 import { getCurrentCustomer, getCustomerOrder } from '@/server/queries/customers'
 import { getShopFavorites } from '@/server/queries/favorites'
 import { getRecentOrders } from '@/server/queries/recentOrders'
-import { getUsualOrder } from '@/server/queries/orders'
+import { getPublicOrderView, getUsualOrder } from '@/server/queries/orders'
 import { getPublicStorefront } from '@/server/queries/storefront'
 import { OrderPageClient } from '@/components/order/order-page-client'
 import { ShopHero } from '@/components/shop/shop-hero'
@@ -35,19 +36,21 @@ export default async function PublicOrderPage({
   searchParams,
 }: {
   params: Promise<{ shopSlug: string }>
-  searchParams: Promise<{ reorder?: string }>
+  searchParams: Promise<{ reorder?: string; token?: string }>
 }) {
   const { shopSlug } = await params
-  const { reorder: reorderOrderId } = await searchParams
+  const { reorder: reorderOrderId, token: reorderToken } = await searchParams
   const signedIn = Boolean((await cookies()).get('token')?.value)
-  const [storefront, reorderOrder, customer] = await Promise.all([
+  const [storefront, pastOrder, customer] = await Promise.all([
     getPublicStorefront(shopSlug),
-    reorderOrderId ? getCustomerOrder(reorderOrderId) : Promise.resolve(null),
+    reorderOrderId ? findReorderOrder(reorderOrderId, signedIn, reorderToken) : Promise.resolve(null),
     signedIn ? getCurrentCustomer() : Promise.resolve(null),
   ])
   if (!storefront) notFound()
 
   const { shop, menu } = storefront
+  // "Repetir" from Pedidos: only this shop's order, minus anything no longer on the menu.
+  const reorderOrder = reorderableOrder(pastOrder, shop.id, menu)
   let favoriteIds: string[] = []
   let recentOrders: Order[] = []
   let usualOrder: UsualOrder | null = null
@@ -79,4 +82,12 @@ export default async function PublicOrderPage({
       />
     </div>
   )
+}
+
+/** A signed-in customer's own order, or a guest order opened with its access token from Pedidos. */
+async function findReorderOrder(orderId: string, signedIn: boolean, token?: string): Promise<Order | null> {
+  const own = signedIn ? await getCustomerOrder(orderId) : null
+  if (own) return own
+  if (!token) return null
+  return (await getPublicOrderView(orderId, token))?.order ?? null
 }
