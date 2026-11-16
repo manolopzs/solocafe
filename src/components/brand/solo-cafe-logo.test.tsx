@@ -8,6 +8,9 @@ import { SoloCafeWordmark, SoloIconTile } from './solo-cafe-logo'
 import { ShopDirectory } from '@/components/explore/shop-directory'
 import { OrderStatusClient } from '@/components/order/order-status-client'
 import RootLoading from '@/app/loading'
+import AuthLoginPage from '@/app/auth/login/page'
+import AuthSignupPage from '@/app/auth/signup/page'
+import DashboardLayout from '@/app/dashboard/[shopId]/layout'
 import type { Order } from '@/types'
 
 jest.mock('next/link', () => ({
@@ -89,5 +92,32 @@ describe('app icons and share image', () => {
 
   it('uses a 1200x630 share image', () => {
     expect(pngSize('public/og-image.png')).toEqual([1200, 630])
+  })
+})
+
+jest.mock('@/server/actions/auth', () => ({
+  loginAction: jest.fn(),
+  signupAction: jest.fn(),
+}))
+jest.mock('@/components/auth/logout-button', () => ({ LogoutButton: () => null }))
+jest.mock('@/components/dashboard/nav-link', () => ({ NavLink: ({ label }: { label: string }) => <span>{label}</span> }))
+jest.mock('@/server/queries/shops', () => ({
+  getShopById: jest.fn(async () => ({ id: 'shop-1', name: 'Cafetería de prueba' })),
+}))
+
+describe('owner pages', () => {
+  it.each([
+    ['login', AuthLoginPage],
+    ['signup', AuthSignupPage],
+  ])('shows the wordmark on /auth/%s instead of the coffee icon', (_name, Page) => {
+    render(<Page />)
+    expect(screen.getByRole('img', { name: 'Solo Café' })).toBeInTheDocument()
+    expect(screen.queryByText('Solo Café')).not.toBeInTheDocument()
+  })
+
+  it('shows the wordmark in the dashboard header next to the shop name', async () => {
+    render(await DashboardLayout({ children: null, params: Promise.resolve({ shopId: 'shop-1' }) }))
+    expect(screen.getByRole('img', { name: 'Solo Café' })).toBeInTheDocument()
+    expect(screen.getByText('Cafetería de prueba')).toBeInTheDocument()
   })
 })

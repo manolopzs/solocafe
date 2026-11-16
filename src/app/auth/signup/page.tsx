@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Icon } from '@/components/ui/icon'
+import { SoloCafeWordmark } from '@/components/brand/solo-cafe-logo'
 
 export default function SignupPage() {
   const [state, formAction, pending] = useActionState(signupAction, null)
@@ -18,11 +19,8 @@ export default function SignupPage() {
     <main className="flex flex-1 flex-col lg:grid lg:grid-cols-2">
       <section className="flex flex-col justify-center bg-surface px-6 py-12 lg:px-16 xl:px-24">
         <div className="mx-auto w-full max-w-md">
-          <Link href="/" className="inline-flex items-center gap-2 text-foreground">
-            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-accent text-accent-foreground">
-              <Icon name="coffee" className="h-5 w-5" />
-            </span>
-            <span className="text-lg font-semibold tracking-tight">Solo Café</span>
+          <Link href="/" className="inline-flex min-h-11 items-center" aria-label="Solo Café, inicio">
+            <SoloCafeWordmark height={24} />
           </Link>
 
           <h1 className="mt-8 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
