@@ -9,7 +9,7 @@ import { Icon } from '@/components/ui/icon'
 
 const stepCopy: Record<string, { title: string; pending: string; done: string }> = {
   menu: {
-    title: 'Arma tu menú',
+    title: 'Crea tu menú',
     pending: 'Hace falta al menos un producto activo. Al crear la cafetería dejamos un menú de ejemplo.',
     done: 'Tu menú ya tiene productos.',
   },
@@ -21,7 +21,7 @@ const stepCopy: Record<string, { title: string; pending: string; done: string }>
   hours: {
     title: 'Confirma el horario',
     pending: 'Revisa los días que abres y guarda los cambios.',
-    done: 'El horario de recolección quedó guardado.',
+    done: 'El horario de recogida se ha guardado.',
   },
   live: {
     title: 'Publica la cafetería',

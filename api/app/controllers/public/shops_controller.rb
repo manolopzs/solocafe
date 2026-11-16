@@ -42,6 +42,7 @@ module Public
         slug: shop.slug,
         address: shop.address,
         open_now: shop.open_now?,
+        hours_configured: shop.hours_configured?,
         brand_color: shop.brand_color,
         display_font: shop.display_font,
         hero_photo_url: hero_photo_url_for(shop)

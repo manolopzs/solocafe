@@ -82,7 +82,7 @@ export default async function Home() {
             Tu cafetería, con el pedido listo al llegar
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground sm:text-xl">
-            Tus clientes ordenan desde el móvil. Tú preparas el pedido y lo entregas sin fila. Pagan en la cafetería al recoger.
+            Tus clientes piden desde el móvil. Tú preparas el pedido y lo entregas sin colas. Pagan en la cafetería al recoger.
           </p>
           <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Button asChild size="lg" className="w-full sm:w-auto">
@@ -105,7 +105,7 @@ export default async function Home() {
               Pedidos, cocina y recogida en un solo flujo
             </h2>
             <p className="mx-auto mt-3 max-w-2xl text-muted-foreground">
-              Solo Café conecta a tus clientes con tu cafetería: ordenan por adelantado y tú recibes el pedido en la cocina.
+              Solo Café conecta a tus clientes con tu cafetería: piden por adelantado y tú recibes el pedido en la cocina.
             </p>
           </div>
           <div className="grid gap-6 lg:grid-cols-3">
@@ -143,7 +143,7 @@ export default async function Home() {
             </ul>
             <div className="mt-8">
               <Button asChild variant="outline" size="lg">
-                <Link href="/demo">Ver cómo ordenan tus clientes</Link>
+                <Link href="/demo">Ver cómo piden tus clientes</Link>
               </Button>
             </div>
           </div>

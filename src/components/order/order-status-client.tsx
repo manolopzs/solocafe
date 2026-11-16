@@ -4,9 +4,11 @@ import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import Link from 'next/link'
 import { getOrderWithItems } from '@/server/queries/orders'
 import { CUSTOMER_TIME_ZONE, formatMoney, formatPickupWindow } from '@/lib/ordering'
+import { pickupCode } from '@/lib/pickup-code'
 import { env } from '@/lib/env'
 import { Button } from '@/components/ui/button'
 import { StampCard } from '@/components/order/stamp-card'
+import { OrderReadyScreen, showsReadyScreen } from '@/components/order/order-ready-screen'
 import { Icon } from '@/components/ui/icon'
 import type { Order, OrderItem, OrderItemModifier, OrderStatus } from '@/types'
 
@@ -141,6 +143,8 @@ export function OrderStatusClient({
         ? 'bg-danger/10 text-danger'
         : 'bg-accent/15 text-accent'
 
+  if (showsReadyScreen(order.status)) return <OrderReadyScreen order={order} menuHref={menuHref} />
+
   return (
     <main className="min-h-screen bg-background">
       <div className="mx-auto max-w-xl px-5 pb-24 pt-5 sm:pt-8">
@@ -161,7 +165,9 @@ export function OrderStatusClient({
         </div>
 
         <p className="mt-8 text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">Código de recogida</p>
-        <p className="mt-1 text-4xl font-medium tracking-[0.18em] text-foreground">{order.id.slice(-6).toUpperCase()}</p>
+        <p className="mt-1 text-5xl font-semibold tracking-[0.18em] text-foreground" data-testid="pickup-code">
+          {pickupCode(order.id)}
+        </p>
 
         {showSteps && (
           <div className="relative mt-8 flex justify-between">
@@ -216,7 +222,7 @@ export function OrderStatusClient({
           <div className="mt-4">
             <StampCard loyalty={order.loyalty} />
             {order.loyalty_redeemed && (
-              <p className="mt-2 text-sm text-muted-foreground">Canjeaste tu recompensa en este pedido.</p>
+              <p className="mt-2 text-sm text-muted-foreground">Has canjeado tu recompensa en este pedido.</p>
             )}
           </div>
         )}
@@ -279,7 +285,7 @@ function headline(status: OrderStatus) {
     case 'cancelled':
       return 'Pedido cancelado'
     case 'received':
-      return 'Recibimos tu pedido'
+      return 'Hemos recibido tu pedido'
     default:
       return 'Estamos preparando tu pedido'
   }

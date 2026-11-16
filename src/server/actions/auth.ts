@@ -9,7 +9,7 @@ export async function loginAction(prevState: unknown, formData: FormData) {
   const password = formData.get('password') as string
 
   if (!email || !password) {
-    return { error: 'Correo y contraseña son requeridos' }
+    return { error: 'Introduce tu correo y tu contraseña' }
   }
 
   let token: string | undefined
@@ -21,7 +21,7 @@ export async function loginAction(prevState: unknown, formData: FormData) {
     )
     token = data.token
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'Error al iniciar sesion'
+    const message = err instanceof Error ? err.message : 'Error al iniciar sesión'
     return { error: message }
   }
 
@@ -37,7 +37,7 @@ export async function signupAction(prevState: unknown, formData: FormData) {
   const shopName = String(formData.get('shopName') || '').trim()
 
   if (!email || !password || !shopName) {
-    return { error: 'Correo, contraseña y nombre de la cafeteria son requeridos' }
+    return { error: 'Introduce tu correo, tu contraseña y el nombre de la cafetería' }
   }
 
   let token: string | undefined
@@ -79,7 +79,7 @@ export async function forgotPasswordAction(prevState: unknown, formData: FormDat
   const email = formData.get('email') as string
 
   if (!email) {
-    return { error: 'El correo electrónico es requerido' }
+    return { error: 'Introduce tu correo electrónico' }
   }
 
   try {
@@ -98,7 +98,7 @@ export async function resetPasswordAction(prevState: unknown, formData: FormData
   const passwordConfirmation = formData.get('passwordConfirmation') as string
 
   if (!token || !password || !passwordConfirmation) {
-    return { error: 'Token, contraseña y confirmación son requeridos' }
+    return { error: 'Faltan el enlace, la contraseña o su confirmación' }
   }
 
   if (password !== passwordConfirmation) {
