@@ -8,7 +8,6 @@ import { Card } from '@/components/ui/card'
 import { Icon } from '@/components/ui/icon'
 import { formatMoney } from '@/lib/ordering'
 import type { Order, OrderItem } from '@/types'
-import { pickupCode } from '@/lib/pickup-code'
 
 const statusLabels: Record<string, string> = {
   pending_payment: 'Pendiente de pago',
@@ -64,6 +63,12 @@ function formatElapsed(createdAt: string, now: number) {
   return `${hours}:${(minutes % 60).toString().padStart(2, '0')}`
 }
 
+function shortOrderNumber(id: string) {
+  const tail = id.split('-').pop() ?? id
+  const display = tail.length > 6 ? tail.slice(-4) : tail
+  return display.toUpperCase()
+}
+
 export function OrderCard({
   order,
   items,
@@ -109,8 +114,8 @@ export function OrderCard({
     <Card variant="outline" className={`flex flex-col overflow-hidden border-l-8 ${urgencyClass}`}>
       <div className="flex items-start justify-between border-b border-border bg-surface-elevated px-3 py-3 sm:px-4">
         <div className="min-w-0 flex-1">
-          <p className="font-sans text-5xl font-bold leading-none tracking-[0.08em] text-foreground md:text-6xl">
-            {pickupCode(order.id)}
+          <p className="font-sans text-5xl font-bold leading-none text-foreground md:text-6xl">
+            #{shortOrderNumber(order.id)}
           </p>
           <p className="mt-2 text-lg font-semibold text-foreground md:text-2xl">
             {order.customer_name || 'Cliente'}

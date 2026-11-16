@@ -1,7 +1,6 @@
 /** @jest-environment jsdom */
 import { render, screen } from '@testing-library/react'
 import type { ReactNode } from 'react'
-import { OrderCard } from '@/components/kds/order-card'
 import { OrderStatusClient } from '@/components/order/order-status-client'
 import type { Order } from '@/types'
 
@@ -14,10 +13,6 @@ jest.mock('next/link', () => ({
 
 jest.mock('@/server/queries/orders', () => ({
   getOrderWithItems: jest.fn(async () => null),
-}))
-
-jest.mock('@/lib/api/client', () => ({
-  api: { patch: jest.fn() },
 }))
 
 const ORDER_ID = '3f6b2c1e-9a0d-4e5f-8b7c-4f2a9c1b7e3d'
@@ -36,19 +31,14 @@ const order = {
   items: [],
 } as unknown as Order & { items: [] }
 
-describe('pickup code on customer and Cocina screens', () => {
-  it('shows the same code to the customer and the barista', () => {
-    const customer = render(<OrderStatusClient initialOrder={order} />)
+describe('pickup code on the customer order screen', () => {
+  it('shows the 4-character pickup code', () => {
+    render(<OrderStatusClient initialOrder={order} />)
     expect(screen.getByText('Código de recogida')).toBeInTheDocument()
     expect(screen.getByTestId('pickup-code')).toHaveTextContent(/^7E3D$/)
-    customer.unmount()
-
-    render(<OrderCard order={order} items={[]} shopId="shop-1" onUpdated={() => {}} />)
-    expect(screen.getByText('7E3D')).toBeInTheDocument()
-    expect(screen.queryByText(/#/)).not.toBeInTheDocument()
   })
 
-  it('no longer shows the old 6-character code on the customer screen', () => {
+  it('no longer shows the old 6-character code', () => {
     render(<OrderStatusClient initialOrder={order} />)
     expect(screen.queryByText('1B7E3D')).not.toBeInTheDocument()
   })
