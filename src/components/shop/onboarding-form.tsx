@@ -35,7 +35,7 @@ export function OnboardingForm() {
       setError(
         message.includes('slug')
           ? 'Esa URL ya está en uso. Prueba con otra.'
-          : 'No se pudo crear la cafetería. Revisa los datos e intenta de nuevo.'
+          : 'No se pudo crear la cafetería. Revisa los datos e inténtalo de nuevo.'
       )
     }
   }
@@ -47,13 +47,13 @@ export function OnboardingForm() {
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-terracotta-500 text-white shadow-md">
             <Icon name="coffee" className="h-6 w-6" />
           </div>
-          <CardTitle className="font-serif mt-4">Crea tu cafeteria</CardTitle>
-          <CardDescription>Configura los datos basicos. Puedes completar el resto despues.</CardDescription>
+          <CardTitle className="font-serif mt-4">Crea tu cafetería</CardTitle>
+          <CardDescription>Configura los datos básicos. Puedes completar el resto después.</CardDescription>
         </CardHeader>
         <CardContent>
           <form action={handleSubmit} className="space-y-4">
             <div>
-              <Label htmlFor="name">Nombre de la cafeteria</Label>
+              <Label htmlFor="name">Nombre de la cafetería</Label>
               <Input id="name" name="name" type="text" required className="mt-1.5" />
             </div>
 
@@ -72,7 +72,7 @@ export function OnboardingForm() {
                   className="block w-full rounded-r-xl bg-transparent px-4 py-3 text-sm text-foreground placeholder:text-warm-400 focus:border-terracotta-400 focus:outline-none focus:ring-2 focus:ring-terracotta-400/20"
                 />
               </div>
-              <p className="mt-1.5 text-xs text-muted-foreground">Si lo dejas vacío, lo armamos a partir del nombre.</p>
+              <p className="mt-1.5 text-xs text-muted-foreground">Si lo dejas vacío, lo creamos a partir del nombre.</p>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -116,7 +116,7 @@ export function OnboardingForm() {
             </div>
 
             <div>
-              <Label htmlFor="address">Direccion</Label>
+              <Label htmlFor="address">Dirección</Label>
               <textarea
                 id="address"
                 name="address"
@@ -128,7 +128,7 @@ export function OnboardingForm() {
             {error && <p className="text-sm text-danger">{error}</p>}
 
             <Button type="submit" disabled={loading} size="lg" className="w-full">
-              {loading ? 'Creando...' : 'Crear cafeteria'}
+              {loading ? 'Creando...' : 'Crear cafetería'}
             </Button>
           </form>
         </CardContent>

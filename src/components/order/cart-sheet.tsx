@@ -42,7 +42,7 @@ export function CartSheet({
           <EmptyState
             icon={<Icon name="cart" className="h-6 w-6" />}
             title="Tu pedido está vacío"
-            description="Agrega algo del menú para empezar."
+            description="Añade algo del menú para empezar."
           />
         ) : (
           <>

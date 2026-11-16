@@ -29,7 +29,7 @@ export default function LoginPage() {
             Tu café, más cerca de tus clientes
           </h1>
           <p className="mt-4 text-base text-muted-foreground">
-            Recibe pedidos anticipados, reduce filas y conecta con quienes te eligen.
+            Recibe pedidos anticipados, reduce colas y conecta con quienes te eligen.
           </p>
 
           <ul className="mt-8 space-y-4">
@@ -53,8 +53,8 @@ export default function LoginPage() {
         <div className="w-full max-w-sm">
           <Card variant="outline">
             <CardHeader className="text-center">
-              <CardTitle>Entra a tu cuenta</CardTitle>
-              <CardDescription>Ingresa tu correo y contraseña para continuar.</CardDescription>
+              <CardTitle>Entra en tu cuenta</CardTitle>
+              <CardDescription>Introduce tu correo y tu contraseña para continuar.</CardDescription>
             </CardHeader>
             <CardContent>
               <form action={formAction} className="space-y-4">

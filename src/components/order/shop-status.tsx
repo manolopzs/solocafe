@@ -2,7 +2,7 @@
 
 import { Badge } from '@/components/ui/badge'
 import { Icon } from '@/components/ui/icon'
-import { todayHoursLabel } from '@/lib/ordering'
+import { hoursConfigured, todayHoursLabel } from '@/lib/ordering'
 import type { OperatingHours, ShopOrdering } from '@/types'
 
 const DAY_LABELS: { key: keyof OperatingHours; label: string }[] = [
@@ -19,6 +19,7 @@ export function ShopStatusBadge({ ordering }: { ordering?: ShopOrdering }) {
   if (ordering?.status === 'not_accepting') {
     return <Badge variant="warning">Sin pedidos</Badge>
   }
+  if (!hoursConfigured(ordering)) return null
   if (ordering?.status === 'closed') {
     return <Badge variant="secondary">Cerrado</Badge>
   }
@@ -59,6 +60,25 @@ export function ShopStatusBanner({
   const paused = ordering?.status === 'not_accepting'
   const closed = ordering?.status === 'closed'
   const quiet = !paused && !closed
+
+  if (!hoursConfigured(ordering)) {
+    // No hours saved yet: don't present the default hours as real. Only say
+    // something when ordering is actually blocked right now.
+    if (quiet) return null
+    return (
+      <section className="mx-auto max-w-3xl px-4 sm:px-5">
+        <div className="rounded-3xl bg-warning/10 px-4 py-4">
+          <p className="flex min-h-11 items-center gap-2 text-sm text-foreground">
+            <Icon name="clock" className="h-4 w-4 shrink-0 text-muted-foreground" />
+            {paused ? 'Ahora no tomamos pedidos para recoger' : 'Ahora no preparamos pedidos al momento'}
+          </p>
+          {closed && ordering?.accepting_pickup && (
+            <p className="mt-1 pl-6 text-sm text-foreground">Puedes programar tu recogida.</p>
+          )}
+        </div>
+      </section>
+    )
+  }
 
   return (
     <section className="mx-auto max-w-3xl px-4 sm:px-5">
