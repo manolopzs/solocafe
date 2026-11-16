@@ -1,6 +1,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { displayFontFamily } from '@/lib/display-fonts'
+import { hoursConfigured } from '@/lib/ordering'
 import { Button } from '@/components/ui/button'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Icon } from '@/components/ui/icon'
@@ -67,15 +68,17 @@ export function ShopDirectory({
                           <Icon name="coffee" className="h-12 w-12 opacity-90" />
                         </div>
                       )}
-                      <span
-                        className={[
-                          'absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-background/95 px-3 py-1 text-xs font-medium backdrop-blur-sm',
-                          shop.open_now ? 'text-success' : 'text-muted-foreground',
-                        ].join(' ')}
-                      >
-                        <span className={['h-1.5 w-1.5 rounded-full', shop.open_now ? 'bg-success' : 'bg-muted-foreground'].join(' ')} />
-                        {shop.open_now ? 'Abierto' : 'Cerrado'}
-                      </span>
+                      {hoursConfigured(shop) && (
+                        <span
+                          className={[
+                            'absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-background/95 px-3 py-1 text-xs font-medium backdrop-blur-sm',
+                            shop.open_now ? 'text-success' : 'text-muted-foreground',
+                          ].join(' ')}
+                        >
+                          <span className={['h-1.5 w-1.5 rounded-full', shop.open_now ? 'bg-success' : 'bg-muted-foreground'].join(' ')} />
+                          {shop.open_now ? 'Abierto' : 'Cerrado'}
+                        </span>
+                      )}
                     </div>
                     <div className="px-4 py-4">
                       <div className="flex items-start justify-between gap-3">

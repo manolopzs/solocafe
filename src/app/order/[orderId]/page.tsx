@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import { getPublicOrderView } from '@/server/queries/orders'
 import { OrderStatusClient } from '@/components/order/order-status-client'
+import { RememberGuestOrder } from '@/components/order/remember-guest-order'
 
 export const instant = false
 
@@ -16,10 +17,13 @@ export default async function OrderStatusPage({ params, searchParams }: OrderSta
   if (!view) notFound()
 
   return (
-    <OrderStatusClient
-      initialOrder={view.order}
-      accessToken={token}
-      vapidPublicKey={view.vapidPublicKey}
-    />
+    <>
+      {token && <RememberGuestOrder order={view.order} token={token} />}
+      <OrderStatusClient
+        initialOrder={view.order}
+        accessToken={token}
+        vapidPublicKey={view.vapidPublicKey}
+      />
+    </>
   )
 }

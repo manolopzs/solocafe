@@ -71,7 +71,7 @@ export function CategoryList({ shopId, categories }: { shopId: string; categorie
                   size="icon"
                   className="text-danger hover:text-danger"
                   onClick={async () => {
-                    if (confirm('Eliminar categoria?')) await deleteCategory(shopId, category.id)
+                    if (confirm('¿Eliminar categoría?')) await deleteCategory(shopId, category.id)
                   }}
                   aria-label="Eliminar"
                 >
@@ -86,7 +86,7 @@ export function CategoryList({ shopId, categories }: { shopId: string; categorie
       <Sheet
         open={sheetOpen}
         onClose={() => setSheetOpen(false)}
-        title={editingCategory ? 'Editar categoria' : 'Nueva categoria'}
+        title={editingCategory ? 'Editar categoría' : 'Nueva categoría'}
         position="bottom"
       >
         <form
