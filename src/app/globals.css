@@ -58,6 +58,18 @@
   --shadow-md: 0 6px 12px -3px rgb(61 43 31 / 0.08), 0 3px 6px -4px rgb(61 43 31 / 0.04);
   --shadow-lg: 0 12px 24px -5px rgb(61 43 31 / 0.1), 0 6px 10px -6px rgb(61 43 31 / 0.05);
   --shadow-float: 0 16px 40px -18px rgb(42 33 28 / 0.45);
+  --shadow-card: 0 1px 2px rgb(61 43 31 / 0.04), 0 8px 24px -16px rgb(61 43 31 / 0.18);
+
+  /* Foundation (blankstreet-match/foundation/SPEC.md): 4/8 spacing, 20px gutter */
+  --gutter: 20px;
+  --tabbar-h: 56px;
+  --bagbar-h: 56px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  /* Content clearance: tab bar only, or tab bar plus the "Ver pedido" bar */
+  --pad-bottom-tabs: calc(var(--tabbar-h) + var(--safe-bottom) + 24px);
+  --pad-bottom-bag: calc(var(--tabbar-h) + 12px + var(--bagbar-h) + 24px + var(--safe-bottom));
+  --ease-out-soft: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-std: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @theme inline {
@@ -81,6 +93,9 @@
   --color-listo-code: var(--listo-code);
   --color-listo-muted: var(--listo-muted);
   --color-ring: var(--ring);
+  /* Foundation aliases: pill and on-pill read like the spec */
+  --color-pill: var(--subtle);
+  --color-on-pill: var(--on-subtle);
 
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
@@ -103,6 +118,7 @@
   --shadow-md: var(--shadow-md);
   --shadow-lg: var(--shadow-lg);
   --shadow-float: var(--shadow-float);
+  --shadow-card: var(--shadow-card);
 
   --radius-sm: var(--radius-sm);
   --radius-md: var(--radius-md);
@@ -110,6 +126,71 @@
   --radius-xl: var(--radius-xl);
   --radius-2xl: var(--radius-2xl);
   --radius-full: var(--radius-full);
+  --radius-card: 24px;
+  --radius-sheet: 28px;
+  --radius-code: 28px;
+  --radius-tile: 20px;
+  --radius-thumb: 16px;
+  --radius-field: 16px;
+
+  /* Type ramp (DM Sans). Titles balance, paragraphs pretty. */
+  --text-display: 48px;
+  --text-display--line-height: 52px;
+  --text-display--letter-spacing: -0.025em;
+  --text-display--font-weight: 600;
+  --text-h1: 30px;
+  --text-h1--line-height: 36px;
+  --text-h1--letter-spacing: -0.02em;
+  --text-h1--font-weight: 600;
+  --text-h1s: 28px;
+  --text-h1s--line-height: 34px;
+  --text-h1s--letter-spacing: -0.02em;
+  --text-h1s--font-weight: 600;
+  --text-h2: 22px;
+  --text-h2--line-height: 28px;
+  --text-h2--letter-spacing: -0.015em;
+  --text-h2--font-weight: 600;
+  --text-h3: 17px;
+  --text-h3--line-height: 22px;
+  --text-h3--letter-spacing: -0.01em;
+  --text-h3--font-weight: 600;
+  --text-product: 16px;
+  --text-product--line-height: 22px;
+  --text-product--letter-spacing: -0.01em;
+  --text-product--font-weight: 600;
+  --text-body-lg: 17px;
+  --text-body-lg--line-height: 26px;
+  --text-body: 16px;
+  --text-body--line-height: 24px;
+  --text-body-sm: 14px;
+  --text-body-sm--line-height: 20px;
+  --text-caption: 12px;
+  --text-caption--line-height: 16px;
+  --text-caption--font-weight: 500;
+  --text-eyebrow: 12px;
+  --text-eyebrow--line-height: 16px;
+  --text-eyebrow--letter-spacing: 0.1em;
+  --text-eyebrow--font-weight: 600;
+  --text-price: 15px;
+  --text-price--line-height: 20px;
+  --text-price--font-weight: 500;
+  --text-button: 16px;
+  --text-button--line-height: 20px;
+  --text-button--letter-spacing: -0.005em;
+  --text-button--font-weight: 600;
+  --text-tab: 11px;
+  --text-tab--line-height: 14px;
+  --text-code-md: 48px;
+  --text-code-md--line-height: 48px;
+  --text-code-md--letter-spacing: 0.04em;
+  --text-code-md--font-weight: 600;
+  --text-code-lg: 88px;
+  --text-code-lg--line-height: 88px;
+  --text-code-lg--letter-spacing: 0.03em;
+  --text-code-lg--font-weight: 600;
+
+  --ease-out-soft: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-std: cubic-bezier(0.4, 0, 0.2, 1);
 
   --font-sans: var(--font-dm-sans);
   --font-serif: var(--font-dm-sans);
@@ -175,6 +256,11 @@
   h2,
   h3 {
     color: var(--heading);
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
   }
 }
 
@@ -311,4 +397,69 @@ legend {
 
 body:has([data-hide-bottom-nav]) .customer-bottom-nav {
   display: none;
+}
+
+/* Foundation motion (SPEC.md section 6) */
+@keyframes bar-in {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes badge-pop {
+  0%, 100% { transform: scale(1); }
+  45% { transform: scale(1.18); }
+}
+
+@keyframes halo-breathe {
+  0%, 100% { opacity: 0.9; }
+  50% { opacity: 0.4; }
+}
+
+@keyframes sheet-up {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+@keyframes code-in {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes title-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-bar-in {
+  animation: bar-in 240ms ease-out both;
+}
+
+.animate-badge-pop {
+  animation: badge-pop 260ms var(--ease-out-soft) 1;
+}
+
+.animate-halo {
+  animation: halo-breathe 2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-bar-in,
+  .animate-badge-pop,
+  .animate-halo {
+    animation: none;
+  }
+}
+
+/* Space for fixed bars at the bottom: tab bar, or tab bar plus "Ver pedido" */
+.pb-tabs {
+  padding-bottom: var(--pad-bottom-tabs);
+}
+
+.pb-bag {
+  padding-bottom: var(--pad-bottom-bag);
+}
+
+/* Fixed CTA in a sheet or full-screen view: safe area + 12px */
+.bottom-safe-12 {
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
 }

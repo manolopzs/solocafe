@@ -79,12 +79,13 @@ test('add, increment and decrement to zero follow the real bag', () => {
   expect(JSON.parse(window.localStorage.getItem('solocafe.cart.stepper-shop') ?? '{}').lines).toEqual([])
 })
 
-test('the bag bar pulses once per add and rises on first load', () => {
+test('the bag bar slides up once and its badge pops on every add', () => {
   const { rerender } = render(<BagBar count={1} total="3,00 €" onOpen={() => {}} />)
   const bar = () => screen.getByRole('button', { name: /Ver pedido/ })
-  expect(bar().className).toMatch(/animate-rise/)
-  expect(bar().className).not.toMatch(/animate-bag-pulse/)
+  const badge = () => screen.getByText('1', { selector: 'span' })
+  expect(bar().className).toMatch(/animate-bar-in/)
+  expect(badge().className).not.toMatch(/animate-badge-pop/)
   rerender(<BagBar count={2} total="6,00 €" onOpen={() => {}} pulseKey={1} />)
-  expect(bar().className).toMatch(/animate-bag-pulse/)
+  expect(screen.getByText('2', { selector: 'span' }).className).toMatch(/animate-badge-pop/)
   expect(bar()).toHaveAttribute('data-pulse', 'true')
 })
