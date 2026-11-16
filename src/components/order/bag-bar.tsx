@@ -22,7 +22,7 @@ export function BagBar({
   if (count <= 0) return null
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-[calc(56px+env(safe-area-inset-bottom)+12px)] z-40 px-5">
+    <div className="pointer-events-none fixed inset-x-0 bottom-[calc(var(--tabbar-h)+var(--safe-bottom)+var(--bagbar-gap))] z-40 px-5">
       <button
         type="button"
         onClick={onOpen}
