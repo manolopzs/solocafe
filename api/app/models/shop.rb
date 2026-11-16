@@ -191,6 +191,14 @@ class Shop < ApplicationRecord
     super.presence || DEFAULT_HOURS
   end
 
+  # True once the owner has saved their own hours. Until then
+  # operating_hours falls back to DEFAULT_HOURS so slots and ordering keep
+  # working, but customer screens should not present those defaults as the
+  # shop's real hours or open state.
+  def hours_configured?
+    read_attribute(:operating_hours).present?
+  end
+
   def self.hours_valid?(raw)
     return false unless raw.is_a?(Hash)
 
@@ -299,6 +307,7 @@ class Shop < ApplicationRecord
   def ordering_payload
     today = today_hours || {}
     {
+      hours_configured: hours_configured?,
       open_now: open_now?,
       accepting_pickup: accepting_pickup?,
       asap_available: accepting_pickup? && open_now?,

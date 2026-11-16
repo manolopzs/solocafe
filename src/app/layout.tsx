@@ -1,6 +1,7 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { DM_Sans, Fraunces, Inter, Libre_Baskerville, Literata, Newsreader } from "next/font/google";
 import { BottomNav } from "@/components/order/bottom-nav";
+import { BASE_OPEN_GRAPH, OG_IMAGE, SITE_BACKGROUND_COLOR, SITE_DESCRIPTION, SITE_NAME, siteUrl } from "@/lib/site";
 import "./globals.css";
 
 const dmSans = DM_Sans({
@@ -36,8 +37,33 @@ const libreBaskerville = Libre_Baskerville({
 });
 
 export const metadata: Metadata = {
-  title: "Solo Café - Vende directo a tus clientes",
-  description: "Sistema de pedidos para recoger sin comisiones de marketplace. Tu menú, tus pagos, tu marca.",
+  metadataBase: siteUrl(),
+  applicationName: SITE_NAME,
+  title: {
+    default: `${SITE_NAME} · Pide para recoger`,
+    template: `%s · ${SITE_NAME}`,
+  },
+  description: SITE_DESCRIPTION,
+  appleWebApp: {
+    capable: true,
+    title: SITE_NAME,
+    statusBarStyle: "default",
+  },
+  openGraph: {
+    ...BASE_OPEN_GRAPH,
+    title: `${SITE_NAME} · Pide para recoger`,
+    description: SITE_DESCRIPTION,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: `${SITE_NAME} · Pide para recoger`,
+    description: SITE_DESCRIPTION,
+    images: [OG_IMAGE.url],
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: SITE_BACKGROUND_COLOR,
 };
 
 export default function RootLayout({

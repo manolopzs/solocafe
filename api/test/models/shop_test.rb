@@ -109,6 +109,32 @@ class ShopTest < ActiveSupport::TestCase
     assert @shop.valid?
   end
 
+  test "hours_configured? is false until the owner saves hours" do
+    shop = Shop.create!(name: "Sin Horario", slug: "sin-horario", currency: "EUR", timezone: "Europe/Madrid")
+
+    assert_not shop.hours_configured?
+    assert @shop.hours_configured?
+  end
+
+  test "ordering payload flags unset hours but keeps ordering on the default hours" do
+    shop = Shop.create!(name: "Sin Horario", slug: "sin-horario-2", currency: "EUR", timezone: "Europe/Madrid")
+    wednesday_noon = Time.find_zone!("Europe/Madrid").local(2026, 10, 14, 12, 0)
+
+    travel_to wednesday_noon do
+      payload = shop.ordering_payload
+
+      assert_equal false, payload[:hours_configured]
+      assert_equal true, payload[:open_now]
+      assert_equal "open", payload[:status]
+      assert_nil shop.checkout_blocked_reason("asap")
+      assert_not_empty shop.generate_slots_for(wednesday_noon.to_date)
+    end
+  end
+
+  test "ordering payload flags configured hours" do
+    assert_equal true, @shop.ordering_payload[:hours_configured]
+  end
+
   test "obvious_test_name? flags common test cafe names" do
     assert Shop.obvious_test_name?("Test Cafe")
     assert Shop.obvious_test_name?("Test Café")
