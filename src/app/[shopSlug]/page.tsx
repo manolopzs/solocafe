@@ -9,6 +9,7 @@ import { getPublicStorefront } from '@/server/queries/storefront'
 import { OrderPageClient } from '@/components/order/order-page-client'
 import { ShopHero } from '@/components/shop/shop-hero'
 import { shopThemeVars } from '@/lib/shop-theme'
+import { BASE_OPEN_GRAPH, OG_IMAGE, SITE_DESCRIPTION, storefrontTitle } from '@/lib/site'
 import type { Order, UsualOrder } from '@/types'
 
 export const instant = false
@@ -16,9 +17,16 @@ export const instant = false
 export async function generateMetadata({ params }: { params: Promise<{ shopSlug: string }> }): Promise<Metadata> {
   const { shopSlug } = await params
   const storefront = await getPublicStorefront(shopSlug)
-  const shopName = storefront?.shop.name ?? 'Solo Café'
+  const shopName = storefront?.shop.name ?? null
+  const title = storefrontTitle(shopName)
+  const description = shopName
+    ? `Pide en ${shopName} desde el móvil y recógelo sin colas.`
+    : SITE_DESCRIPTION
   return {
-    title: `${shopName} · Pedido para recoger`,
+    title: { absolute: title },
+    description,
+    openGraph: { ...BASE_OPEN_GRAPH, title, description, url: `/${shopSlug}` },
+    twitter: { card: 'summary_large_image', title, description, images: [OG_IMAGE.url] },
   }
 }
 

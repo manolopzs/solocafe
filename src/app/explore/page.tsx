@@ -1,8 +1,13 @@
+import type { Metadata } from 'next'
 import { ShopDirectory } from '@/components/explore/shop-directory'
 import { ExploreGeolocation } from '@/components/explore/explore-geolocation'
 import { getPublicShops } from '@/server/queries/explore'
 
 export const instant = false
+
+export const metadata: Metadata = {
+  title: 'Cafeterías para recoger',
+}
 
 function originFromParams(lat?: string, lng?: string) {
   if (!lat || !lng) return undefined
