@@ -389,7 +389,7 @@ export function OrderPageClient({
                   {order.items?.map((item) => item.item_name_snapshot).join(', ')}
                 </p>
                 <p className="mt-1 text-xs text-accent">
-                  {formatPrice(order.total_cents)} · Reordenar
+                  {formatPrice(order.total_cents)} · Repetir
                 </p>
               </button>
             ))}
@@ -454,7 +454,7 @@ export function OrderPageClient({
           <EmptyState
             icon={<Icon name="coffee" className="h-6 w-6" />}
             title="El menú está por llegar"
-            description="Esta cafetería todavía no publicó productos para recoger."
+            description="Esta cafetería todavía no ha publicado productos para recoger."
           />
         )}
         {visibleCategories.map((category) => {

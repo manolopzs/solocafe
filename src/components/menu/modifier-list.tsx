@@ -124,7 +124,7 @@ export function ModifierList({
                               <span className="font-medium text-accent">+{formatMoney(option.price_cents, currency)}</span>
                               <button
                                 onClick={async () => {
-                                  if (confirm('Eliminar opcion?'))
+                                  if (confirm('¿Eliminar opción?'))
                                     await deleteModifierOption(shopId, group.id, option.id)
                                 }}
                                 className="text-sm text-danger hover:text-danger/80"

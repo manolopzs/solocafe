@@ -134,7 +134,7 @@ export function KdsClient({
 
     for (const [key, items] of byCategory) {
       if (key !== null && !ordered.some((g) => g.key === key)) {
-        ordered.push({ key, name: 'Categoria', items })
+        ordered.push({ key, name: 'Categoría', items })
       }
     }
 

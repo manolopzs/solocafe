@@ -216,7 +216,7 @@ export function OrderStatusClient({
           <div className="mt-4">
             <StampCard loyalty={order.loyalty} />
             {order.loyalty_redeemed && (
-              <p className="mt-2 text-sm text-muted-foreground">Canjeaste tu recompensa en este pedido.</p>
+              <p className="mt-2 text-sm text-muted-foreground">Has canjeado tu recompensa en este pedido.</p>
             )}
           </div>
         )}
@@ -279,7 +279,7 @@ function headline(status: OrderStatus) {
     case 'cancelled':
       return 'Pedido cancelado'
     case 'received':
-      return 'Recibimos tu pedido'
+      return 'Hemos recibido tu pedido'
     default:
       return 'Estamos preparando tu pedido'
   }
