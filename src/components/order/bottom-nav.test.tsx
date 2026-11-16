@@ -53,6 +53,13 @@ describe('BottomNav Inicio', () => {
     expect(inicioHref(container)).toBe('/explore')
   })
 
+  it('marks only Inicio active on /explore when Inicio is Explorar', () => {
+    usePathname.mockReturnValue('/explore')
+    const { container } = render(<BottomNav />)
+    const active = Array.from(container.querySelectorAll('a[aria-current="page"]')).map((a) => a.textContent)
+    expect(active).toEqual(['Inicio'])
+  })
+
   it('opens the last storefront visited on this phone', () => {
     rememberShop({ slug: 'otra', name: 'Otra' })
     rememberShop({ slug: 'main', name: 'Solo cafe' })
@@ -67,6 +74,13 @@ describe('BottomNav Inicio', () => {
     const { container } = render(<BottomNav />)
     const active = Array.from(container.querySelectorAll('a[aria-current="page"]')).map((a) => a.textContent)
     expect(active).toEqual(['Inicio'])
+  })
+
+  it('marks only Explorar active on /explore once Inicio is a storefront', () => {
+    usePathname.mockReturnValue('/explore')
+    const { container } = render(<BottomNav />)
+    const active = Array.from(container.querySelectorAll('a[aria-current="page"]')).map((a) => a.textContent)
+    expect(active).toEqual(['Explorar'])
   })
 
   it('marks only Pedidos active on /account/orders', () => {
