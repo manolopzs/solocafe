@@ -1,4 +1,4 @@
-/** Header of /explore, which is also Inicio for a phone that hasn't visited a shop yet. */
+/** Header of the shop list on /inicio (when there are several shops) and /explore. */
 export function ExploreIntro({ sort }: { sort: 'name' | 'distance' }) {
   return (
     <section className="px-4 pb-6 pt-6">

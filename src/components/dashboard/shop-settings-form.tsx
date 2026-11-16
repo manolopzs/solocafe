@@ -198,7 +198,7 @@ export function ShopSettingsForm({ shopId, shop }: { shopId: string; shop: Shop 
             />
           </div>
           <p className="sm:col-span-2 text-sm text-muted-foreground">
-            Opcional. Con estas coordenadas tu cafetería se ordena por cercanía en Explorar.
+            Opcional. Con estas coordenadas tu cafetería se ordena por cercanía en el listado de cafeterías.
           </p>
         </CardContent>
       </Card>

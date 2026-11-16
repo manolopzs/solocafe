@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Icon } from '@/components/ui/icon'
+import { CUSTOMER_HOME_PATH } from '@/lib/site'
 import { Notice } from '@/components/ui/notice'
 
 export default function AccountLoginPage() {
@@ -16,7 +17,7 @@ export default function AccountLoginPage() {
   return (
     <main className="flex min-h-screen flex-col bg-background px-5 py-8">
       <div className="mx-auto flex w-full max-w-sm flex-1 flex-col">
-        <Link href="/explore" className="inline-flex min-h-11 items-center gap-2.5 text-foreground">
+        <Link href={CUSTOMER_HOME_PATH} className="inline-flex min-h-11 items-center gap-2.5 text-foreground">
           <span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground">
             <Icon name="coffee" className="h-5 w-5" />
           </span>

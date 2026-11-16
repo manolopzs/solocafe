@@ -1,5 +1,5 @@
 import type { MetadataRoute } from 'next'
-import { SITE_BACKGROUND_COLOR, SITE_DESCRIPTION, SITE_NAME } from '@/lib/site'
+import { CUSTOMER_HOME_PATH, SITE_BACKGROUND_COLOR, SITE_DESCRIPTION, SITE_NAME } from '@/lib/site'
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
@@ -8,8 +8,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: SITE_DESCRIPTION,
     lang: 'es-ES',
     dir: 'ltr',
-    // Customers install from a shop or Explorar; never open the owner landing page.
-    start_url: '/explore',
+    // Customers install from a shop or Inicio; never open the owner landing page.
+    start_url: CUSTOMER_HOME_PATH,
     scope: '/',
     display: 'standalone',
     orientation: 'portrait',

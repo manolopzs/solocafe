@@ -12,7 +12,7 @@ describe('app identity', () => {
     const m = manifest()
     expect(m.name).toBe('Solo Café')
     expect(m.lang).toBe('es-ES')
-    expect(m.start_url).toBe('/explore')
+    expect(m.start_url).toBe('/inicio')
     expect(m.display).toBe('standalone')
     expect(m.theme_color).toMatch(/^#[0-9a-f]{6}$/i)
     expect(m.icons?.map((icon) => icon.sizes)).toEqual(expect.arrayContaining(['192x192', '512x512']))

@@ -1,4 +1,6 @@
 export const SITE_NAME = 'Solo Café'
+/** Customer home: the only shop's menu, or the shop list when there are several. */
+export const CUSTOMER_HOME_PATH = '/inicio'
 export const SITE_DESCRIPTION = 'Pide tu café desde el móvil y recógelo sin colas.'
 /** Cream page background and dark-brown brand color from globals.css. */
 export const SITE_BACKGROUND_COLOR = '#fffbf7'
