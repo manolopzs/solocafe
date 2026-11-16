@@ -63,3 +63,63 @@ test('category tabs display Café without mutating the stored category', () => {
   expect(screen.getByRole('button', { name: 'Café' })).toBeInTheDocument()
   expect(category.name).toBe('Cafe')
 })
+
+test('keeps full price visible and seats quick-add on the photo, not the text row', () => {
+  const onQuickAdd = jest.fn()
+  const { container } = render(
+    <ProductCard
+      item={item}
+      isFavorite={false}
+      showFavorite={false}
+      onClick={() => {}}
+      onQuickAdd={onQuickAdd}
+      onToggleFavorite={() => {}}
+      formatPrice={formatPrice}
+    />,
+  )
+
+  const price = screen.getByText('3,00 €')
+  expect(price.textContent).toBe('3,00 €')
+  expect(screen.getByRole('heading', { name: 'Café con leche' })).toBeInTheDocument()
+
+  const quickAdd = screen.getByRole('button', { name: 'Añadir Café con leche' })
+  const imageContainer = container.querySelector('.aspect-square')
+  expect(imageContainer).not.toBeNull()
+  expect(imageContainer).toContainElement(quickAdd)
+  expect(quickAdd.className).toMatch(/h-11/)
+  expect(quickAdd.className).toMatch(/w-11/)
+
+  const textRow = price.closest('.p-3')
+  expect(textRow).not.toBeNull()
+  expect(textRow).not.toContainElement(quickAdd)
+
+  fireEvent.click(quickAdd)
+  expect(onQuickAdd).toHaveBeenCalledTimes(1)
+})
+
+test('seats quick-add on the photo area even when the card has no image', () => {
+  const noPhoto: MenuItem = {
+    ...item,
+    id: 'tea',
+    name: 'Te verde',
+    price_cents: 180,
+    image_url: null,
+  }
+  const { container } = render(
+    <ProductCard
+      item={noPhoto}
+      isFavorite={false}
+      showFavorite={false}
+      onClick={() => {}}
+      onQuickAdd={() => {}}
+      onToggleFavorite={() => {}}
+      formatPrice={formatPrice}
+    />,
+  )
+
+  expect(screen.getByText('1,80 €').textContent).toBe('1,80 €')
+  expect(screen.getByRole('heading', { name: 'Te verde' })).toBeInTheDocument()
+  const quickAdd = screen.getByRole('button', { name: 'Añadir Te verde' })
+  expect(container.querySelector('.aspect-square')).toContainElement(quickAdd)
+  expect(screen.getByText('1,80 €').closest('.p-3')).not.toContainElement(quickAdd)
+})
