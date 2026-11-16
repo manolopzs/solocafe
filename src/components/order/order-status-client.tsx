@@ -8,6 +8,7 @@ import { pickupCode } from '@/lib/pickup-code'
 import { env } from '@/lib/env'
 import { Button } from '@/components/ui/button'
 import { StampCard } from '@/components/order/stamp-card'
+import { OrderReadyScreen, showsReadyScreen } from '@/components/order/order-ready-screen'
 import { Icon } from '@/components/ui/icon'
 import type { Order, OrderItem, OrderItemModifier, OrderStatus } from '@/types'
 
@@ -141,6 +142,8 @@ export function OrderStatusClient({
       : order.status === 'cancelled'
         ? 'bg-danger/10 text-danger'
         : 'bg-accent/15 text-accent'
+
+  if (showsReadyScreen(order.status)) return <OrderReadyScreen order={order} menuHref={menuHref} />
 
   return (
     <main className="min-h-screen bg-background">
