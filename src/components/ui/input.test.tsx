@@ -7,11 +7,11 @@ describe('form placeholders', () => {
   it('use the lighter input-border grey so they do not read as filled-in values', () => {
     render(
       <>
-        <Input placeholder="¿Cómo te llaman?" />
+        <Input placeholder="¿Cómo te llamas?" />
         <Textarea placeholder="Opcional" />
       </>,
     )
-    for (const field of [screen.getByPlaceholderText('¿Cómo te llaman?'), screen.getByPlaceholderText('Opcional')]) {
+    for (const field of [screen.getByPlaceholderText('¿Cómo te llamas?'), screen.getByPlaceholderText('Opcional')]) {
       expect(field.className).toContain('placeholder:text-input-border')
       expect(field.className).not.toContain('placeholder:text-muted-foreground')
     }
