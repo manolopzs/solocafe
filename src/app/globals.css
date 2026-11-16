@@ -67,7 +67,9 @@
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   /* Content clearance: tab bar only, or tab bar plus the "Ver pedido" bar */
   --pad-bottom-tabs: calc(var(--tabbar-h) + var(--safe-bottom) + 24px);
-  --pad-bottom-bag: calc(var(--tabbar-h) + 12px + var(--bagbar-h) + 24px + var(--safe-bottom));
+  /* The bag bar floats 12px above the tab bar; the last row clears its top edge by 16px. */
+  --bagbar-gap: 12px;
+  --pad-bottom-bag: calc(var(--tabbar-h) + var(--bagbar-gap) + var(--bagbar-h) + var(--safe-bottom) + 16px);
   --ease-out-soft: cubic-bezier(0.2, 0.8, 0.2, 1);
   --ease-std: cubic-bezier(0.4, 0, 0.2, 1);
 }
