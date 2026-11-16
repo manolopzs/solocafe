@@ -18,8 +18,8 @@ import { CategoryTabs } from '@/components/order/category-tabs'
 import { CheckoutSheet } from '@/components/order/checkout-sheet'
 import { ItemSheet } from '@/components/order/item-sheet'
 import { ProductCard } from '@/components/order/product-card'
-import { ShopStatusBadge, ShopStatusBanner } from '@/components/order/shop-status'
-import { ShopSwitcher } from '@/components/order/shop-switcher'
+import { ShopStatusBanner } from '@/components/order/shop-status'
+import { SoloCafeWordmark } from '@/components/brand/solo-cafe-logo'
 import { UsualOrderButton } from '@/components/order/usual-order-button'
 import { useCartPreview } from '@/components/order/hooks/use-cart-preview'
 import { useCategorySpy } from '@/components/order/hooks/use-category-spy'
@@ -148,6 +148,7 @@ export function OrderPageClient({
         quantity: line.quantity,
         lineTotal: formatPrice(lineCents),
         unavailable: remote ? !remote.available : false,
+        thumb: item ? { name: item.name, image_url: item.image_url } : undefined,
       }
     })
   }, [cart.lines, items, modifierOptions, preview, formatPrice])
@@ -327,68 +328,61 @@ export function OrderPageClient({
   const menuIsEmpty = visibleCategories.length === 0 && uncategorizedItems.length === 0
 
   return (
-    <div className="min-h-screen bg-background pb-32">
-      <header>
-        <div className="mx-auto flex max-w-3xl items-start gap-3 px-4 pb-3 sm:px-5">
-          <div className={hasHero ? '-mt-9 shrink-0' : 'mt-4 shrink-0'}>
-            {shop.logo_url ? (
-              <div className="relative h-[4.5rem] w-[4.5rem] overflow-hidden rounded-3xl border-[3px] border-background bg-surface-elevated shadow-md">
-                <Image src={shop.logo_url} alt="" fill sizes="72px" className="object-cover" />
-              </div>
-            ) : (
-              <div className="flex h-[4.5rem] w-[4.5rem] items-center justify-center rounded-3xl border-[3px] border-background bg-surface-elevated shadow-md">
-                <Icon name="store" className="h-8 w-8 text-muted-foreground" />
-              </div>
-            )}
-          </div>
-          <div className="flex min-w-0 flex-1 items-start justify-between gap-2 pt-3">
-            <div className="min-w-0">
-              <div className="flex min-w-0 items-center">
-                <h1 className="shop-display-font min-w-0 truncate text-[1.7rem] font-medium leading-none tracking-tight text-heading">
-                  {shop.name}
-                </h1>
-                <ShopSwitcher shop={{ slug: shop.slug, name: shop.name }} />
-              </div>
-              {shop.address && (
-                <p className="mt-1.5 flex items-center gap-1.5 text-sm text-muted-foreground">
-                  <Icon name="map-pin" className="h-3.5 w-3.5 shrink-0" />
-                  <span className="truncate">{shop.address}</span>
-                </p>
-              )}
-              <div className="mt-2 flex flex-wrap items-center gap-2">
-                <ShopStatusBadge ordering={liveOrdering} />
-                <span className="text-xs text-muted-foreground">Para recoger</span>
-              </div>
-            </div>
-            <Link
-              href={customer ? '/account' : '/account/login'}
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-surface text-foreground"
-              aria-label={customer ? 'Mi cuenta' : 'Iniciar sesión'}
-            >
-              <Icon name="user" className="h-5 w-5" />
-            </Link>
-          </div>
+    <div className="pb-bag min-h-screen bg-background">
+      <header className="mx-auto max-w-3xl px-5">
+        <div className="-mx-3 flex h-14 items-center justify-between">
+          <Link href="/inicio" className="flex h-11 w-11 items-center justify-center rounded-full text-foreground" aria-label="Volver a Inicio">
+            <Icon name="arrow-left" className="h-[22px] w-[22px]" />
+          </Link>
+          <SoloCafeWordmark height={20} />
+          <Link
+            href={customer ? '/account' : '/account/login'}
+            className="flex h-11 w-11 items-center justify-center rounded-full text-foreground"
+            aria-label={customer ? 'Mi cuenta' : 'Iniciar sesión'}
+          >
+            <Icon name="user" className="h-[22px] w-[22px]" />
+          </Link>
         </div>
+        <div className="flex items-center gap-3 pt-2">
+          {shop.logo_url && (
+            <span className="relative h-11 w-11 shrink-0 overflow-hidden rounded-full bg-surface">
+              <Image src={shop.logo_url} alt="" fill sizes="44px" className="object-cover" />
+            </span>
+          )}
+          <h1 className="shop-display-font min-w-0 truncate text-h1 text-heading">{shop.name}</h1>
+        </div>
+        <p className="mt-1 flex min-w-0 items-center gap-1.5 text-body-sm text-muted-foreground">
+          {shop.address && (
+            <>
+              <Icon name="map-pin" className="h-4 w-4 shrink-0" />
+              <span className="truncate">{shop.address}</span>
+              <span aria-hidden="true">·</span>
+            </>
+          )}
+          <span className="shrink-0">Para recoger</span>
+        </p>
       </header>
 
-      <ShopStatusBanner ordering={liveOrdering} hours={shop.operating_hours} />
+      <div className="mt-3">
+        <ShopStatusBanner ordering={liveOrdering} hours={shop.operating_hours} />
+      </div>
 
       {usualOrder && <UsualOrderButton usual={usualOrder} onOrder={orderUsual} />}
 
       {notice && (
-        <div className="mx-auto max-w-3xl px-4 pt-3 sm:px-5">
+        <div className="mx-auto max-w-3xl px-5 pt-3">
           <Notice>{notice}</Notice>
         </div>
       )}
 
       {reorderCount > 0 && (
-        <div className="mx-auto max-w-3xl px-4 pt-3 sm:px-5">
+        <div className="mx-auto max-w-3xl px-5 pt-3">
           <Notice>Añadimos {reorderCount} productos de tu pedido anterior. Revisa tu pedido.</Notice>
         </div>
       )}
 
       {recentOrders.length > 0 && (
-        <section className="mx-auto max-w-3xl px-4 pt-5 sm:px-5">
+        <section className="mx-auto max-w-3xl px-5 pt-5">
           <h2 className="text-sm font-medium text-muted-foreground">Pedidos recientes</h2>
           <div className="mt-3 flex snap-x snap-mandatory gap-3 overflow-x-auto pb-1 no-scrollbar">
             {recentOrders.map((order) => (
@@ -414,7 +408,7 @@ export function OrderPageClient({
       )}
 
       {favoriteItems.length > 0 && (
-        <section className="mx-auto max-w-3xl px-4 pt-5 sm:px-5">
+        <section className="mx-auto max-w-3xl px-5 pt-5">
           <h2 className="text-sm font-medium text-muted-foreground">Tus favoritos</h2>
           <div className="mt-3 flex snap-x snap-mandatory gap-3 overflow-x-auto pb-1 no-scrollbar">
             {favoriteItems.map((item) => (
@@ -442,7 +436,7 @@ export function OrderPageClient({
       )}
 
       {featuredItems.length > 0 && (
-        <section className="mx-auto max-w-3xl px-4 pt-5 sm:px-5">
+        <section className="mx-auto max-w-3xl px-5 pt-5">
           <h2 className="text-sm font-medium text-muted-foreground">Destacados</h2>
           <div className="mt-3 flex snap-x snap-mandatory gap-3 overflow-x-auto pb-1 no-scrollbar">
             {featuredItems.map((item) => (
@@ -465,7 +459,7 @@ export function OrderPageClient({
 
       <CategoryTabs categories={navItems} activeId={activeId} onSelect={scrollTo} />
 
-      <main className="mx-auto max-w-3xl animate-rise px-4 py-2 sm:px-5 sm:py-6">
+      <main className="mx-auto max-w-3xl animate-rise px-5 pt-5">
         {menuIsEmpty && (
           <EmptyState
             icon={<Icon name="coffee" className="h-6 w-6" />}
@@ -478,8 +472,8 @@ export function OrderPageClient({
           if (categoryItems.length === 0) return null
           return (
             <section key={category.id} ref={setRef(category.id)} className="scroll-mt-16 pb-8">
-              <h2 className="shop-display-font pt-4 text-[1.65rem] font-medium tracking-tight text-heading">{storefrontCategoryName(category.name)}</h2>
-              <div className="mt-3 grid grid-cols-2 gap-3">
+              <h2 className="shop-display-font text-h2 text-heading">{storefrontCategoryName(category.name)}</h2>
+              <div className="mt-3 grid grid-cols-2 gap-x-3 gap-y-5">
                 {categoryItems.map((item) => (
                   <ProductCard
                     key={item.id}
@@ -503,8 +497,8 @@ export function OrderPageClient({
 
         {uncategorizedItems.length > 0 && (
           <section ref={setRef('uncategorized')} className="scroll-mt-16 pb-8">
-            <h2 className="shop-display-font pt-4 text-[1.65rem] font-medium tracking-tight text-heading">Otros</h2>
-            <div className="mt-3 grid grid-cols-2 gap-3">
+            <h2 className="shop-display-font text-h2 text-heading">Otros</h2>
+            <div className="mt-3 grid grid-cols-2 gap-x-3 gap-y-5">
               {uncategorizedItems.map((item) => (
                 <ProductCard
                   key={item.id}

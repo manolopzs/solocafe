@@ -2,44 +2,38 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useSyncExternalStore } from 'react'
 import { Icon } from '@/components/ui/icon'
-import { EMPTY_RECENT_SHOPS, getRecentSnapshot, subscribeRecentShops, type RecentShop } from '@/lib/recent-shops'
 import { CUSTOMER_HOME_PATH } from '@/lib/site'
-
-// Slug of the /demo shop (src/lib/demo-data.ts). It has no /<slug> route.
-const DEMO_SHOP_SLUG = 'cafeteria-demo'
 
 const hiddenPrefixes = ['/dashboard', '/auth', '/account/login', '/account/signup', '/checkout']
 const hiddenPaths = ['/contacto', '/privacidad', '/terminos', '/aviso-legal', '/cookies']
+const appSegments = new Set(['account', 'auth', 'checkout', 'dashboard', 'demo', 'explore', 'inicio', 'order'])
 
-/**
- * Customer "Inicio": the last storefront this phone visited, or /inicio.
- * Never the owner landing page at "/".
- */
-export function customerHomeHref(recent: readonly RecentShop[]): string {
-  const lastShop = recent.find((shop) => shop.slug && shop.slug !== DEMO_SHOP_SLUG)
-  return lastShop ? `/${encodeURIComponent(lastShop.slug)}` : CUSTOMER_HOME_PATH
+/** A shop menu lives at /<slug>: one segment that isn't another app route. */
+export function isStorefrontPath(pathname: string): boolean {
+  const segments = pathname.split('/').filter(Boolean)
+  return segments.length === 1 && !appSegments.has(segments[0]) && !hiddenPaths.includes(pathname)
 }
 
+/** Customer tabs: Inicio (/inicio, the shop list and Lo de siempre), Pedidos and Cuenta. */
 export function BottomNav() {
   const pathname = usePathname()
-  const recent = useSyncExternalStore(subscribeRecentShops, getRecentSnapshot, () => EMPTY_RECENT_SHOPS)
-  const homeHref = customerHomeHref(recent)
 
   if (pathname === '/') return null
   if (hiddenPaths.includes(pathname)) return null
   if (hiddenPrefixes.some((prefix) => pathname.startsWith(prefix))) return null
 
   const navItems = [
-    { key: 'inicio', href: homeHref, label: 'Inicio', icon: 'store' },
+    { key: 'inicio', href: CUSTOMER_HOME_PATH, label: 'Inicio', icon: 'store' },
     { key: 'pedidos', href: '/account/orders', label: 'Pedidos', icon: 'receipt-euro' },
     { key: 'cuenta', href: '/account', label: 'Cuenta', icon: 'user' },
   ] as const
 
   const isActive = (key: (typeof navItems)[number]['key'], href: string) => {
-    if (key === 'inicio') return pathname === homeHref || pathname === CUSTOMER_HOME_PATH
+    if (key === 'inicio') return pathname === CUSTOMER_HOME_PATH || isStorefrontPath(pathname)
     if (key === 'cuenta') return pathname === href
+    // An order's live tracker belongs to Pedidos.
+    if (key === 'pedidos' && pathname.startsWith('/order/')) return true
     return pathname === href || pathname.startsWith(`${href}/`)
   }
 

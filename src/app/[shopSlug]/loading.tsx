@@ -1,35 +1,34 @@
 import { Skeleton } from '@/components/ui/skeleton'
 
+// Same shape as the menu: header row, title, category chips, 2-column square tiles.
 export default function ShopLoading() {
   return (
-    <div className="min-h-screen bg-background pb-32">
-      <Skeleton className="h-56 w-full rounded-none sm:h-72" />
-      <header className="px-4">
-        <div className="mx-auto flex max-w-3xl items-start gap-3">
-          <Skeleton className="-mt-9 h-[4.5rem] w-[4.5rem] shrink-0 rounded-3xl" />
-          <div className="flex-1 space-y-2 pt-3">
-            <Skeleton className="h-7 w-48" />
-            <Skeleton className="h-4 w-36" />
-          </div>
-        </div>
-      </header>
-      <div className="mt-6 flex gap-4 border-b border-border px-4 py-3">
-        <Skeleton className="h-4 w-28" />
-        <Skeleton className="h-4 w-24" />
-        <Skeleton className="h-4 w-20" />
+    <div className="min-h-screen bg-background pb-bag">
+      <div className="flex h-14 items-center justify-between px-5">
+        <Skeleton className="h-10 w-10 rounded-full" />
+        <Skeleton className="h-5 w-24" />
+        <Skeleton className="h-10 w-10 rounded-full" />
       </div>
-      <main className="mx-auto max-w-3xl px-4 py-4">
-        <Skeleton className="mb-2 h-7 w-40" />
-        {Array.from({ length: 4 }).map((_, index) => (
-          <div key={index} className="flex items-center gap-4 border-b border-border py-4">
-            <Skeleton className="h-[104px] w-[104px] shrink-0 rounded-2xl" />
-            <div className="flex-1 space-y-2">
-              <Skeleton className="h-4 w-32" />
-              <Skeleton className="h-3 w-full" />
-              <Skeleton className="h-4 w-16" />
+      <header className="px-5 pt-2">
+        <Skeleton className="h-8 w-48" />
+        <Skeleton className="mt-2 h-4 w-56" />
+      </header>
+      <div className="mt-4 flex gap-2 px-5">
+        <Skeleton className="h-9 w-20 rounded-full" />
+        <Skeleton className="h-9 w-24 rounded-full" />
+        <Skeleton className="h-9 w-16 rounded-full" />
+      </div>
+      <main className="px-5 pt-6">
+        <Skeleton className="h-6 w-32" />
+        <div className="mt-4 grid grid-cols-2 gap-x-3 gap-y-5">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <div key={index}>
+              <Skeleton className="aspect-square w-full rounded-tile" />
+              <Skeleton className="mt-3 h-4 w-24" />
+              <Skeleton className="mt-1.5 h-4 w-14" />
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </main>
     </div>
   )

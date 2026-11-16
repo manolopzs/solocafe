@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { formatMoney } from '@/lib/ordering'
-import { pickupCode } from '@/lib/pickup-code'
+import { PickupCode } from '@/components/order/pickup-code'
 import type { Order, OrderItem, OrderItemModifier, OrderStatus } from '@/types'
 
 type ReadyOrder = Order & { items: (OrderItem & { modifiers: OrderItemModifier[] })[] }
@@ -28,7 +28,7 @@ function OpeningMark() {
 }
 
 /**
- * Full-screen "Listo" takeover for the order status page (mock 01b).
+ * Full-screen "Listo" takeover for the order status page (mocks 06 and 07).
  * It sits above the customer tab bar (z-40), so the tab bar and "Avísame"
  * are out of the way once the order is ready.
  *
@@ -42,113 +42,117 @@ export function OrderReadyScreen({ order, menuHref }: { order: ReadyOrder; menuH
   const loyalty = order.loyalty
   const required = loyalty ? Math.max(loyalty.stamps_required, 1) : 0
   const filled = loyalty ? Math.min(Math.max(loyalty.stamps, 0), required) : 0
+  const shopName = order.shop?.name ?? loyalty?.shop_name
 
   return (
     <main
-      className="fixed inset-0 z-50 overflow-y-auto bg-listo-bg text-foreground"
+      className="fixed inset-0 z-50 overflow-y-auto bg-listo-bg text-foreground motion-safe:animate-[fade-in_200ms_ease-out]"
       data-testid="order-ready-screen"
       aria-live="polite"
     >
-      <div className="mx-auto flex min-h-full max-w-xl flex-col px-5 pb-[calc(1.5rem+env(safe-area-inset-bottom))] pt-[calc(1rem+env(safe-area-inset-top))]">
-        <div className="flex items-center justify-between font-semibold">
-          <span className="truncate">{order.shop?.name}</span>
-          <Link href={menuHref} className="inline-flex min-h-11 items-center px-1">
+      <div className="mx-auto flex min-h-full max-w-xl flex-col px-5 pb-[calc(env(safe-area-inset-bottom)+72px)] pt-[env(safe-area-inset-top)]">
+        <div className="flex h-12 items-center justify-between text-body-sm font-semibold">
+          <span className="truncate">{shopName}</span>
+          <Link href={menuHref} className="-mr-1 inline-flex min-h-11 items-center px-1">
             Cerrar
           </Link>
         </div>
 
-        <h1 className="mt-8 break-words text-[3.75rem] font-bold leading-[1.05] tracking-[-0.01em] text-heading">
+        <h1
+          className="mt-10 break-words text-display text-foreground motion-safe:animate-[title-in_320ms_ease-out_80ms_both]"
+        >
           <OpeningMark />
-          {name ? (
-            <>
-              Listo,
-              <br />
-              {name}!
-            </>
-          ) : (
-            'Listo!'
-          )}
+          {name ? `Listo, ${name}!` : 'Listo!'}
         </h1>
-        <p className="mt-4 text-lg font-semibold leading-snug">Tu pedido está listo. Pasa a recogerlo.</p>
+        <p className="mt-2 text-body-lg text-listo-muted">Tu pedido está listo. Pasa a recogerlo.</p>
 
-        <div className="mt-7 rounded-[1.75rem] bg-listo-card px-6 pb-5 pt-5 text-center text-listo-code">
-          <p className="text-xs font-bold uppercase tracking-[0.12em] text-listo-muted">Tu código</p>
-          <p className="mt-1 text-[5.5rem] font-semibold leading-none tracking-[0.06em] tabular-nums" data-testid="ready-pickup-code">
-            {pickupCode(order.id)}
-          </p>
-          <p className="mt-2 text-sm text-listo-muted">Dilo o enséñalo en la barra</p>
+        <div className="mt-8 motion-safe:animate-[code-in_360ms_ease-out_160ms_both]">
+          <PickupCode orderId={order.id} size="lg" />
         </div>
 
         {signedIn ? (
-          <div className="mt-9 flex flex-col items-center gap-4 text-center" data-testid="ready-stamp">
-            <div>
-              <p className="text-4xl font-bold uppercase leading-none">+1 sello</p>
+          <section className="mt-3 rounded-code bg-listo-card px-5 pb-5 pt-5" data-testid="ready-stamp">
+            <div className="flex items-baseline justify-between gap-3">
+              <p className="text-[22px] font-semibold leading-7 tracking-[-0.015em]">+1 sello</p>
               {loyalty && (
-                <p className="mt-1 text-sm font-medium opacity-90">
-                  {filled} de {required} en tu tarjeta
+                <p className="text-body-sm text-listo-muted">
+                  {filled} de {required}
                 </p>
               )}
             </div>
             {loyalty && required <= 12 && (
-              <div className="flex flex-wrap justify-center gap-2" aria-hidden="true">
+              <div className="mt-4 flex justify-between" aria-hidden="true">
                 {Array.from({ length: required }, (_, index) => (
                   <span
                     key={index}
+                    data-new={index === filled - 1 ? 'true' : undefined}
                     className={[
                       'h-6 w-6 rounded-full border-2',
                       index < filled ? 'border-foreground bg-foreground' : 'border-foreground/60',
-                      index === filled - 1 ? 'scale-125' : '',
+                      index === filled - 1
+                        ? 'outline outline-2 outline-offset-[3px] outline-foreground motion-safe:animate-[fade-in_400ms_ease-out_520ms_both]'
+                        : '',
                     ].join(' ')}
                   />
                 ))}
               </div>
             )}
-          </div>
+            {loyalty && shopName && <p className="mt-4 text-body-sm text-listo-muted">Tu tarjeta de {shopName}</p>}
+          </section>
         ) : (
-          <div className="mt-9 rounded-3xl border border-foreground px-5 py-4 text-center" data-testid="ready-guest-invite">
-            <p className="font-semibold">Guarda tus sellos</p>
-            <p className="mt-1 text-sm opacity-90">Con una cuenta sumas un sello en cada pedido.</p>
+          <section
+            className="mt-3 flex items-center justify-between gap-4 rounded-code bg-listo-card px-5 py-5"
+            data-testid="ready-guest-invite"
+          >
+            <div className="min-w-0">
+              <p className="text-h3">Guarda tus sellos</p>
+              <p className="mt-1 max-w-[30ch] text-body-sm text-listo-muted [text-wrap:balance]">
+                Con una cuenta, cada pedido suma un sello.
+              </p>
+            </div>
             <Link
               href="/account/signup"
-              className="mt-3 inline-flex min-h-11 items-center justify-center rounded-full bg-primary px-5 font-semibold text-primary-foreground"
+              className="inline-flex h-11 shrink-0 items-center justify-center rounded-full bg-foreground px-4 text-[15px] font-semibold text-background"
             >
               Crear cuenta
             </Link>
-          </div>
+          </section>
         )}
 
-        <div className="mt-auto pt-10 text-center">
-          <button
-            type="button"
-            className="inline-flex min-h-11 items-center font-semibold underline underline-offset-4"
-            aria-expanded={showDetails}
-            onClick={() => setShowDetails((open) => !open)}
-          >
-            {showDetails ? 'Ocultar detalle del pedido' : 'Ver detalle del pedido'}
-          </button>
-          {showDetails && (
-            <div className="mt-3 rounded-3xl bg-listo-card px-5 py-4 text-left text-foreground">
-              <ul className="divide-y divide-border">
-                {order.items.map((item) => (
-                  <li key={item.id} className="py-2.5">
-                    <p className="font-medium">
-                      {item.quantity} × {item.item_name_snapshot}
+        {showDetails && (
+          <div className="mt-3 rounded-code bg-listo-card px-5 py-4 text-left text-foreground" data-testid="ready-details">
+            <ul className="divide-y divide-foreground/10">
+              {order.items.map((item) => (
+                <li key={item.id} className="py-2.5">
+                  <p className="font-medium">
+                    {item.quantity} × {item.item_name_snapshot}
+                  </p>
+                  {item.modifiers && item.modifiers.length > 0 && (
+                    <p className="text-body-sm text-listo-muted">
+                      {item.modifiers.map((modifier) => modifier.option_name_snapshot).join(', ')}
                     </p>
-                    {item.modifiers && item.modifiers.length > 0 && (
-                      <p className="text-sm text-muted-foreground">
-                        {item.modifiers.map((modifier) => modifier.option_name_snapshot).join(', ')}
-                      </p>
-                    )}
-                  </li>
-                ))}
-              </ul>
-              <div className="mt-2 flex items-baseline justify-between border-t border-border pt-3">
-                <span className="text-muted-foreground">Total</span>
-                <span className="font-medium tabular-nums">{formatMoney(order.total_cents, order.currency)}</span>
-              </div>
+                  )}
+                </li>
+              ))}
+            </ul>
+            <div className="mt-2 flex items-baseline justify-between border-t border-foreground/10 pt-3">
+              <span className="text-listo-muted">Total</span>
+              <span className="font-semibold tabular-nums">{formatMoney(order.total_cents, order.currency)}</span>
             </div>
-          )}
-        </div>
+          </div>
+        )}
+      </div>
+
+      {/* N3: a secondary exit, fixed at safe area + 8 so it sits in the same place with or without an account. */}
+      <div className="fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+8px)] z-10 flex justify-center">
+        <button
+          type="button"
+          className="inline-flex min-h-12 items-center px-3 text-body-sm font-semibold underline underline-offset-4"
+          aria-expanded={showDetails}
+          onClick={() => setShowDetails((open) => !open)}
+        >
+          {showDetails ? 'Ocultar detalle del pedido' : 'Ver detalle del pedido'}
+        </button>
       </div>
     </main>
   )

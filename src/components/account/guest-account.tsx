@@ -1,49 +1,66 @@
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import { Icon, type IconName } from '@/components/ui/icon'
+import { SoloCafeWordmark } from '@/components/brand/solo-cafe-logo'
 
 /** Why a guest would sign up. Each line must stay true of the product as it works today. */
-export const ACCOUNT_REASONS = [
+export const ACCOUNT_REASONS: readonly { icon: IconName; title: string; body: string }[] = [
   {
+    icon: 'user',
     title: 'Tu nombre y teléfono, guardados',
     body: 'No tienes que escribirlos en cada pedido.',
   },
   {
+    icon: 'repeat',
     title: 'Repite tu pedido en un toque',
     body: 'Tu café de siempre, sin buscarlo en la carta.',
   },
-  {
-    title: 'Sellos en cada pedido',
-    body: 'Cada pedido pagado suma un sello en tu tarjeta.',
-  },
-] as const
+]
 
-/** Cuenta for guests: the reasons to sign up instead of a login wall. */
+/**
+ * Cuenta for guests (mock 08): an empty stamp card that explains stamps, two
+ * reasons with icons, then Crear cuenta (espresso, not an order step).
+ * The card shows no count: each shop sets its own number of stamps.
+ */
 export function GuestAccount() {
   return (
     <main className="min-h-screen bg-background">
-      <div className="mx-auto max-w-xl px-5 pb-28 pt-8">
-        <h1 className="text-[2rem] font-medium leading-tight tracking-tight text-foreground">Tu cuenta</h1>
-        <p className="mt-2 max-w-[30ch] text-base leading-6 text-muted-foreground">
-          Puedes pedir sin cuenta. Con una, pides más rápido.
-        </p>
+      <div className="pb-tabs mx-auto max-w-xl px-5">
+        <div className="flex h-14 items-center">
+          <SoloCafeWordmark height={20} />
+        </div>
+        <h1 className="mt-2 text-h1 text-heading">Tu cuenta</h1>
+        <p className="mt-2 text-body text-muted-foreground">Puedes pedir sin cuenta. Con una, pides más rápido.</p>
 
-        <ul className="mt-7 border-b border-border">
+        <section className="mt-6 rounded-card bg-sky p-5" aria-labelledby="stamp-card-title">
+          <h2 id="stamp-card-title" className="text-h3 text-foreground">Tarjeta de sellos</h2>
+          <div className="mt-4 flex justify-between" aria-hidden="true">
+            {Array.from({ length: 8 }, (_, index) => (
+              <span key={index} className="h-[22px] w-[22px] rounded-full border-[1.5px] border-dashed border-foreground/55" />
+            ))}
+          </div>
+          <p className="mt-4 max-w-[34ch] text-body-sm text-foreground/80">Cada pedido pagado suma un sello en esa cafetería.</p>
+        </section>
+
+        <ul className="mt-3 divide-y divide-border rounded-card border border-border bg-surface-elevated px-4 shadow-card">
           {ACCOUNT_REASONS.map((reason) => (
-            <li key={reason.title} className="border-t border-border py-4">
-              <p className="text-lg font-semibold leading-snug text-foreground">{reason.title}</p>
-              <p className="mt-1 text-[0.95rem] leading-6 text-muted-foreground">{reason.body}</p>
+            <li key={reason.title} className="flex gap-3 py-4">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-pill text-on-pill">
+                <Icon name={reason.icon} className="h-[18px] w-[18px]" />
+              </span>
+              <div className="min-w-0">
+                <p className="text-[15px] font-semibold leading-5 text-foreground">{reason.title}</p>
+                <p className="mt-0.5 text-body-sm text-muted-foreground">{reason.body}</p>
+              </div>
             </li>
           ))}
         </ul>
 
         <div className="mt-6 flex flex-col items-center gap-1">
-          <Button asChild size="lg" className="h-14 w-full rounded-full text-base">
+          <Button asChild variant="espresso" className="h-[52px] w-full text-base">
             <Link href="/account/signup">Crear cuenta</Link>
           </Button>
-          <Link
-            href="/account/login"
-            className="inline-flex min-h-11 items-center px-3 text-base font-semibold text-accent underline underline-offset-4"
-          >
+          <Link href="/account/login" className="inline-flex min-h-11 items-center px-3 text-body font-semibold text-foreground">
             Ya tengo cuenta · Entrar
           </Link>
         </div>

@@ -66,7 +66,7 @@ export function ShopStatusBanner({
     // something when ordering is actually blocked right now.
     if (quiet) return null
     return (
-      <section className="mx-auto max-w-3xl px-4 sm:px-5">
+      <section className="mx-auto max-w-3xl px-5">
         <div className="rounded-3xl bg-warning/10 px-4 py-4">
           <p className="flex min-h-11 items-center gap-2 text-sm text-foreground">
             <Icon name="clock" className="h-4 w-4 shrink-0 text-muted-foreground" />
@@ -81,7 +81,7 @@ export function ShopStatusBanner({
   }
 
   return (
-    <section className="mx-auto max-w-3xl px-4 sm:px-5">
+    <section className="mx-auto max-w-3xl px-5">
       <div className={quiet ? '' : 'rounded-3xl bg-warning/10 px-4 py-4'}>
         <details className="group">
           <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3">

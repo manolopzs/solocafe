@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import Link from 'next/link'
 import { getOrderWithItems } from '@/server/queries/orders'
 import { CUSTOMER_TIME_ZONE, formatMoney, formatPickupWindow } from '@/lib/ordering'
-import { pickupCode } from '@/lib/pickup-code'
+import { PickupCode } from '@/components/order/pickup-code'
 import { env } from '@/lib/env'
 import { Button } from '@/components/ui/button'
 import { StampCard } from '@/components/order/stamp-card'
@@ -136,6 +136,8 @@ export function OrderStatusClient({
       ? formatPickupWindow(order.pickup_window_starts_at, order.pickup_window_ends_at, timeZone)
       : null
   const showSteps = order.status !== 'cancelled' && order.status !== 'pending_payment'
+  // Only the order's own estimate; nothing is approximated when it has none.
+  const etaMinutes = order.estimated_ready_minutes && order.estimated_ready_minutes > 0 ? order.estimated_ready_minutes : null
   const menuHref = order.shop?.slug ? `/${order.shop.slug}` : '/'
   // Just back from paying, but the payment webhook hasn't landed yet.
   const confirmingPayment = paymentReturn && order.status === 'pending_payment'
@@ -145,72 +147,75 @@ export function OrderStatusClient({
       ? 'bg-success/15 text-success'
       : order.status === 'cancelled'
         ? 'bg-danger/10 text-danger'
-        : 'bg-accent/15 text-accent'
+        : 'bg-sky text-foreground'
 
   if (showsReadyScreen(order.status)) return <OrderReadyScreen order={order} menuHref={menuHref} />
 
   return (
     <main className="min-h-screen bg-background">
-      <div className="mx-auto max-w-xl px-5 pb-24 pt-5 sm:pt-8">
-        <Link href={menuHref} className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground">
-          <Icon name="arrow-left" className="h-4 w-4" />
+      <div className="pb-tabs mx-auto max-w-xl px-5 pt-1">
+        <Link href={menuHref} className="-ml-1 inline-flex min-h-12 items-center gap-2 px-1 text-body-sm font-medium text-foreground">
+          <Icon name="arrow-left" className="h-[18px] w-[18px]" />
           Volver al menú
         </Link>
 
-        <div className="mt-8 flex items-start gap-4">
-          <div className={['flex h-14 w-14 shrink-0 items-center justify-center rounded-full', tone].join(' ')}>
-            <Icon name={order.status === 'ready' || order.status === 'picked_up' ? 'check' : 'clock'} className="h-7 w-7" />
-          </div>
-          <div>
-            {shopName && <p className="text-sm font-medium text-accent">{shopName}</p>}
-            <h1 className="mt-1 text-[2rem] font-medium leading-tight tracking-tight text-heading">{confirmingPayment ? 'Confirmando tu pago' : headline(order.status)}</h1>
-            <p className="mt-2 text-base leading-6 text-muted-foreground">{confirmingPayment ? 'Tarda unos segundos. Esta página se actualiza sola.' : subhead(order.status)}</p>
-          </div>
-        </div>
-
-        <p className="mt-8 text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">Código de recogida</p>
-        <p className="mt-1 text-5xl font-semibold tracking-[0.18em] text-foreground" data-testid="pickup-code">
-          {pickupCode(order.id)}
-        </p>
-
-        {showSteps && (
-          <div className="relative mt-8 flex justify-between">
-            {statusSteps.map((step, index) => {
-              const done = index <= progressIndex
-              const active = index === progressIndex && order.status !== 'picked_up'
-              return (
-                <div key={step} className="relative z-10 flex flex-1 flex-col items-center gap-2">
-                  <div
-                    className={[
-                      'flex h-9 w-9 items-center justify-center rounded-full text-xs font-medium transition-colors',
-                      done ? 'bg-sky text-foreground' : 'bg-surface text-muted-foreground',
-                      active ? 'animate-soft-pulse ring-4 ring-sky-tint' : '',
-                    ].join(' ')}
-                  >
-                    {done ? <Icon name="check" className="h-4 w-4" /> : index + 1}
-                  </div>
-                  <span className={['text-center text-xs', done ? 'font-medium text-foreground' : 'text-muted-foreground'].join(' ')}>
-                    {statusLabels[step]}
-                  </span>
-                </div>
-              )
-            })}
-            <div className="absolute left-8 right-8 top-[18px] -z-0 h-0.5 bg-border">
-              <div
-                className="h-full bg-sky transition-all"
-                style={{ width: `${(Math.max(0, progressIndex) / (statusSteps.length - 1)) * 100}%` }}
-              />
-            </div>
-          </div>
+        {shopName && (
+          <p className="mt-1 flex items-center gap-2 text-body-sm font-semibold text-foreground">
+            <span className={['flex h-8 w-8 shrink-0 items-center justify-center rounded-full', tone].join(' ')}>
+              <Icon name={order.status === 'picked_up' ? 'check' : 'clock'} className="h-4 w-4" />
+            </span>
+            {shopName}
+          </p>
         )}
+        <h1 className="mt-3 text-h1s text-heading">{confirmingPayment ? 'Confirmando tu pago' : headline(order.status)}</h1>
+        <p className="mt-2 text-body text-muted-foreground">{confirmingPayment ? 'Tarda unos segundos. Esta página se actualiza sola.' : subhead(order.status)}</p>
 
-        {(windowLabel || shopName) && order.status !== 'cancelled' && (
-          <section className="mt-8 rounded-3xl bg-surface px-5 py-5">
-            <p className="text-sm text-muted-foreground">
+        <PickupCode orderId={order.id} size="md" className="mt-6" />
+
+        {order.status !== 'cancelled' && (
+          <section className="mt-6 rounded-card border border-border bg-surface-elevated p-5 shadow-card" data-testid="order-status-card">
+            {showSteps && (
+              <>
+                <div className="flex items-baseline justify-between gap-3">
+                  <p className="text-eyebrow uppercase text-on-pill">Estado</p>
+                  {etaMinutes != null && <p className="text-caption text-muted-foreground">~{etaMinutes} min</p>}
+                </div>
+                <p className="mt-2 text-h3 text-foreground">{statusLabels[statusSteps[Math.max(0, progressIndex)]]}</p>
+                <StatusProgress progressIndex={progressIndex} finished={order.status === 'picked_up'} />
+                <ol className="mt-3 grid grid-cols-3">
+                  {statusSteps.map((step, index) => {
+                    const state = stepState(index, progressIndex, order.status === 'picked_up')
+                    return (
+                      <li
+                        key={step}
+                        className={[
+                          'flex flex-col gap-2',
+                          index === 0 ? 'items-start' : index === statusSteps.length - 1 ? 'items-end' : 'items-center',
+                        ].join(' ')}
+                        data-state={state}
+                      >
+                        <StepMark state={state} number={index + 1} />
+                        <span className={['text-body-sm', state === 'current' ? 'font-semibold text-foreground' : state === 'done' ? 'text-foreground' : 'text-on-pill'].join(' ')}>
+                          {statusLabels[step]}
+                        </span>
+                      </li>
+                    )
+                  })}
+                </ol>
+                <div className="mb-4 mt-5 h-px bg-border" />
+              </>
+            )}
+            <p className="text-eyebrow uppercase text-on-pill">Recoger en</p>
+            {shopName && <p className="mt-2 text-h3 text-foreground">{shopName}</p>}
+            {order.shop?.address && <p className="mt-0.5 text-body-sm text-muted-foreground">{order.shop.address}</p>}
+            {windowLabel && <p className="mt-2 text-body-sm font-semibold text-foreground">{windowLabel}</p>}
+            <p className="mt-3 flex items-center gap-2 text-body-sm text-foreground">
+              <Icon name="store" className="h-4 w-4 shrink-0" />
+              Pasa a la barra y di tu código.
+            </p>
+            <p className="sr-only">
               {itemCount} {itemCount === 1 ? 'producto' : 'productos'}
             </p>
-            {windowLabel && <p className="mt-1 text-xl font-medium tracking-tight text-foreground">{windowLabel}</p>}
-            {order.shop?.address && <p className="mt-2 text-sm text-muted-foreground">{order.shop.address}</p>}
             {order.shop?.directions_url && (
               <Button asChild variant="outline" className="mt-4 w-full">
                 <a href={order.shop.directions_url} target="_blank" rel="noreferrer">
@@ -238,16 +243,16 @@ export function OrderStatusClient({
         )}
 
         {notificationPermission === 'default' && order.status !== 'cancelled' && order.status !== 'picked_up' && (
-          <Button variant="outline" className="mt-4 w-full" onClick={() => void requestNotification()}>
+          <Button variant="outline" className="mt-3 w-full border-[1.5px]" onClick={() => void requestNotification()}>
             <span className="inline-flex items-center gap-2">
-              <Icon name="bell" className="h-4 w-4" />
+              <Icon name="bell" className="h-[18px] w-[18px]" />
               Avísame cuando esté listo
             </span>
           </Button>
         )}
 
         <section className="mt-8">
-          <h2 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">Tu pedido</h2>
+          <h2 className="text-eyebrow uppercase text-on-pill">Tu pedido</h2>
           <ul className="mt-3 divide-y divide-border border-y border-border">
             {order.items.map((item) => (
               <li key={item.id} className="py-3.5">
@@ -310,4 +315,59 @@ function subhead(status: OrderStatus) {
     default:
       return 'Te avisamos en esta página cuando esté listo.'
   }
+}
+
+type StepState = 'done' | 'current' | 'next'
+
+function stepState(index: number, progressIndex: number, finished: boolean): StepState {
+  if (finished || index < progressIndex) return 'done'
+  if (index === progressIndex) return 'current'
+  return 'next'
+}
+
+/** Done: check on espresso. Current: espresso disc with a breathing sky dot. Next: 1.5px ring with its number. */
+function StepMark({ state, number }: { state: StepState; number: number }) {
+  if (state === 'done') {
+    return (
+      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-foreground text-background">
+        <Icon name="check" className="h-3.5 w-3.5" strokeWidth={2.5} />
+      </span>
+    )
+  }
+  if (state === 'current') {
+    return (
+      <span className="relative flex h-6 w-6 items-center justify-center rounded-full bg-foreground" aria-current="step">
+        <span className="animate-halo absolute -inset-[5px] rounded-full bg-sky" aria-hidden="true" />
+        <span className="relative flex h-6 w-6 items-center justify-center rounded-full bg-foreground">
+          <span className="h-2 w-2 rounded-full bg-sky" />
+        </span>
+      </span>
+    )
+  }
+  return (
+    <span className="flex h-6 w-6 items-center justify-center rounded-full border-[1.5px] border-muted-foreground bg-surface-elevated text-xs font-semibold text-on-pill">
+      {number}
+    </span>
+  )
+}
+
+/** Three 6px segments, 4 apart, inside the card. Decorative: the steps carry the state. */
+function StatusProgress({ progressIndex, finished }: { progressIndex: number; finished: boolean }) {
+  return (
+    <div className="mt-4 grid grid-cols-3 gap-1" aria-hidden="true">
+      {statusSteps.map((step, index) => {
+        const state = stepState(index, progressIndex, finished)
+        return (
+          <span key={step} className="h-1.5 overflow-hidden rounded-full bg-pill">
+            <span
+              className={[
+                'block h-full rounded-full transition-[width] duration-[600ms] ease-[cubic-bezier(.4,0,.2,1)]',
+                state === 'done' ? 'w-full bg-foreground' : state === 'current' ? 'w-full bg-gradient-to-r from-foreground from-40% to-sky to-40%' : 'w-0',
+              ].join(' ')}
+            />
+          </span>
+        )
+      })}
+    </div>
+  )
 }

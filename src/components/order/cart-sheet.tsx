@@ -14,6 +14,8 @@ export interface CartViewLine {
   quantity: number
   lineTotal: string
   unavailable: boolean
+  /** The menu item, for the 64px thumbnail in the bag. */
+  thumb?: { name: string; image_url: string | null }
 }
 
 export function CartSheet({

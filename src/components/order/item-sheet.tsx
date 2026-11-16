@@ -1,12 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Icon } from '@/components/ui/icon'
 import { QuantityStepper } from '@/components/order/quantity-stepper'
 import { Sheet } from '@/components/ui/sheet'
-import { getMenuItemImage, storefrontItemName } from '@/lib/storefront-menu'
+import Image from 'next/image'
+import { MenuTileImage } from '@/components/order/menu-tile-image'
+import { getMenuItemCutout, storefrontItemName } from '@/lib/storefront-menu'
 import type { MenuItem, ModifierGroup, ModifierOption } from '@/types'
 
 export function ItemSheet({
@@ -24,7 +25,7 @@ export function ItemSheet({
   onAdd: (quantity: number, modifierIds: string[]) => void
   formatPrice: (cents: number) => string
 }) {
-  const image = getMenuItemImage(item)
+  const cutout = getMenuItemCutout(item)
   const [quantity, setQuantity] = useState(1)
   const [selected, setSelected] = useState<Record<string, string[]>>(() => {
     const defaults: Record<string, string[]> = {}
@@ -56,47 +57,69 @@ export function ItemSheet({
   const itemTotal = item.price_cents + extras
 
   return (
-    <Sheet open onClose={onClose} position="bottom">
-      <div className="flex flex-col">
-        <div className="relative -mx-6 -mt-2 h-64 overflow-hidden bg-surface sm:h-80">
-          {image ? (
+    <Sheet
+      open
+      onClose={onClose}
+      position="bottom"
+      bare
+      className="!max-h-none h-[calc(100dvh-56px)] !bg-background"
+    >
+      <div className="flex min-h-full flex-col">
+        {/* Hero: surface strip with a 48px curve and the cut-out (mock 03) */}
+        <div className="relative h-[430px] shrink-0 overflow-hidden bg-surface">
+          {cutout ? (
             <Image
-              src={image.src}
-              style={{ objectPosition: image.sheetPosition }}
+              src={cutout}
               alt=""
-              fill
-              sizes="(max-width: 768px) 100vw, 768px"
-              className="object-cover"
+              width={324}
+              height={324}
+              priority
+              className="absolute left-1/2 top-[40px] h-[324px] w-[324px] -translate-x-1/2"
             />
           ) : (
-            <div className="flex h-full w-full items-center justify-center bg-surface text-muted-foreground">
-              <Icon name="coffee" className="h-14 w-14 opacity-30" />
-            </div>
+            <MenuTileImage item={item} sizes="(max-width: 768px) 100vw, 768px" variant="sheet" iconClassName="h-12 w-12" />
           )}
+          <svg className="absolute inset-x-0 -bottom-px h-12 w-full" viewBox="0 0 390 48" preserveAspectRatio="none" aria-hidden="true">
+            <path d="M0 48V26Q195 -22 390 26V48Z" className="fill-background" />
+          </svg>
           <button
             type="button"
             onClick={onClose}
-            className="absolute right-3 top-3 flex h-11 w-11 items-center justify-center rounded-full bg-background/90 text-foreground shadow-sm backdrop-blur-sm"
+            className="absolute right-4 top-4 z-20 flex h-11 w-11 items-center justify-center touch-manipulation"
             aria-label="Cerrar"
           >
-            <Icon name="x" className="h-5 w-5" />
+            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-surface-elevated text-foreground shadow-card">
+              <Icon name="x" className="h-5 w-5" />
+            </span>
           </button>
         </div>
 
-        <div className="mt-5">
-          <div className="flex items-start justify-between gap-4">
-            <h2 className="text-2xl font-medium tracking-tight text-foreground">{storefrontItemName(item.name)}</h2>
-            <p className="shrink-0 pt-1 text-base font-medium tabular-nums text-foreground">{formatPrice(item.price_cents)}</p>
+        <div className="relative -mt-5 px-5">
+          <div className="rounded-card border border-border bg-surface-elevated px-5 pb-5 pt-6 shadow-card">
+            <div className="flex items-baseline justify-between gap-4">
+              <h2 className="text-[28px] font-semibold leading-[34px] tracking-[-0.02em] text-foreground">{storefrontItemName(item.name)}</h2>
+              <p className="shrink-0 text-[17px] font-semibold tabular-nums text-foreground">{formatPrice(item.price_cents)}</p>
+            </div>
+            {item.description && <p className="mt-2 text-body-sm text-muted-foreground">{item.description}</p>}
+            <div className="my-5 h-px bg-border" />
+            <div className="flex items-center justify-between gap-4">
+              <span className="text-base font-medium text-foreground">Cantidad</span>
+              <QuantityStepper
+                value={quantity}
+                onDecrease={() => setQuantity((value) => Math.max(1, value - 1))}
+                onIncrease={() => setQuantity((value) => value + 1)}
+              />
+            </div>
           </div>
-          {item.description && <p className="mt-2 text-sm leading-6 text-muted-foreground">{item.description}</p>}
         </div>
 
+        <div className="px-5">
         {groups.map((group) => {
           const groupOptions = optionsForGroup(group.id)
           const useSegmented = group.max_select === 1 && groupOptions.length <= 4
           const multiple = group.max_select > 1
           return (
-            <fieldset key={group.id} className="mt-7">
+            <fieldset key={group.id} className="mt-6">
               <legend className="flex w-full items-baseline justify-between gap-3">
                 <span className="text-base font-medium text-foreground">{group.name}</span>
                 <span className="text-xs text-muted-foreground">
@@ -170,25 +193,21 @@ export function ItemSheet({
           )
         })}
 
-        <div className="sticky bottom-0 -mx-6 mt-6 border-t border-border bg-background/95 px-4 py-4 shadow-[0_-8px_24px_rgba(0,0,0,0.06)] backdrop-blur-md">
+        </div>
+
+        <div className="sticky bottom-0 mt-auto bg-gradient-to-t from-background via-background to-background/0 px-5 pb-[calc(env(safe-area-inset-bottom)+12px)] pt-6">
           {missingRequired && (
-            <p className="mb-3 text-center text-sm text-muted-foreground">Elige las opciones obligatorias para continuar.</p>
+            <p className="mb-3 text-center text-body-sm text-muted-foreground">Elige las opciones obligatorias para continuar.</p>
           )}
-          <div className="flex items-center gap-3">
-            <QuantityStepper
-              value={quantity}
-              onDecrease={() => setQuantity((value) => Math.max(1, value - 1))}
-              onIncrease={() => setQuantity((value) => value + 1)}
-            />
-            <Button
-              onClick={() => onAdd(quantity, modifierIds)}
-              disabled={missingRequired}
-              size="lg"
-              className="min-w-0 flex-1 px-4 text-base shadow-sm"
-            >
-              Añadir · {formatPrice(itemTotal * quantity)}
-            </Button>
-          </div>
+          <Button
+            variant="espresso"
+            size="lg"
+            onClick={() => onAdd(quantity, modifierIds)}
+            disabled={missingRequired}
+            className="w-full"
+          >
+            Añadir · {formatPrice(itemTotal * quantity)}
+          </Button>
         </div>
       </div>
     </Sheet>

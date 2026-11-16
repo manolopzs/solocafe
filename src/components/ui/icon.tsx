@@ -27,6 +27,7 @@ import {
   QrCode,
   ReceiptText,
   ReceiptEuro,
+  Repeat,
   Search,
   Settings,
   ShoppingCart,
@@ -73,6 +74,7 @@ export type IconName =
   | 'qrcode'
   | 'receipt'
   | 'receipt-euro'
+  | 'repeat'
   | 'search'
   | 'settings'
   | 'sliders-horizontal'
@@ -121,6 +123,7 @@ const iconMap: Record<IconName, React.ComponentType<LucideProps>> = {
   qrcode: QrCode,
   receipt: ReceiptText,
   'receipt-euro': ReceiptEuro,
+  repeat: Repeat,
   search: Search,
   settings: Settings,
   'sliders-horizontal': SlidersHorizontal,
