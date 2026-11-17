@@ -91,7 +91,7 @@ export function ShopStatusBanner({
                 {paused ? 'Ahora no tomamos pedidos para recoger' : closed ? 'Cerrado ahora' : today}
               </span>
             </span>
-            {hours && <span className="shrink-0 text-sm font-medium text-accent">Horario</span>}
+            {hours && <span className="shrink-0 text-sm font-medium text-accent underline underline-offset-2">Horario</span>}
           </summary>
           {!quiet && <p className="mt-1 pl-6 text-sm text-muted-foreground">{today}</p>}
           {closed && ordering?.accepting_pickup && (

@@ -1,12 +1,19 @@
 import Image from 'next/image'
 import Link from 'next/link'
+import type { CSSProperties } from 'react'
 import { displayFontFamily } from '@/lib/display-fonts'
 import { hoursConfigured } from '@/lib/ordering'
+import { brandIdentityColor, NEUTRAL_TILE } from '@/lib/shop-theme'
 import { Button } from '@/components/ui/button'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Icon } from '@/components/ui/icon'
 import { ExploreIntro } from '@/components/explore/explore-intro'
 import type { PublicShop } from '@/server/queries/explore'
+
+function explorePlaceholderStyle(brandColor: string | null): CSSProperties {
+  const { background, foreground } = brandIdentityColor(brandColor) ?? NEUTRAL_TILE
+  return { backgroundColor: background, color: foreground }
+}
 
 function formatDistance(km: number) {
   if (km < 1) return `${Math.max(1, Math.round(km * 1000))} m`
@@ -64,7 +71,7 @@ export function ShopDirectory({
                           className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                         />
                       ) : (
-                        <div className="flex h-full w-full items-center justify-center text-white" style={{ backgroundColor: shop.brand_color }}>
+                        <div className="flex h-full w-full items-center justify-center" style={explorePlaceholderStyle(shop.brand_color)}>
                           <Icon name="coffee" className="h-12 w-12 opacity-90" />
                         </div>
                       )}
@@ -83,7 +90,7 @@ export function ShopDirectory({
                     <div className="px-4 py-4">
                       <div className="flex items-start justify-between gap-3">
                         <h2
-                          className="min-w-0 truncate text-xl font-medium tracking-tight text-foreground"
+                          className="min-w-0 truncate text-xl font-medium tracking-tight text-heading"
                           style={{ fontFamily: displayFontFamily(shop.display_font) }}
                         >
                           {shop.name}

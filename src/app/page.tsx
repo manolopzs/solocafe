@@ -515,7 +515,7 @@ function PhoneMockupLarge() {
         </div>
       </div>
       <div className="p-4 pt-0">
-        <div className="rounded-xl bg-foreground py-3 text-center text-sm font-semibold text-primary-foreground">
+        <div className="rounded-xl bg-cta py-3 text-center text-sm font-semibold text-cta-foreground">
           Ver pedido · {formatMoney(0)}
         </div>
       </div>

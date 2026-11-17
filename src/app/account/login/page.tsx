@@ -24,7 +24,7 @@ export default function AccountLoginPage() {
           <span className="text-lg font-medium tracking-tight">Solo Café</span>
         </Link>
 
-        <h1 className="mt-10 text-[2rem] font-medium leading-tight tracking-tight text-foreground">Inicia sesión</h1>
+        <h1 className="mt-10 text-[2rem] font-medium leading-tight tracking-tight text-heading">Inicia sesión</h1>
         <p className="mt-2 text-base leading-6 text-muted-foreground">Accede a tu cuenta para ver tus pedidos y repetirlos.</p>
 
         <form action={formAction} className="mt-8 space-y-4">
@@ -64,7 +64,7 @@ export default function AccountLoginPage() {
           </Button>
 
           <p className="text-center text-sm">
-            <Link href="/auth/forgot-password" className="font-medium text-accent underline-offset-2 hover:underline">
+            <Link href="/auth/forgot-password" className="font-medium text-accent underline underline-offset-2">
               ¿Olvidaste tu contraseña?
             </Link>
           </p>
@@ -72,7 +72,7 @@ export default function AccountLoginPage() {
 
         <p className="mt-6 text-center text-sm text-muted-foreground">
           ¿No tienes cuenta?{' '}
-          <Link href="/account/signup" className="font-medium text-accent underline-offset-2 hover:underline">
+          <Link href="/account/signup" className="font-medium text-accent underline underline-offset-2">
             Crear cuenta
           </Link>
         </p>

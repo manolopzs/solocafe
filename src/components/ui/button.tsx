@@ -1,7 +1,7 @@
 import { cloneElement, isValidElement, type ButtonHTMLAttributes, type ReactElement, type ReactNode } from 'react'
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'destructive' | 'danger'
+  variant?: 'primary' | 'cta' | 'secondary' | 'outline' | 'ghost' | 'destructive' | 'danger'
   size?: 'sm' | 'default' | 'md' | 'lg' | 'xl' | 'icon'
   asChild?: boolean
   loading?: boolean
@@ -11,6 +11,8 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 const variantStyles: Record<Required<ButtonProps>['variant'], string> = {
   primary:
     'bg-primary text-primary-foreground shadow-md hover:bg-primary-hover hover:shadow-lg active:scale-[0.97] disabled:bg-subtle disabled:text-muted-foreground disabled:shadow-none',
+  cta:
+    'bg-cta text-cta-foreground shadow-md hover:bg-cta-hover hover:shadow-lg active:bg-cta-hover active:scale-[0.97] disabled:bg-subtle disabled:text-muted-foreground disabled:shadow-none',
   secondary:
     'bg-surface text-foreground border border-border hover:bg-background hover:shadow-sm active:scale-[0.97] disabled:bg-surface disabled:text-muted-foreground',
   outline:

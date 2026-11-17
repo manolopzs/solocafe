@@ -64,8 +64,8 @@ export default async function PublicOrderPage({
   const reorderCount = reorderOrder?.items?.reduce((sum, item) => sum + item.quantity, 0) ?? 0
 
   return (
-    <div style={shopThemeVars(shop.brand_color, shop.display_font)}>
-      <ShopHero name={shop.name} heroPhotoUrl={shop.hero_photo_url} />
+    <div style={shopThemeVars(shop.display_font)}>
+      <ShopHero name={shop.name} heroPhotoUrl={shop.hero_photo_url} brandColor={shop.brand_color} />
       <OrderPageClient
         shop={shop}
         categories={menu.categories}

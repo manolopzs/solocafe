@@ -12,7 +12,7 @@ import Image from 'next/image'
 import type { Shop } from '@/types'
 
 export function ShopPersonalityForm({ shopId, shop }: { shopId: string; shop: Shop }) {
-  const [brandColor, setBrandColor] = useState(shop.brand_color)
+  const [brandColor, setBrandColor] = useState(shop.brand_color ?? '')
   const [displayFont, setDisplayFont] = useState(shop.display_font || 'dm_sans')
   const [heroPreview, setHeroPreview] = useState<string | null>(shop.hero_photo_url)
   const [removeHero, setRemoveHero] = useState(false)

@@ -149,7 +149,7 @@ class Shop < ApplicationRecord
   }.freeze
 
   def normalize_brand_color
-    self.brand_color = brand_color.to_s.strip.downcase
+    self.brand_color = brand_color.to_s.strip.downcase.presence
   end
 
   def normalize_loyalty_reward_text
@@ -157,6 +157,8 @@ class Shop < ApplicationRecord
   end
 
   def brand_color_is_usable
+    return if brand_color.nil?
+
     unless brand_color.match?(HEX_COLOR)
       errors.add(:base, "El color de marca debe ser un hexadecimal de 6 dígitos, por ejemplo #8c3d25.")
       return

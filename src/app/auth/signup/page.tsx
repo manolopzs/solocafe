@@ -140,7 +140,7 @@ export default function SignupPage() {
 
               <p className="mt-5 text-center text-sm text-muted-foreground">
                 ¿Ya tienes cuenta?{' '}
-                <Link href="/auth/login" className="font-medium text-accent hover:text-accent/80">
+                <Link href="/auth/login" className="font-medium text-accent underline underline-offset-2 hover:text-accent/80">
                   Entrar
                 </Link>
               </p>

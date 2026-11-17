@@ -1,7 +1,17 @@
 import Image from 'next/image'
+import { brandIdentityColor } from '@/lib/shop-theme'
 
-export function ShopHero({ name, heroPhotoUrl }: { name: string; heroPhotoUrl?: string | null }) {
+export function ShopHero({
+  name,
+  heroPhotoUrl,
+  brandColor,
+}: {
+  name: string
+  heroPhotoUrl?: string | null
+  brandColor?: string | null
+}) {
   if (!heroPhotoUrl) return null
+  const identity = brandIdentityColor(brandColor)
 
   return (
     <div className="bg-background">
@@ -15,7 +25,9 @@ export function ShopHero({ name, heroPhotoUrl }: { name: string; heroPhotoUrl?: 
           className="object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/25 to-black/15" />
-        <div className="absolute inset-x-0 bottom-0 h-1 bg-accent" />
+        {identity && (
+          <div className="absolute inset-x-0 bottom-0 h-1" style={{ backgroundColor: identity.background }} />
+        )}
       </div>
     </div>
   )
