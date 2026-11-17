@@ -99,6 +99,18 @@ describe('BottomNav Inicio', () => {
   })
 })
 
+describe('BottomNav look', () => {
+  it('uses the euro receipt for Pedidos and a heavier stroke on the active tab', () => {
+    usePathname.mockReturnValue('/account/orders')
+    const { container } = render(<BottomNav />)
+    const pedidos = Array.from(container.querySelectorAll('a')).find((a) => a.textContent === 'Pedidos')!
+    expect(pedidos.querySelector('svg')?.getAttribute('class')).toMatch(/lucide-receipt-euro/)
+    expect(pedidos.querySelector('svg')?.getAttribute('stroke-width')).toBe('2.25')
+    const cuenta = Array.from(container.querySelectorAll('a')).find((a) => a.textContent === 'Cuenta')!
+    expect(cuenta.querySelector('svg')?.getAttribute('stroke-width')).toBe('1.75')
+  })
+})
+
 describe('customerHomeHref', () => {
   it('falls back to /inicio and never returns /', () => {
     expect(customerHomeHref([])).toBe('/inicio')

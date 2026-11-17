@@ -33,7 +33,7 @@ export function BottomNav() {
 
   const navItems = [
     { key: 'inicio', href: homeHref, label: 'Inicio', icon: 'store' },
-    { key: 'pedidos', href: '/account/orders', label: 'Pedidos', icon: 'receipt' },
+    { key: 'pedidos', href: '/account/orders', label: 'Pedidos', icon: 'receipt-euro' },
     { key: 'cuenta', href: '/account', label: 'Cuenta', icon: 'user' },
   ] as const
 
@@ -43,9 +43,10 @@ export function BottomNav() {
     return pathname === href || pathname.startsWith(`${href}/`)
   }
 
+  // 56 + safe area, bg at 94% with a 14px blur, hairline top border, no shadow (SPEC.md section 2).
   return (
-    <nav className="customer-bottom-nav fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-md">
-      <div className="mx-auto flex max-w-3xl items-center justify-around">
+    <nav className="customer-bottom-nav fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-background/94 pb-[env(safe-area-inset-bottom)] backdrop-blur-[14px]">
+      <div className="mx-auto flex h-14 max-w-3xl items-stretch">
         {navItems.map((item) => {
           const active = isActive(item.key, item.href)
           return (
@@ -53,12 +54,12 @@ export function BottomNav() {
               key={item.key}
               href={item.href}
               className={[
-                'flex flex-1 flex-col items-center justify-center gap-1 py-2.5 text-xs font-medium transition-colors',
-                active ? 'text-foreground' : 'text-muted-foreground hover:text-foreground',
+                'flex flex-1 flex-col items-center justify-center gap-[3px] text-tab transition-colors',
+                active ? 'font-semibold text-foreground' : 'font-medium text-muted-foreground hover:text-foreground',
               ].join(' ')}
               aria-current={active ? 'page' : undefined}
             >
-              <Icon name={item.icon as never} className={['h-5 w-5', active ? 'stroke-[2px]' : ''].join(' ')} />
+              <Icon name={item.icon} className="h-[22px] w-[22px]" strokeWidth={active ? 2.25 : 1.75} />
               <span>{item.label}</span>
             </Link>
           )

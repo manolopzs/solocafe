@@ -1,7 +1,7 @@
 import { cloneElement, isValidElement, type ButtonHTMLAttributes, type ReactElement, type ReactNode } from 'react'
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'cta' | 'secondary' | 'outline' | 'ghost' | 'destructive' | 'danger'
+  variant?: 'primary' | 'cta' | 'espresso' | 'secondary' | 'outline' | 'ghost' | 'destructive' | 'danger'
   size?: 'sm' | 'default' | 'md' | 'lg' | 'xl' | 'icon'
   asChild?: boolean
   loading?: boolean
@@ -11,8 +11,12 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 const variantStyles: Record<Required<ButtonProps>['variant'], string> = {
   primary:
     'bg-primary text-primary-foreground shadow-md hover:bg-primary-hover hover:shadow-lg active:scale-[0.97] disabled:bg-subtle disabled:text-muted-foreground disabled:shadow-none',
+  // Blue: only Ver pedido, Continuar al pago and Pagar.
   cta:
-    'bg-cta text-cta-foreground shadow-md hover:bg-cta-hover hover:shadow-lg active:bg-cta-hover active:scale-[0.97] disabled:bg-subtle disabled:text-muted-foreground disabled:shadow-none',
+    'bg-cta text-cta-foreground shadow-float hover:bg-cta-hover active:bg-cta-hover active:scale-[0.98] disabled:bg-subtle disabled:text-muted-foreground disabled:shadow-none',
+  // Espresso: every other main action (Añadir, Pedir otra vez, Crear cuenta).
+  espresso:
+    'bg-foreground text-background shadow-float hover:bg-primary-hover active:scale-[0.98] disabled:bg-subtle disabled:text-muted-foreground disabled:shadow-none',
   secondary:
     'bg-surface text-foreground border border-border hover:bg-background hover:shadow-sm active:scale-[0.97] disabled:bg-surface disabled:text-muted-foreground',
   outline:
@@ -45,7 +49,7 @@ export function Button({
   ...props
 }: ButtonProps) {
   const classes = [
-    'inline-flex items-center justify-center font-medium transition-all duration-150',
+    'inline-flex items-center justify-center font-semibold tracking-[-0.005em] transition-all duration-150',
     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
     'disabled:cursor-not-allowed',
     variantStyles[variant],
