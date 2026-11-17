@@ -3,6 +3,7 @@ import { Icon } from '@/components/ui/icon'
 
 const tones = {
   danger: 'bg-danger/10 text-danger',
+  success: 'bg-success/10 text-success',
   info: 'bg-accent/10 text-foreground',
   warning: 'bg-warning/10 text-foreground',
 }

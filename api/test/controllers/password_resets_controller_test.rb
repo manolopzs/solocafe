@@ -42,6 +42,26 @@ class PasswordResetsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "owner", response.parsed_body["account"]
   end
 
+  test "create keeps from=account in the emailed reset link" do
+    User.create!(email: "guest@example.com", password: "password123")
+
+    perform_enqueued_jobs do
+      post "/auth/password_resets", params: { email: "guest@example.com", from: "account" }, as: :json
+    end
+
+    assert_includes ActionMailer::Base.deliveries.last.body.encoded, "from=account"
+  end
+
+  test "create leaves the owner reset link without from" do
+    User.create!(email: "owner@example.com", password: "password123")
+
+    perform_enqueued_jobs do
+      post "/auth/password_resets", params: { email: "owner@example.com", from: "elsewhere" }, as: :json
+    end
+
+    assert_not_includes ActionMailer::Base.deliveries.last.body.encoded, "from="
+  end
+
   test "create finds the user regardless of email case" do
     User.create!(email: "owner@example.com", password: "password123")
 

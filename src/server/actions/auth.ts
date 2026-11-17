@@ -3,6 +3,7 @@
 import { redirect, unstable_rethrow } from 'next/navigation'
 import { apiPost, apiPatch } from '@/lib/api/server'
 import { setToken, removeToken } from '@/lib/auth'
+import { loginFlowFrom, loginPathFor } from '@/lib/auth-flow'
 
 export async function loginAction(prevState: unknown, formData: FormData) {
   const email = formData.get('email') as string
@@ -83,7 +84,8 @@ export async function forgotPasswordAction(prevState: unknown, formData: FormDat
   }
 
   try {
-    await apiPost('/auth/password_resets', { email }, false)
+    const from = formData.get('from') === 'account' ? 'account' : undefined
+    await apiPost('/auth/password_resets', { email, from }, false)
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Error al solicitar el restablecimiento'
     return { error: message }
@@ -118,6 +120,7 @@ export async function resetPasswordAction(prevState: unknown, formData: FormData
     return { error: message }
   }
 
-  // Customers sign in on /account/login; owners and older API responses use /auth/login.
-  redirect(account === 'customer' ? '/account/login?reset=success' : '/auth/login?reset=success')
+  // The API account wins; the ?from=account link is the fallback for older API responses.
+  const flow = account ? (account === 'customer' ? 'account' : 'owner') : loginFlowFrom(formData.get('from') as string | null)
+  redirect(`${loginPathFor(flow)}?reset=success`)
 }

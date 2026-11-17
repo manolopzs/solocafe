@@ -9,10 +9,12 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Icon } from '@/components/ui/icon'
+import { loginFlowFrom, loginPathFor } from '@/lib/auth-flow'
 
 function ResetPasswordForm() {
   const searchParams = useSearchParams()
   const token = searchParams.get('token') ?? ''
+  const flow = loginFlowFrom(searchParams.get('from'))
   const [state, formAction, pending] = useActionState(resetPasswordAction, null)
 
   return (
@@ -26,6 +28,7 @@ function ResetPasswordForm() {
           <CardContent>
             <form action={formAction} className="space-y-4">
               <input type="hidden" name="token" value={token} />
+              {flow === 'account' && <input type="hidden" name="from" value="account" />}
 
               <div>
                 <Label htmlFor="password">Nueva contraseña</Label>
@@ -70,7 +73,7 @@ function ResetPasswordForm() {
             </form>
 
             <p className="mt-5 text-center text-sm text-muted-foreground">
-              <Link href="/auth/login" className="font-medium text-accent underline underline-offset-2 hover:text-accent/80">
+              <Link href={loginPathFor(flow)} className="font-medium text-accent underline underline-offset-2 hover:text-accent/80">
                 Volver al inicio de sesión
               </Link>
             </p>
