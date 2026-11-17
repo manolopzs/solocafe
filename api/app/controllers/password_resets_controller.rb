@@ -1,6 +1,6 @@
 class PasswordResetsController < ApplicationController
   def create
-    user = User.find_by(email: params[:email].to_s.downcase)
+    user = User.find_by_email(params[:email])
 
     if user
       token = user.generate_token_for(:password_reset)
@@ -19,7 +19,7 @@ class PasswordResetsController < ApplicationController
     end
 
     if user.update(password: params[:password])
-      render json: { message: "Tu contraseña se ha actualizado correctamente." }, status: :ok
+      render json: { message: "Tu contraseña se ha actualizado correctamente.", account: user.owner? ? "owner" : "customer" }, status: :ok
     else
       render json: { errors: user.errors.full_messages }, status: :unprocessable_entity
     end

@@ -28,6 +28,28 @@ class PasswordResetsControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :ok
     assert user.reload.authenticate("newpassword456")
+    assert_equal "customer", response.parsed_body["account"]
+  end
+
+  test "update tells the frontend when the account owns a shop" do
+    user = User.create!(email: "owner@example.com", password: "password123")
+    Shop.create!(name: "Café Norte", slug: "reset-norte", currency: "EUR", locale: "es", owner: user)
+    token = user.generate_token_for(:password_reset)
+
+    patch "/auth/password_resets/#{token}", params: { password: "newpassword456" }, as: :json
+
+    assert_response :ok
+    assert_equal "owner", response.parsed_body["account"]
+  end
+
+  test "create finds the user regardless of email case" do
+    User.create!(email: "owner@example.com", password: "password123")
+
+    assert_enqueued_emails 1 do
+      post "/auth/password_resets", params: { email: " Owner@Example.com " }, as: :json
+    end
+
+    assert_response :ok
   end
 
   test "update rejects invalid token" do

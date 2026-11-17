@@ -109,12 +109,15 @@ export async function resetPasswordAction(prevState: unknown, formData: FormData
     return { error: 'La contraseña debe tener al menos 8 caracteres' }
   }
 
+  let account: string | undefined
   try {
-    await apiPatch('/auth/password_resets/' + encodeURIComponent(token), { password }, false)
+    const data = await apiPatch<{ account?: string }>('/auth/password_resets/' + encodeURIComponent(token), { password }, false)
+    account = data?.account
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Error al restablecer la contraseña'
     return { error: message }
   }
 
-  redirect('/auth/login?reset=success')
+  // Customers sign in on /account/login; owners and older API responses use /auth/login.
+  redirect(account === 'customer' ? '/account/login?reset=success' : '/auth/login?reset=success')
 }
