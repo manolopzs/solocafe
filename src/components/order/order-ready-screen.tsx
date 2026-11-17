@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 import Link from 'next/link'
 import { formatMoney } from '@/lib/ordering'
 import { PickupCode } from '@/components/order/pickup-code'
+import { BarHandoff } from '@/components/order/bar-handoff'
 import type { Order, OrderItem, OrderItemModifier, OrderStatus } from '@/types'
 
 type ReadyOrder = Order & { items: (OrderItem & { modifiers: OrderItemModifier[] })[] }
@@ -37,6 +38,8 @@ function OpeningMark() {
  */
 export function OrderReadyScreen({ order, menuHref }: { order: ReadyOrder; menuHref: string }) {
   const [showDetails, setShowDetails] = useState(false)
+  const [showAtBar, setShowAtBar] = useState(false)
+  const closeBar = useCallback(() => setShowAtBar(false), [])
   const name = readyFirstName(order.customer_name)
   const signedIn = Boolean(order.customer_id)
   const loyalty = order.loyalty
@@ -67,7 +70,15 @@ export function OrderReadyScreen({ order, menuHref }: { order: ReadyOrder; menuH
         <p className="mt-2 text-body-lg text-listo-muted">Tu pedido está listo. Pasa a recogerlo.</p>
 
         <div className="mt-8 motion-safe:animate-[code-in_360ms_ease-out_160ms_both]">
-          <PickupCode orderId={order.id} size="lg" />
+          <button
+            type="button"
+            onClick={() => setShowAtBar(true)}
+            className="block w-full rounded-code text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground active:scale-[0.99]"
+            aria-label="Enséñalo en la barra: ver el código a pantalla completa"
+            data-testid="open-bar-handoff"
+          >
+            <PickupCode orderId={order.id} size="lg" hint="Dilo, o tócalo para enseñarlo en la barra" />
+          </button>
         </div>
 
         {signedIn ? (
@@ -154,6 +165,15 @@ export function OrderReadyScreen({ order, menuHref }: { order: ReadyOrder; menuH
           {showDetails ? 'Ocultar detalle del pedido' : 'Ver detalle del pedido'}
         </button>
       </div>
+      {showAtBar && (
+        <BarHandoff
+          orderId={order.id}
+          shopName={shopName}
+          customerName={order.customer_name?.trim() || null}
+          items={order.items.map((item) => ({ id: item.id, quantity: item.quantity, name: item.item_name_snapshot }))}
+          onClose={closeBar}
+        />
+      )}
     </main>
   )
 }
