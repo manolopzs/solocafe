@@ -28,7 +28,7 @@ export function CategoryTabs({
   return (
     <div className="sticky top-0 z-30 border-b border-border bg-background/95 backdrop-blur-md">
       <div className="mx-auto max-w-3xl">
-        <div className="flex snap-x snap-mandatory gap-2 overflow-x-auto scroll-smooth px-3 py-2 no-scrollbar touch-pan-y sm:px-4">
+        <div className="flex snap-x snap-mandatory gap-2 overflow-x-auto scroll-smooth px-5 py-1 no-scrollbar touch-pan-y">
           {categories.map((category) => {
             const active = activeId === category.id
             return (
@@ -38,14 +38,16 @@ export function CategoryTabs({
                 type="button"
                 onClick={() => onSelect(category.id)}
                 aria-current={active ? 'true' : undefined}
-                className={[
-                  'snap-start shrink-0 rounded-full px-4 py-2 text-sm font-medium transition-all touch-manipulation',
-                  active
-                    ? 'bg-foreground text-background shadow-sm'
-                    : 'bg-surface text-muted-foreground hover:bg-surface-elevated hover:text-foreground',
-                ].join(' ')}
+                className="flex h-11 shrink-0 snap-start items-center touch-manipulation"
               >
-                {storefrontCategoryName(category.name)}
+                <span
+                  className={[
+                    'flex h-9 items-center rounded-full px-4 text-body-sm font-semibold transition-colors',
+                    active ? 'bg-foreground text-background' : 'bg-pill text-on-pill',
+                  ].join(' ')}
+                >
+                  {storefrontCategoryName(category.name)}
+                </span>
               </button>
             )
           })}

@@ -1,10 +1,14 @@
 'use client'
 
-import Image from 'next/image'
 import { Icon } from '@/components/ui/icon'
-import { getMenuItemImage, storefrontItemName } from '@/lib/storefront-menu'
+import { MenuTileImage } from '@/components/order/menu-tile-image'
+import { storefrontItemName } from '@/lib/storefront-menu'
 import type { MenuItem } from '@/types'
 
+/**
+ * Menu grid item (mock 02): a 1:1 surface tile (radius 20) with the cut-out, the
+ * "+" disc 8 from the tile corner, then name (16/22) and price (15/20) below.
+ */
 export function ProductCard({
   item,
   customizable,
@@ -31,87 +35,54 @@ export function ProductCard({
   formatPrice: (cents: number) => string
   highlight?: boolean
 }) {
-  const image = getMenuItemImage(item)
   const displayName = storefrontItemName(item.name)
 
   return (
-    <article
-      className={[
-        'group relative flex flex-col overflow-hidden rounded-2xl bg-surface-elevated shadow-xs transition-all duration-200',
-        'hover:shadow-sm active:scale-[0.99]',
-        highlight ? 'ring-2 ring-accent ring-offset-2 ring-offset-background' : '',
-      ].join(' ')}
-    >
-      <div className="relative aspect-square w-full overflow-hidden bg-surface">
+    <article className="group relative flex flex-col">
+      <div
+        className={[
+          'relative aspect-square w-full overflow-hidden rounded-tile bg-surface transition-shadow',
+          highlight ? 'ring-2 ring-foreground ring-offset-2 ring-offset-background' : '',
+        ].join(' ')}
+      >
         <button
           type="button"
           onClick={onClick}
           className="absolute inset-0 z-[1] touch-manipulation"
           aria-label={displayName}
         />
-        {image ? (
-          <Image
-            src={image.src}
-            style={{ objectPosition: image.cardPosition }}
-            alt=""
-            fill
-            className="pointer-events-none object-cover transition-transform duration-300 group-hover:scale-105"
-            sizes="(max-width: 640px) 50vw, 320px"
-          />
-        ) : (
-          <div className="pointer-events-none flex h-full w-full items-center justify-center bg-gradient-to-br from-surface to-secondary text-muted-foreground">
-            <Icon name="coffee" className="h-10 w-10 opacity-30" />
+        <MenuTileImage item={item} sizes="(max-width: 640px) 50vw, 320px" />
+        {!customizable && onQuickAdd && (
+          <div className="absolute bottom-2 right-2 z-[2]">
+            <QuickAddControl name={displayName} quantity={quantity} onAdd={onQuickAdd} onDecrement={onDecrement} />
           </div>
         )}
-      </div>
-      <div className="relative flex flex-1 flex-col p-3">
-        <button
-          type="button"
-          onClick={onClick}
-          tabIndex={-1}
-          aria-hidden="true"
-          className="absolute inset-0 touch-manipulation"
-        />
-        <h3 className="pointer-events-none relative text-[15px] font-medium leading-snug text-foreground line-clamp-2 break-words">
-          {displayName}
-        </h3>
-        {item.description && (
-          <p className="pointer-events-none relative mt-0.5 line-clamp-1 text-xs leading-5 text-muted-foreground">{item.description}</p>
+        {showFavorite && (
+          <button
+            type="button"
+            onClick={onToggleFavorite}
+            className="absolute right-0 top-0 z-[2] flex h-11 w-11 items-center justify-center touch-manipulation"
+            aria-label={isFavorite ? 'Quitar de favoritos' : 'Añadir a favoritos'}
+          >
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-surface-elevated shadow-card">
+              <Icon name="heart" className={['h-3.5 w-3.5', isFavorite ? 'fill-danger text-danger' : 'text-muted-foreground'].join(' ')} />
+            </span>
+          </button>
         )}
-        <div className="pointer-events-none relative mt-auto flex min-h-11 items-center justify-between gap-1.5 pt-1">
-          <p className="pointer-events-none shrink-0 whitespace-nowrap text-sm font-medium tabular-nums text-foreground">
-            {formatPrice(item.price_cents)}
-          </p>
-          {!customizable && onQuickAdd && (
-            <QuickAddControl
-              name={displayName}
-              quantity={quantity}
-              onAdd={onQuickAdd}
-              onDecrement={onDecrement}
-            />
-          )}
-        </div>
       </div>
-      {showFavorite && (
-        <button
-          type="button"
-          onClick={onToggleFavorite}
-          className="absolute right-2 top-2 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-background/85 text-foreground shadow-sm backdrop-blur-sm transition-transform active:scale-95"
-          aria-label={isFavorite ? 'Quitar de favoritos' : 'Añadir a favoritos'}
-        >
-          <Icon
-            name="heart"
-            className={['h-3.5 w-3.5', isFavorite ? 'fill-danger text-danger' : 'text-muted-foreground'].join(' ')}
-          />
-        </button>
-      )}
+      <button type="button" onClick={onClick} tabIndex={-1} aria-hidden="true" className="mt-3 text-left touch-manipulation">
+        <h3 className="line-clamp-2 break-words text-product text-foreground">{displayName}</h3>
+        <p className="mt-0.5 shrink-0 whitespace-nowrap text-price tabular-nums text-muted-foreground">
+          {formatPrice(item.price_cents)}
+        </p>
+      </button>
     </article>
   )
 }
 
 /**
- * Sky "+" disc (36px visual, 44px tap area) that turns into a "− 1 +" stepper
- * once the item is in the bag. Removing the last unit brings the disc back.
+ * Elevated "+" disc (36px, 44px tap area, card shadow) that grows into a
+ * 108px "− n +" counter in 200ms once the item is in the bag.
  */
 function QuickAddControl({
   name,
@@ -124,46 +95,46 @@ function QuickAddControl({
   onAdd: () => void
   onDecrement?: () => void
 }) {
-  if (quantity > 0 && onDecrement) {
-    return (
-      <div
-        role="group"
-        aria-label={`Cantidad de ${name}`}
-        className="pointer-events-auto -mr-0.5 flex h-9 shrink-0 items-center rounded-full bg-sky text-foreground"
-      >
-        <button
-          type="button"
-          onClick={onDecrement}
-          className="flex h-11 w-8 items-center justify-center rounded-full touch-manipulation active:scale-90"
-          aria-label={`Quitar ${name}`}
-        >
-          <Icon name="minus" className="h-4 w-4" />
-        </button>
-        <span className="min-w-4 text-center text-sm font-semibold tabular-nums" aria-live="polite" data-testid="quick-add-quantity">
-          {quantity}
-        </span>
-        <button
-          type="button"
-          onClick={onAdd}
-          className="flex h-11 w-8 items-center justify-center rounded-full touch-manipulation active:scale-90"
-          aria-label={`Añadir ${name}`}
-        >
-          <Icon name="plus" className="h-4 w-4" />
-        </button>
-      </div>
-    )
-  }
-
+  const expanded = quantity > 0 && Boolean(onDecrement)
   return (
-    <button
-      type="button"
-      onClick={onAdd}
-      className="pointer-events-auto -mr-1.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-full touch-manipulation transition-transform active:scale-90"
-      aria-label={`Añadir ${name}`}
+    <div
+      role={expanded ? 'group' : undefined}
+      aria-label={expanded ? `Cantidad de ${name}` : undefined}
+      className={[
+        'flex h-9 items-center justify-end rounded-full bg-surface-elevated text-foreground shadow-card transition-[width] duration-200 ease-out-soft',
+        expanded ? 'w-[108px]' : 'w-9',
+      ].join(' ')}
     >
-      <span className="flex h-9 w-9 items-center justify-center rounded-full bg-sky text-foreground">
-        <Icon name="plus" className="h-4 w-4" />
-      </span>
-    </button>
+      {expanded && (
+        <>
+          <button
+            type="button"
+            onClick={onDecrement}
+            className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full touch-manipulation after:absolute after:-inset-1 active:scale-90"
+            aria-label={`Quitar ${name}`}
+          >
+            <Icon name="minus" className="h-4 w-4" />
+          </button>
+          <span className="min-w-6 flex-1 text-center text-base font-semibold tabular-nums" aria-live="polite" data-testid="quick-add-quantity">
+            {quantity}
+          </span>
+        </>
+      )}
+      <button
+        type="button"
+        onClick={onAdd}
+        className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full touch-manipulation after:absolute after:-inset-1 active:scale-90"
+        aria-label={`Añadir ${name}`}
+      >
+        <span
+          className={[
+            'flex h-9 w-9 items-center justify-center rounded-full',
+            expanded ? 'bg-foreground text-background' : 'bg-surface-elevated text-foreground',
+          ].join(' ')}
+        >
+          <Icon name="plus" className="h-4 w-4" strokeWidth={2.25} />
+        </span>
+      </button>
+    </div>
   )
 }

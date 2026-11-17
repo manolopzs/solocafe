@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { ShopDirectory } from '@/components/explore/shop-directory'
 import { ExploreGeolocation } from '@/components/explore/explore-geolocation'
-import { getPublicShops } from '@/server/queries/explore'
+import { getPublicShops, withMenuCutouts } from '@/server/queries/explore'
 
 export const instant = false
 
@@ -26,11 +26,12 @@ export default async function ExplorePage({
   const { lat, lng } = await searchParams
   const origin = originFromParams(lat, lng)
   const { shops, sort } = await getPublicShops(origin)
+  const cards = await withMenuCutouts(shops)
 
   return (
     <>
       <ExploreGeolocation hasOrigin={origin != null} />
-      <ShopDirectory shops={shops} sort={sort} />
+      <ShopDirectory shops={cards} sort={sort} title="Elige tu cafetería" />
     </>
   )
 }

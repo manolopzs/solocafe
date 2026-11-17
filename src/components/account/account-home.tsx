@@ -40,7 +40,7 @@ export function AccountHome({
           <form action={updateCustomerProfile} className="mt-4 space-y-4">
             <div>
               <Label htmlFor="name">Nombre</Label>
-              <Input id="name" name="name" type="text" defaultValue={customer.name ?? ''} placeholder="Cómo te llaman" className="mt-1.5" />
+              <Input id="name" name="name" type="text" defaultValue={customer.name ?? ''} placeholder="¿Cómo te llamas?" className="mt-1.5" />
             </div>
             <div>
               <Label htmlFor="phone">Teléfono</Label>

@@ -1,5 +1,7 @@
 import { cacheLife, cacheTag } from 'next/cache'
 import { publicGet } from '@/server/queries/public-get'
+import { getPublicStorefront } from '@/server/queries/storefront'
+import { shopCutouts } from '@/lib/storefront-menu'
 
 export interface PublicShop {
   name: string
@@ -43,4 +45,18 @@ export async function getPublicShops(
   } catch {
     return { sort: 'name', shops: [] }
   }
+}
+
+/**
+ * Inicio's shop cards use cut-outs from each shop's own menu when it has no photo.
+ * Reads the cached storefronts; a shop whose menu can't be read just gets none.
+ */
+export async function withMenuCutouts(shops: PublicShop[]): Promise<(PublicShop & { cutouts: string[] })[]> {
+  return Promise.all(
+    shops.map(async (shop) => {
+      if (shop.hero_photo_url) return { ...shop, cutouts: [] }
+      const storefront = await getPublicStorefront(shop.slug)
+      return { ...shop, cutouts: storefront ? shopCutouts(storefront.menu.items) : [] }
+    }),
+  )
 }

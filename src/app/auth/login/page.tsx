@@ -17,44 +17,44 @@ export default function LoginPage() {
 
   return (
     <main className="flex flex-1 flex-col lg:grid lg:grid-cols-2">
-      <section className="flex flex-col justify-center bg-surface px-6 py-12 lg:px-16 xl:px-24">
+      <section className="flex flex-col justify-center bg-surface px-5 pb-8 pt-4 lg:px-16 lg:py-12 xl:px-24">
         <div className="mx-auto w-full max-w-md">
           <Link href="/" className="inline-flex min-h-11 items-center" aria-label="Solo Café, inicio">
             <SoloCafeWordmark height={24} />
           </Link>
 
-          <h1 className="mt-8 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+          <h1 className="mt-10 text-h1 text-heading sm:text-4xl">
             Tu café, más cerca de tus clientes
           </h1>
-          <p className="mt-4 text-base text-muted-foreground">
+          <p className="mt-2 text-body text-muted-foreground">
             Recibe pedidos anticipados, reduce colas y conecta con quienes te eligen.
           </p>
 
-          <ul className="mt-8 space-y-4">
-            <li className="flex items-start gap-3 text-sm text-foreground">
-              <Icon name="check" className="mt-0.5 h-5 w-5 shrink-0 text-accent" />
+          <ul className="mt-6">
+            <li className="flex min-h-7 items-center gap-2 text-body-sm text-foreground">
+              <Icon name="check" className="h-4 w-4 shrink-0 text-foreground" strokeWidth={2.25} />
               <span>Pedidos organizados en tiempo real</span>
             </li>
-            <li className="flex items-start gap-3 text-sm text-foreground">
-              <Icon name="check" className="mt-0.5 h-5 w-5 shrink-0 text-accent" />
+            <li className="flex min-h-7 items-center gap-2 text-body-sm text-foreground">
+              <Icon name="check" className="h-4 w-4 shrink-0 text-foreground" strokeWidth={2.25} />
               <span>Pago y recogida sin complicaciones</span>
             </li>
-            <li className="flex items-start gap-3 text-sm text-foreground">
-              <Icon name="check" className="mt-0.5 h-5 w-5 shrink-0 text-accent" />
+            <li className="flex min-h-7 items-center gap-2 text-body-sm text-foreground">
+              <Icon name="check" className="h-4 w-4 shrink-0 text-foreground" strokeWidth={2.25} />
               <span>Menú digital listo en minutos</span>
             </li>
           </ul>
         </div>
       </section>
 
-      <section className="flex flex-1 items-center justify-center px-6 py-12 lg:px-16 xl:px-24">
+      <section className="flex flex-1 items-start justify-center px-5 pb-10 pt-6 lg:items-center lg:px-16 lg:py-12 xl:px-24">
         <div className="w-full max-w-sm">
-          <Card variant="outline">
-            <CardHeader className="text-center">
-              <CardTitle>Entra en tu cuenta</CardTitle>
-              <CardDescription>Introduce tu correo y tu contraseña para continuar.</CardDescription>
+          <Card variant="outline" className="max-sm:rounded-none max-sm:border-0 max-sm:bg-transparent">
+            <CardHeader className="max-sm:px-0 max-sm:pt-0 sm:text-center">
+              <CardTitle className="!text-h2 text-heading">Entra en tu cuenta</CardTitle>
+              <CardDescription className="mt-2 text-body-sm">Introduce tu correo y tu contraseña para continuar.</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="max-sm:px-0 max-sm:pb-0">
               <form action={formAction} className="space-y-4">
                 <div>
                   <Label htmlFor="email">Correo electrónico</Label>

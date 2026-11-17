@@ -17,46 +17,41 @@ export default function SignupPage() {
 
   return (
     <main className="flex flex-1 flex-col lg:grid lg:grid-cols-2">
-      <section className="flex flex-col justify-center bg-surface px-6 py-12 lg:px-16 xl:px-24">
+      <section className="flex flex-col justify-center bg-surface px-5 pb-8 pt-4 lg:px-16 lg:py-12 xl:px-24">
         <div className="mx-auto w-full max-w-md">
           <Link href="/" className="inline-flex min-h-11 items-center" aria-label="Solo Café, inicio">
             <SoloCafeWordmark height={24} />
           </Link>
 
-          <h1 className="mt-8 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+          <h1 className="mt-10 text-h1 text-heading sm:text-4xl">
             Abre tu canal de ventas directo
           </h1>
-          <p className="mt-4 text-base text-muted-foreground">
+          <p className="mt-2 text-body text-muted-foreground">
             Crea tu cuenta y tu cafetería. Después confirmas el menú, Stripe y el horario antes de publicar.
           </p>
 
-          <div className="mt-8 flex items-center gap-2 text-sm">
-            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-accent text-xs font-semibold text-accent-foreground">
-              1
-            </span>
-            <span className="font-medium text-foreground">Crea tu cuenta</span>
-            <Icon name="arrow-right" className="h-4 w-4 text-muted-foreground" />
-            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-border text-xs font-medium text-muted-foreground">
-              2
-            </span>
-            <span className="text-muted-foreground">Prepara la apertura</span>
-            <Icon name="arrow-right" className="h-4 w-4 text-muted-foreground" />
-            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-border text-xs font-medium text-muted-foreground">
-              3
-            </span>
-            <span className="text-muted-foreground">Publica</span>
+          <div className="mt-6" aria-label="Paso 1 de 3: crea tu cuenta">
+            <p className="text-body-sm font-semibold text-foreground">
+              Paso 1 de 3 <span className="text-muted-foreground">·</span> Crea tu cuenta
+            </p>
+            <p className="mt-0.5 text-caption text-muted-foreground">Después: prepara la apertura y publica.</p>
+            <div className="mt-3 grid grid-cols-3 gap-1" aria-hidden="true">
+              <span className="h-1.5 rounded-full bg-foreground" />
+              <span className="h-1.5 rounded-full bg-pill" />
+              <span className="h-1.5 rounded-full bg-pill" />
+            </div>
           </div>
         </div>
       </section>
 
-      <section className="flex flex-1 items-center justify-center px-6 py-12 lg:px-16 xl:px-24">
+      <section className="flex flex-1 items-start justify-center px-5 pb-10 pt-6 lg:items-center lg:px-16 lg:py-12 xl:px-24">
         <div className="w-full max-w-sm">
-          <Card variant="outline">
-            <CardHeader className="text-center">
-              <CardTitle>Crea tu cuenta</CardTitle>
-              <CardDescription>Regístrate para comenzar a recibir pedidos.</CardDescription>
+          <Card variant="outline" className="max-sm:rounded-none max-sm:border-0 max-sm:bg-transparent">
+            <CardHeader className="max-sm:px-0 max-sm:pt-0 sm:text-center">
+              <CardTitle className="!text-h2 text-heading">Crea tu cuenta</CardTitle>
+              <CardDescription className="mt-2 text-body-sm">Regístrate para comenzar a recibir pedidos.</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="max-sm:px-0 max-sm:pb-0">
               <form action={formAction} className="space-y-4">
                 <div>
                   <Label htmlFor="name">Nombre completo</Label>

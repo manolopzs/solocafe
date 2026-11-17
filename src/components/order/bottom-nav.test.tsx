@@ -1,8 +1,7 @@
 /** @jest-environment jsdom */
 import { render } from '@testing-library/react'
 import type { ReactNode } from 'react'
-import { BottomNav, customerHomeHref } from './bottom-nav'
-import { rememberShop } from '@/lib/recent-shops'
+import { BottomNav, isStorefrontPath } from './bottom-nav'
 
 jest.mock('next/navigation', () => ({
   usePathname: jest.fn(),
@@ -55,7 +54,6 @@ const inicioHref = (container: HTMLElement) =>
   Array.from(container.querySelectorAll('a')).find((a) => a.textContent === 'Inicio')?.getAttribute('href')
 
 describe('BottomNav Inicio', () => {
-  // Order matters: recent-shops keeps one in-memory snapshot per module.
   it('opens /inicio when no shop has been visited, never the owner landing', () => {
     usePathname.mockReturnValue('/account')
     const { container } = render(<BottomNav />)
@@ -69,16 +67,13 @@ describe('BottomNav Inicio', () => {
     expect(active).toEqual(['Inicio'])
   })
 
-  it('opens the last storefront visited on this phone', () => {
-    rememberShop({ slug: 'otra', name: 'Otra' })
-    rememberShop({ slug: 'main', name: 'Solo cafe' })
-    usePathname.mockReturnValue('/account')
+  it('always opens /inicio, even after visiting a shop', () => {
+    usePathname.mockReturnValue('/main')
     const { container } = render(<BottomNav />)
-    expect(inicioHref(container)).toBe('/main')
-    expect(window.localStorage.getItem('solo-cafe.recent-shops')).toContain('"main"')
+    expect(inicioHref(container)).toBe('/inicio')
   })
 
-  it('marks Inicio active on that storefront', () => {
+  it('marks Inicio active on a storefront', () => {
     usePathname.mockReturnValue('/main')
     const { container } = render(<BottomNav />)
     const active = Array.from(container.querySelectorAll('a[aria-current="page"]')).map((a) => a.textContent)
@@ -111,19 +106,22 @@ describe('BottomNav look', () => {
   })
 })
 
-describe('customerHomeHref', () => {
-  it('falls back to /inicio and never returns /', () => {
-    expect(customerHomeHref([])).toBe('/inicio')
-    expect(customerHomeHref([{ slug: 'main', name: 'Solo cafe' }])).toBe('/main')
+describe('BottomNav Pedidos', () => {
+  it('lights Pedidos on an order tracker', () => {
+    usePathname.mockReturnValue('/order/abc')
+    const { container } = render(<BottomNav />)
+    const active = Array.from(container.querySelectorAll('a[aria-current="page"]')).map((a) => a.textContent)
+    expect(active).toEqual(['Pedidos'])
   })
+})
 
-  it('skips the demo shop, which has no /<slug> storefront', () => {
-    expect(customerHomeHref([{ slug: 'cafeteria-demo', name: 'Café de la Esquina' }])).toBe('/inicio')
-    expect(
-      customerHomeHref([
-        { slug: 'cafeteria-demo', name: 'Café de la Esquina' },
-        { slug: 'main', name: 'Solo cafe' },
-      ]),
-    ).toBe('/main')
+describe('isStorefrontPath', () => {
+  it('is a single segment that is not another app route', () => {
+    expect(isStorefrontPath('/solo-cafe')).toBe(true)
+    expect(isStorefrontPath('/explore')).toBe(false)
+    expect(isStorefrontPath('/inicio')).toBe(false)
+    expect(isStorefrontPath('/account')).toBe(false)
+    expect(isStorefrontPath('/order/abc')).toBe(false)
+    expect(isStorefrontPath('/')).toBe(false)
   })
 })

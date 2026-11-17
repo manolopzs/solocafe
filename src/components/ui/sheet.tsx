@@ -11,9 +11,11 @@ export interface SheetProps {
   footer?: ReactNode
   position?: 'bottom' | 'center' | 'right'
   className?: string
+  /** Full-bleed content: no padding, the handle floats over the top edge. */
+  bare?: boolean
 }
 
-export function Sheet({ open, onClose, title, children, footer, position = 'bottom', className = '' }: SheetProps) {
+export function Sheet({ open, onClose, title, children, footer, position = 'bottom', className = '', bare = false }: SheetProps) {
   const [mounted, setMounted] = useState(open)
   const [visible, setVisible] = useState(open)
   const sheetRef = useRef<HTMLDivElement>(null)
@@ -114,31 +116,36 @@ export function Sheet({ open, onClose, title, children, footer, position = 'bott
             onPointerMove={handlePointerMove}
             onPointerUp={handlePointerUp}
             onPointerCancel={handlePointerUp}
-            className="flex cursor-grab justify-center pt-4 pb-2 active:cursor-grabbing"
+            className={[
+              'flex cursor-grab justify-center pt-4 pb-2 active:cursor-grabbing',
+              bare ? 'absolute left-1/2 top-0 z-10 w-24 -translate-x-1/2' : '',
+            ].join(' ')}
           >
             <div className="h-[5px] w-9 rounded-full bg-subtle" />
           </div>
         )}
         {title && (
-          <div className="flex items-center justify-between border-b border-border px-6 py-4">
-            <div className="text-lg font-semibold text-foreground">{title}</div>
+          <div className="flex items-center justify-between px-5 pb-1 pt-1">
+            <h2 className="text-h2 text-heading">{title}</h2>
             <button
               type="button"
               onClick={onClose}
-              className="flex h-11 w-11 items-center justify-center rounded-full text-muted-foreground hover:bg-surface hover:text-foreground"
+              className="-mr-0.5 flex h-11 w-11 items-center justify-center rounded-full"
               aria-label="Cerrar"
             >
-              <X className="h-5 w-5" />
+              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-pill text-foreground">
+                <X className="h-5 w-5" />
+              </span>
             </button>
           </div>
         )}
         <div className={[
           'overflow-y-auto',
           isBottom ? 'min-h-0 flex-1' : 'h-[calc(100%-4rem)]',
-          'p-6',
+          bare ? '' : isBottom ? 'px-5 pb-6 pt-4' : 'p-6',
         ].join(' ')}>{children}</div>
         {footer && (
-          <div className="shrink-0 border-t border-border bg-surface-elevated px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-6">
+          <div className="shrink-0 bg-inherit px-5 pb-[calc(env(safe-area-inset-bottom)+12px)] pt-3">
             {footer}
           </div>
         )}

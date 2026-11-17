@@ -42,7 +42,7 @@ describe('Solo Café logo', () => {
   })
 
   it('shows the wordmark in the Explore header instead of the coffee icon', () => {
-    render(<ShopDirectory sort="name" shops={[]} />)
+    render(<ShopDirectory sort="name" shops={[]} title="Buenas tardes" />)
     expect(screen.getByRole('img', { name: 'Solo Café' })).toBeInTheDocument()
     expect(screen.queryByText('Solo Café')).not.toBeInTheDocument()
   })

@@ -9,6 +9,7 @@ import { Notice } from '@/components/ui/notice'
 import { Sheet } from '@/components/ui/sheet'
 import { checkoutBlockedCopy } from '@/lib/ordering'
 import { QuantityStepper } from '@/components/order/quantity-stepper'
+import { MenuTileImage } from '@/components/order/menu-tile-image'
 import { updateCustomerProfile } from '@/server/actions/customers'
 import type { CartViewLine } from '@/components/order/cart-sheet'
 import type { Customer, Shop } from '@/types'
@@ -157,7 +158,7 @@ export function CheckoutSheet({
       onClose={onClose}
       title="Tu pedido"
       position="bottom"
-      className="sm:left-1/2 sm:right-auto sm:top-auto sm:w-full sm:max-w-[480px] sm:-translate-x-1/2 sm:rounded-t-[1.75rem]"
+      className="!bg-background sm:left-1/2 sm:right-auto sm:top-auto sm:w-full sm:max-w-[480px] sm:-translate-x-1/2"
       footer={
         <div className="space-y-3">
           {testMode && (
@@ -181,6 +182,12 @@ export function CheckoutSheet({
               Reintentar
             </Button>
           )}
+          {lines.length > 0 && (
+            <p className="flex items-baseline justify-between pb-1">
+              <span className="text-body text-muted-foreground">Total</span>
+              <span className="text-[20px] font-semibold leading-7 tabular-nums text-foreground">{total}</span>
+            </p>
+          )}
           <Button
             onClick={() => void submit()}
             disabled={!canSubmit}
@@ -194,11 +201,11 @@ export function CheckoutSheet({
         </div>
       }
     >
-      <div className="space-y-5">
+      <div className="space-y-3">
         {!isSignedIn && (
-          <div className="rounded-2xl bg-surface px-4 py-3.5 text-sm leading-6 text-foreground">
+          <div className="rounded-[16px] bg-sky-tint px-4 py-3 text-body-sm text-foreground">
             ¿Quieres pedir más rápido la próxima vez?{' '}
-            <Link href="/account/signup" className="font-medium text-accent underline underline-offset-2">
+            <Link href="/account/signup" className="font-semibold text-foreground underline underline-offset-2">
               Crea una cuenta
             </Link>
           </div>
@@ -209,56 +216,47 @@ export function CheckoutSheet({
             Tu pedido está vacío. Añade algo del menú.
           </p>
         ) : (
-          <section>
-            <ul className="divide-y divide-border border-y border-border">
-              {lines.map((line, index) => (
-                <li key={line.key} className="py-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="font-medium text-foreground">{line.name}</p>
-                      {line.detail && <p className="mt-0.5 text-sm text-muted-foreground">{line.detail}</p>}
-                      {line.unavailable && (
-                        <span className="mt-2 inline-flex rounded-full bg-danger/10 px-2.5 py-1 text-xs font-medium text-danger">
-                          Ya no disponible
-                        </span>
-                      )}
-                      <p className="mt-1 text-sm font-medium tabular-nums text-foreground">{line.lineTotal}</p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => onRemove(index)}
-                      className="flex h-11 w-11 items-center justify-center rounded-full text-muted-foreground hover:bg-surface hover:text-danger"
-                      aria-label={`Eliminar ${line.name}`}
-                    >
-                      <Icon name="trash" className="h-4 w-4" />
-                    </button>
-                  </div>
-                  <div className="mt-2">
-                    <QuantityStepper
-                      value={line.quantity}
-                      onDecrease={() => onQuantity(index, line.quantity - 1)}
-                      onIncrease={() => onQuantity(index, line.quantity + 1)}
-                    />
-                  </div>
-                </li>
-              ))}
-            </ul>
-            <p className="mt-3 flex items-baseline justify-between text-sm">
-              <span className="text-muted-foreground">Total</span>
-              <span className="text-base font-medium tabular-nums text-foreground">{total}</span>
-            </p>
-          </section>
+          <ul className="space-y-3">
+            {lines.map((line, index) => (
+              <li key={line.key} className="flex items-center gap-3 rounded-card border border-border bg-surface-elevated py-3 pl-3 pr-4 shadow-card">
+                <span className="relative h-16 w-16 shrink-0 overflow-hidden rounded-thumb bg-surface">
+                  {line.thumb && <MenuTileImage item={line.thumb} sizes="64px" iconClassName="h-5 w-5" />}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-base font-semibold leading-[22px] text-foreground">{line.name}</p>
+                  {line.detail && <p className="truncate text-body-sm text-muted-foreground">{line.detail}</p>}
+                  {line.unavailable && (
+                    <span className="mt-1 inline-flex rounded-full bg-danger/10 px-2.5 py-1 text-xs font-medium text-danger">
+                      Ya no disponible
+                    </span>
+                  )}
+                  <p className="mt-0.5 text-price tabular-nums text-muted-foreground">{line.lineTotal}</p>
+                </div>
+                <QuantityStepper
+                  value={line.quantity}
+                  onDecrease={() => onQuantity(index, line.quantity - 1)}
+                  onIncrease={() => onQuantity(index, line.quantity + 1)}
+                  removeAtOne={{ label: `Eliminar ${line.name}`, onRemove: () => onRemove(index) }}
+                />
+              </li>
+            ))}
+          </ul>
         )}
 
-        <div className="rounded-2xl bg-surface px-4 py-3.5">
-          <p className="text-sm font-medium text-foreground">Recogida</p>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Lo antes posible
-            {etaMinutes !== undefined && etaMinutes > 0 && ` · ~${etaMinutes} min`}
-          </p>
+        <div className="flex items-center gap-3 rounded-card border border-border bg-surface-elevated p-4 shadow-card">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-pill text-on-pill">
+            <Icon name="clock" className="h-[18px] w-[18px]" />
+          </span>
+          <div>
+            <p className="text-caption text-muted-foreground">Recogida</p>
+            <p className="text-body-sm font-semibold text-foreground">
+              Lo antes posible
+              {etaMinutes !== undefined && etaMinutes > 0 && ` · ~${etaMinutes} min`}
+            </p>
+          </div>
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-4 pt-3">
           {isSignedIn && !editingIdentity ? (
             <>
               <p className="rounded-2xl bg-surface px-4 py-3.5 text-sm text-foreground">
@@ -274,7 +272,7 @@ export function CheckoutSheet({
               </p>
               {needsPhone && (
                 <div>
-                  <label htmlFor="customerPhone" className="block text-sm font-medium text-foreground">
+                  <label htmlFor="customerPhone" className="block text-body-sm font-semibold text-foreground">
                     Teléfono <span className="text-muted-foreground">*</span>
                   </label>
                   <Input
@@ -291,7 +289,7 @@ export function CheckoutSheet({
           ) : (
             <>
               <div>
-                <label htmlFor="customerName" className="block text-sm font-medium text-foreground">
+                <label htmlFor="customerName" className="block text-body-sm font-semibold text-foreground">
                   Nombre
                 </label>
                 <Input
@@ -299,12 +297,12 @@ export function CheckoutSheet({
                   type="text"
                   value={customerName}
                   onChange={(event) => setCustomerName(event.target.value)}
-                  placeholder="¿Cómo te llaman?"
+                  placeholder="¿Cómo te llamas?"
                   className="mt-1.5"
                 />
               </div>
               <div>
-                <label htmlFor="customerPhone" className="block text-sm font-medium text-foreground">
+                <label htmlFor="customerPhone" className="block text-body-sm font-semibold text-foreground">
                   Teléfono
                 </label>
                 <Input
@@ -321,7 +319,7 @@ export function CheckoutSheet({
 
           {(!isSignedIn || editingIdentity) && (
             <div>
-              <label htmlFor="customerEmail" className="block text-sm font-medium text-foreground">
+              <label htmlFor="customerEmail" className="block text-body-sm font-semibold text-foreground">
                 Correo para el recibo
               </label>
               <Input

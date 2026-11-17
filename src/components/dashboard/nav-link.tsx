@@ -4,18 +4,19 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Icon, type IconName } from '@/components/ui/icon'
 
-export function NavLink({ href, label, icon }: { href: string; label: string; icon: IconName }) {
+export function NavLink({ href, label, icon, exact = false }: { href: string; label: string; icon: IconName; exact?: boolean }) {
   const pathname = usePathname()
-  const active = pathname === href || pathname.startsWith(`${href}/`)
+  const active = pathname === href || (!exact && pathname.startsWith(`${href}/`))
 
   return (
     <Link
       href={href}
       className={[
-        'flex shrink-0 items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors md:w-full',
+        // Phone: 44px tabs with 16px padding and a 2px underline. Desktop: sidebar rows.
+        'flex h-11 shrink-0 items-center gap-2 border-b-2 px-4 text-body-sm font-semibold transition-colors md:h-auto md:w-full md:rounded-xl md:border-b-0 md:px-3 md:py-2.5',
         active
-          ? 'bg-warm-100 text-warm-900'
-          : 'text-warm-700 hover:bg-warm-100 hover:text-warm-900',
+          ? 'border-foreground text-foreground md:bg-surface'
+          : 'border-transparent text-muted-foreground hover:text-foreground md:hover:bg-surface',
       ].join(' ')}
     >
       <Icon name={icon} className="h-4 w-4" />

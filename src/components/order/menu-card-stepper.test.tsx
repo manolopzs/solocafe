@@ -35,7 +35,7 @@ function CardWithBag({ shopId }: { shopId: string }) {
 
 beforeEach(() => window.localStorage.clear())
 
-test('shows the sky + disc until the item is in the bag', () => {
+test('shows the + disc until the item is in the bag', () => {
   card({ onQuickAdd: () => {}, onDecrement: () => {} })
   expect(screen.getByRole('button', { name: 'Añadir Café con leche' })).toBeInTheDocument()
   expect(screen.queryByRole('group', { name: 'Cantidad de Café con leche' })).not.toBeInTheDocument()
