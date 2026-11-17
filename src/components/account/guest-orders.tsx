@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Icon } from '@/components/ui/icon'
+import { CUSTOMER_HOME_PATH } from '@/lib/site'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
   EMPTY_GUEST_ORDERS,
@@ -100,7 +101,7 @@ export function GuestOrders() {
               description="Cuando hagas tu primer pedido desde este móvil, aparecerá aquí."
               action={
                 <Button asChild>
-                  <Link href="/explore">Explorar cafeterías</Link>
+                  <Link href={CUSTOMER_HOME_PATH}>Hacer un pedido</Link>
                 </Button>
               }
             />

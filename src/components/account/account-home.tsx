@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { StampCard } from '@/components/order/stamp-card'
 import { Icon } from '@/components/ui/icon'
+import { CUSTOMER_HOME_PATH } from '@/lib/site'
 
 export function AccountHome({
   customer,
@@ -24,9 +25,9 @@ export function AccountHome({
   return (
     <main className="min-h-screen bg-background">
       <div className="mx-auto max-w-xl px-5 pb-24 pt-5">
-        <Link href="/explore" className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground">
+        <Link href={CUSTOMER_HOME_PATH} className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground">
           <Icon name="arrow-left" className="h-4 w-4" />
-          Cafeterías
+          Inicio
         </Link>
 
         <h1 className="mt-8 text-[2rem] font-medium leading-tight tracking-tight text-heading">

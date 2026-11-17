@@ -18,16 +18,20 @@ export interface PublicDirectory {
   shops: PublicShop[]
 }
 
-export async function getPublicShops(origin?: { lat: number; lng: number }): Promise<PublicDirectory> {
+export async function getPublicShops(
+  origin?: { lat: number; lng: number },
+  { includeClosed = false }: { includeClosed?: boolean } = {},
+): Promise<PublicDirectory> {
   'use cache'
   cacheLife('minutes')
-  cacheTag(origin ? 'explore:near' : 'explore:directory')
+  cacheTag(origin ? 'explore:near' : includeClosed ? 'explore:all' : 'explore:directory')
 
   const params = new URLSearchParams()
   if (origin) {
     params.set('lat', String(origin.lat))
     params.set('lng', String(origin.lng))
   }
+  if (includeClosed) params.set('include_closed', 'true')
   const query = params.toString()
 
   try {

@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Icon } from '@/components/ui/icon'
+import { CUSTOMER_HOME_PATH } from '@/lib/site'
 import { Notice } from '@/components/ui/notice'
 import { SoloCafeWordmark } from '@/components/brand/solo-cafe-logo'
 
@@ -17,7 +18,7 @@ export default function AccountSignupPage() {
   return (
     <main className="flex min-h-screen flex-col bg-background px-5 py-8">
       <div className="mx-auto flex w-full max-w-sm flex-1 flex-col">
-        <Link href="/explore" className="inline-flex min-h-11 items-center self-start" aria-label="Solo Café, explorar cafeterías">
+        <Link href={CUSTOMER_HOME_PATH} className="inline-flex min-h-11 items-center self-start" aria-label="Solo Café, inicio">
           <SoloCafeWordmark height={24} />
         </Link>
 

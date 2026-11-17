@@ -48,10 +48,10 @@ describe('GuestOrders', () => {
     refreshGuestOrderStatuses.mockResolvedValue([])
   })
 
-  it('shows an empty state with Explorar, not a login wall', () => {
+  it('shows an empty state that leads to Inicio, not a login wall', () => {
     renderGuestOrders()
     expect(screen.getByText('Aún no tienes pedidos')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Explorar cafeterías' })).toHaveAttribute('href', '/explore')
+    expect(screen.getByRole('link', { name: 'Hacer un pedido' })).toHaveAttribute('href', '/inicio')
     expect(screen.queryByText('Tu pedido en curso')).not.toBeInTheDocument()
     expect(refreshGuestOrderStatuses).not.toHaveBeenCalled()
   })
