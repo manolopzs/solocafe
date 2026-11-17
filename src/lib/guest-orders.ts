@@ -12,6 +12,8 @@ export interface GuestOrder {
   itemCount: number
   /** e.g. "1 × Latte, 2 × Cortado". Missing on orders saved before it existed. */
   itemsSummary?: string
+  /** Minutes the shop quoted when the order was placed. Only set when the order carried one. */
+  estimatedReadyMinutes?: number
   createdAt: string
 }
 
@@ -41,6 +43,9 @@ export function guestOrderFromOrder(order: Order, token: string): GuestOrder {
     currency: order.currency,
     itemCount: order.item_count ?? (order.items ?? []).reduce((sum, item) => sum + item.quantity, 0),
     ...(itemsSummary(order) ? { itemsSummary: itemsSummary(order) } : {}),
+    ...(order.estimated_ready_minutes && order.estimated_ready_minutes > 0
+      ? { estimatedReadyMinutes: order.estimated_ready_minutes }
+      : {}),
     createdAt: order.created_at,
   }
 }
@@ -55,6 +60,13 @@ export function guestReorderHref(order: Pick<GuestOrder, 'id' | 'token' | 'shopS
   return `/${encodeURIComponent(order.shopSlug)}?reorder=${encodeURIComponent(order.id)}&token=${encodeURIComponent(order.token)}`
 }
 
+/** Signed-in "Repetir": the shop page loads the order from the account (see src/lib/reorder.ts). */
+export function customerReorderHref(order: Pick<Order, 'id' | 'shop_slug' | 'shop'>): string | null {
+  const slug = order.shop?.slug ?? order.shop_slug
+  if (!slug) return null
+  return `/${encodeURIComponent(slug)}?reorder=${encodeURIComponent(order.id)}`
+}
+
 function isGuestOrder(value: unknown): value is GuestOrder {
   if (!value || typeof value !== 'object') return false
   const v = value as Record<string, unknown>
@@ -67,7 +79,8 @@ function isGuestOrder(value: unknown): value is GuestOrder {
     typeof v.createdAt === 'string' &&
     typeof v.totalCents === 'number' &&
     typeof v.currency === 'string' &&
-    (v.itemsSummary === undefined || typeof v.itemsSummary === 'string')
+    (v.itemsSummary === undefined || typeof v.itemsSummary === 'string') &&
+    (v.estimatedReadyMinutes === undefined || typeof v.estimatedReadyMinutes === 'number')
   )
 }
 
