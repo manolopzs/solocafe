@@ -1,6 +1,7 @@
 'use client'
 
-import { useActionState } from 'react'
+import { Suspense, useActionState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { forgotPasswordAction } from '@/server/actions/auth'
 import { Button } from '@/components/ui/button'
@@ -8,8 +9,10 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Icon } from '@/components/ui/icon'
+import { loginFlowFrom, loginPathFor } from '@/lib/auth-flow'
 
-export default function ForgotPasswordPage() {
+function ForgotPasswordForm() {
+  const flow = loginFlowFrom(useSearchParams().get('from'))
   const [state, formAction, pending] = useActionState(forgotPasswordAction, null)
 
   return (
@@ -33,6 +36,8 @@ export default function ForgotPasswordPage() {
               </div>
             ) : (
               <form action={formAction} className="space-y-4">
+                {flow === 'account' && <input type="hidden" name="from" value="account" />}
+
                 <div>
                   <Label htmlFor="email">Correo electrónico</Label>
                   <Input
@@ -63,7 +68,7 @@ export default function ForgotPasswordPage() {
             )}
 
             <p className="mt-5 text-center text-sm text-muted-foreground">
-              <Link href="/auth/login" className="font-medium text-accent underline underline-offset-2 hover:text-accent/80">
+              <Link href={loginPathFor(flow)} className="font-medium text-accent underline underline-offset-2 hover:text-accent/80">
                 Volver al inicio de sesión
               </Link>
             </p>
@@ -71,5 +76,13 @@ export default function ForgotPasswordPage() {
         </Card>
       </div>
     </main>
+  )
+}
+
+export default function ForgotPasswordPage() {
+  return (
+    <Suspense fallback={<main className="flex min-h-screen items-center justify-center px-6 py-12 text-sm text-muted-foreground">Cargando...</main>}>
+      <ForgotPasswordForm />
+    </Suspense>
   )
 }

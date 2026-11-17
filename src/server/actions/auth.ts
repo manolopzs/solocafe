@@ -4,6 +4,7 @@ import { redirect, unstable_rethrow } from 'next/navigation'
 import { apiPost, apiPatch } from '@/lib/api/server'
 import { setToken, removeToken } from '@/lib/auth'
 import { loginErrorMessage, signupErrorState, userFacingApiError } from '@/lib/api/errors'
+import { loginFlowFrom, loginPathFor } from '@/lib/auth-flow'
 
 export async function loginAction(prevState: unknown, formData: FormData) {
   const email = formData.get('email') as string
@@ -82,7 +83,8 @@ export async function forgotPasswordAction(prevState: unknown, formData: FormDat
   }
 
   try {
-    await apiPost('/auth/password_resets', { email }, false)
+    const from = formData.get('from') === 'account' ? 'account' : undefined
+    await apiPost('/auth/password_resets', { email, from }, false)
   } catch (err) {
     return { error: userFacingApiError(err, 'No hemos podido enviar el enlace. Inténtalo de nuevo.') }
   }
@@ -107,11 +109,15 @@ export async function resetPasswordAction(prevState: unknown, formData: FormData
     return { error: 'La contraseña debe tener al menos 8 caracteres' }
   }
 
+  let account: string | undefined
   try {
-    await apiPatch('/auth/password_resets/' + encodeURIComponent(token), { password }, false)
+    const data = await apiPatch<{ account?: string }>('/auth/password_resets/' + encodeURIComponent(token), { password }, false)
+    account = data?.account
   } catch (err) {
     return { error: userFacingApiError(err, 'No hemos podido cambiar la contraseña. Inténtalo de nuevo.') }
   }
 
-  redirect('/auth/login?reset=success')
+  // The API account wins; the ?from=account link is the fallback for older API responses.
+  const flow = account ? (account === 'customer' ? 'account' : 'owner') : loginFlowFrom(formData.get('from') as string | null)
+  redirect(`${loginPathFor(flow)}?reset=success`)
 }

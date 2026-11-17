@@ -1,6 +1,6 @@
 'use client'
 
-import { useActionState, useState } from 'react'
+import { Suspense, useActionState, useState } from 'react'
 import Link from 'next/link'
 import { accountLoginAction } from '@/server/actions/account-auth'
 import { Button } from '@/components/ui/button'
@@ -10,6 +10,7 @@ import { Icon } from '@/components/ui/icon'
 import { CUSTOMER_HOME_PATH } from '@/lib/site'
 import { Notice } from '@/components/ui/notice'
 import { SoloCafeWordmark } from '@/components/brand/solo-cafe-logo'
+import { ResetSuccessNotice } from '@/components/auth/reset-success-notice'
 
 export default function AccountLoginPage() {
   const [state, formAction, pending] = useActionState(accountLoginAction, null)
@@ -26,6 +27,10 @@ export default function AccountLoginPage() {
         <p className="mt-2 text-base leading-6 text-muted-foreground">Accede a tu cuenta para ver tus pedidos y repetirlos.</p>
 
         <form action={formAction} className="mt-8 space-y-4">
+          <Suspense fallback={null}>
+            <ResetSuccessNotice />
+          </Suspense>
+
           <div>
             <Label htmlFor="email">Correo electrónico</Label>
             <Input id="email" name="email" type="email" required autoComplete="email" placeholder="tu@email.com" className="mt-1.5" />
@@ -62,7 +67,7 @@ export default function AccountLoginPage() {
           </Button>
 
           <p className="text-center text-sm">
-            <Link href="/auth/forgot-password" className="font-medium text-accent underline underline-offset-2">
+            <Link href="/auth/forgot-password?from=account" className="font-medium text-accent underline underline-offset-2">
               ¿Olvidaste tu contraseña?
             </Link>
           </p>

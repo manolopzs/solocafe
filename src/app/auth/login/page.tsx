@@ -1,6 +1,6 @@
 'use client'
 
-import { useActionState } from 'react'
+import { Suspense, useActionState } from 'react'
 import { useState } from 'react'
 import Link from 'next/link'
 import { loginAction } from '@/server/actions/auth'
@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Icon } from '@/components/ui/icon'
 import { SoloCafeWordmark } from '@/components/brand/solo-cafe-logo'
+import { ResetSuccessNotice } from '@/components/auth/reset-success-notice'
 
 export default function LoginPage() {
   const [state, formAction, pending] = useActionState(loginAction, null)
@@ -56,6 +57,10 @@ export default function LoginPage() {
             </CardHeader>
             <CardContent className="max-sm:px-0 max-sm:pb-0">
               <form action={formAction} className="space-y-4">
+                <Suspense fallback={null}>
+                  <ResetSuccessNotice />
+                </Suspense>
+
                 <div>
                   <Label htmlFor="email">Correo electrónico</Label>
                   <Input
