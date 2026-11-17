@@ -84,6 +84,18 @@ export default async function SettingsPage({
         </div>
       )}
 
+      {stripeParam === 'not_configured' && (
+        <div className="rounded-xl border border-terracotta-300 bg-cream px-4 py-3 text-sm text-terracotta-900">
+          Stripe aún no está configurado en el servidor. Hay que añadir la clave de prueba (STRIPE_SECRET_KEY) en Render.
+        </div>
+      )}
+
+      {stripeParam === 'error' && (
+        <div className="rounded-xl border border-terracotta-300 bg-cream px-4 py-3 text-sm text-terracotta-900">
+          No se pudo conectar con Stripe. Revisa la configuración o inténtalo de nuevo.
+        </div>
+      )}
+
       <Card variant="outline">
         <CardHeader>
           <CardTitle>Pagos</CardTitle>
