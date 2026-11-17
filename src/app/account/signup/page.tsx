@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Icon } from '@/components/ui/icon'
 import { CUSTOMER_HOME_PATH } from '@/lib/site'
-import { Notice } from '@/components/ui/notice'
+import { SignupError } from '@/components/auth/signup-error'
 import { SoloCafeWordmark } from '@/components/brand/solo-cafe-logo'
 
 export default function AccountSignupPage() {
@@ -62,7 +62,7 @@ export default function AccountSignupPage() {
             </div>
           </div>
 
-          {state?.error && <Notice tone="danger">{state.error}</Notice>}
+          {state?.error && <SignupError state={state} loginHref="/account/login" recoverHref="/auth/forgot-password" />}
 
           <Button type="submit" disabled={pending} size="lg" className="w-full">
             {pending ? 'Creando cuenta...' : 'Crear cuenta gratis'}
