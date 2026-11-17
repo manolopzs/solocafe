@@ -3,6 +3,7 @@
 import { redirect, unstable_rethrow } from 'next/navigation'
 import { apiPost, apiPatch } from '@/lib/api/server'
 import { setToken, removeToken } from '@/lib/auth'
+import { loginErrorMessage, signupErrorState, userFacingApiError } from '@/lib/api/errors'
 import { loginFlowFrom, loginPathFor } from '@/lib/auth-flow'
 
 export async function loginAction(prevState: unknown, formData: FormData) {
@@ -22,8 +23,7 @@ export async function loginAction(prevState: unknown, formData: FormData) {
     )
     token = data.token
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'Error al iniciar sesión'
-    return { error: message }
+    return { error: loginErrorMessage(err) }
   }
 
   if (token) {
@@ -50,8 +50,7 @@ export async function signupAction(prevState: unknown, formData: FormData) {
     )
     token = data.token
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'Error al crear la cuenta'
-    return { error: message }
+    return signupErrorState(err)
   }
 
   if (token) {
@@ -87,8 +86,7 @@ export async function forgotPasswordAction(prevState: unknown, formData: FormDat
     const from = formData.get('from') === 'account' ? 'account' : undefined
     await apiPost('/auth/password_resets', { email, from }, false)
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'Error al solicitar el restablecimiento'
-    return { error: message }
+    return { error: userFacingApiError(err, 'No hemos podido enviar el enlace. Inténtalo de nuevo.') }
   }
 
   return { success: 'Si el correo existe, recibirás instrucciones para restablecer tu contraseña.' }
@@ -116,8 +114,7 @@ export async function resetPasswordAction(prevState: unknown, formData: FormData
     const data = await apiPatch<{ account?: string }>('/auth/password_resets/' + encodeURIComponent(token), { password }, false)
     account = data?.account
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'Error al restablecer la contraseña'
-    return { error: message }
+    return { error: userFacingApiError(err, 'No hemos podido cambiar la contraseña. Inténtalo de nuevo.') }
   }
 
   // The API account wins; the ?from=account link is the fallback for older API responses.

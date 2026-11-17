@@ -2,6 +2,7 @@
 
 import { cookies } from 'next/headers'
 import { env } from '@/lib/env'
+import { ApiError } from '@/lib/api/client'
 
 async function request<T>(
   path: string,
@@ -24,7 +25,8 @@ async function request<T>(
 
   const url = `${env.NEXT_PUBLIC_API_URL}${path}`
   const response = await fetch(url, { ...options, headers }).catch((err) => {
-    throw new Error(`Fetch failed for ${url}: ${err instanceof Error ? err.message : String(err)}`)
+    console.error(`API fetch failed for ${url}:`, err)
+    throw new ApiError('network_error', 0)
   })
 
   let body: unknown
@@ -44,7 +46,9 @@ async function request<T>(
         : typeof body === 'object' && body !== null && 'errors' in body
           ? JSON.stringify((body as { errors: unknown }).errors)
           : response.statusText
-    throw new Error(`${url}: ${message}`)
+    // The URL stays in server logs only; the thrown message can reach users.
+    console.error(`API ${response.status} for ${url}: ${message}`)
+    throw new ApiError(message, response.status, typeof body === 'object' && body !== null ? (body as Record<string, unknown>) : undefined)
   }
 
   return body as T

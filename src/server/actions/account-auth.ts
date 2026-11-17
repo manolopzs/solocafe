@@ -3,6 +3,7 @@
 import { redirect } from 'next/navigation'
 import { apiPost, apiPatch } from '@/lib/api/server'
 import { setToken, removeToken } from '@/lib/auth'
+import { loginErrorMessage, signupErrorState } from '@/lib/api/errors'
 
 export async function accountLoginAction(prevState: unknown, formData: FormData) {
   const email = formData.get('email') as string
@@ -21,8 +22,7 @@ export async function accountLoginAction(prevState: unknown, formData: FormData)
     )
     token = data.token
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'Error al iniciar sesión'
-    return { error: message }
+    return { error: loginErrorMessage(err) }
   }
 
   if (token) {
@@ -50,8 +50,7 @@ export async function accountSignupAction(prevState: unknown, formData: FormData
     )
     token = data.token
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'Error al crear la cuenta'
-    return { error: message }
+    return signupErrorState(err)
   }
 
   if (token) {
