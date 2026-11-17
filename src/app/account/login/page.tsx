@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label'
 import { Icon } from '@/components/ui/icon'
 import { CUSTOMER_HOME_PATH } from '@/lib/site'
 import { Notice } from '@/components/ui/notice'
+import { SoloCafeWordmark } from '@/components/brand/solo-cafe-logo'
 
 export default function AccountLoginPage() {
   const [state, formAction, pending] = useActionState(accountLoginAction, null)
@@ -17,11 +18,8 @@ export default function AccountLoginPage() {
   return (
     <main className="flex min-h-screen flex-col bg-background px-5 py-8">
       <div className="mx-auto flex w-full max-w-sm flex-1 flex-col">
-        <Link href={CUSTOMER_HOME_PATH} className="inline-flex min-h-11 items-center gap-2.5 text-foreground">
-          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground">
-            <Icon name="coffee" className="h-5 w-5" />
-          </span>
-          <span className="text-lg font-medium tracking-tight">Solo Café</span>
+        <Link href={CUSTOMER_HOME_PATH} className="inline-flex min-h-11 items-center self-start" aria-label="Solo Café, inicio">
+          <SoloCafeWordmark height={24} />
         </Link>
 
         <h1 className="mt-10 text-[2rem] font-medium leading-tight tracking-tight text-heading">Inicia sesión</h1>

@@ -9,6 +9,7 @@ import { EmptyState } from '@/components/ui/empty-state'
 import { Icon } from '@/components/ui/icon'
 import { ExploreIntro } from '@/components/explore/explore-intro'
 import type { PublicShop } from '@/server/queries/explore'
+import { SoloCafeWordmark } from '@/components/brand/solo-cafe-logo'
 
 function explorePlaceholderStyle(brandColor: string | null): CSSProperties {
   const { background, foreground } = brandIdentityColor(brandColor) ?? NEUTRAL_TILE
@@ -31,11 +32,8 @@ export function ShopDirectory({
     <main className="min-h-screen bg-background pb-24">
       <header className="sticky top-0 z-40 bg-background/90 px-4 py-3 backdrop-blur-md">
         <div className="mx-auto flex max-w-3xl items-center justify-between gap-3">
-          <Link href="/" className="flex min-h-11 min-w-0 items-center gap-2.5">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
-              <Icon name="coffee" className="h-5 w-5" />
-            </span>
-            <span className="truncate text-lg font-medium tracking-tight text-foreground">Solo Café</span>
+          <Link href="/" className="flex min-h-11 min-w-0 items-center" aria-label="Solo Café, inicio">
+            <SoloCafeWordmark height={24} />
           </Link>
           <Button asChild variant="ghost" size="sm">
             <Link href="/account/login">Entrar</Link>

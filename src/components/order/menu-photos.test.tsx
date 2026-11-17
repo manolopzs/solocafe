@@ -64,7 +64,7 @@ test('category tabs display Café without mutating the stored category', () => {
   expect(category.name).toBe('Cafe')
 })
 
-test('keeps full price visible and seats quick-add on the photo, not the text row', () => {
+test('keeps the full price on its own line and seats quick-add in the text area, not on the photo', () => {
   const onQuickAdd = jest.fn()
   const { container } = render(
     <ProductCard
@@ -80,24 +80,23 @@ test('keeps full price visible and seats quick-add on the photo, not the text ro
 
   const price = screen.getByText('3,00 €')
   expect(price.textContent).toBe('3,00 €')
-  expect(screen.getByRole('heading', { name: 'Café con leche' })).toBeInTheDocument()
+  expect(price.className).toMatch(/whitespace-nowrap/)
+  expect(price.className).toMatch(/shrink-0/)
+  const name = screen.getByRole('heading', { name: 'Café con leche' })
+  expect(name.className).toMatch(/line-clamp-2/)
+  expect(name).not.toContainElement(price)
 
   const quickAdd = screen.getByRole('button', { name: 'Añadir Café con leche' })
-  const imageContainer = container.querySelector('.aspect-square')
-  expect(imageContainer).not.toBeNull()
-  expect(imageContainer).toContainElement(quickAdd)
+  expect(container.querySelector('.aspect-square')).not.toContainElement(quickAdd)
   expect(quickAdd.className).toMatch(/h-11/)
   expect(quickAdd.className).toMatch(/w-11/)
-
-  const textRow = price.closest('.p-3')
-  expect(textRow).not.toBeNull()
-  expect(textRow).not.toContainElement(quickAdd)
+  expect(quickAdd.querySelector('.bg-sky')).not.toBeNull()
 
   fireEvent.click(quickAdd)
   expect(onQuickAdd).toHaveBeenCalledTimes(1)
 })
 
-test('seats quick-add on the photo area even when the card has no image', () => {
+test('keeps quick-add out of the photo area when the card has no image', () => {
   const noPhoto: MenuItem = {
     ...item,
     id: 'tea',
@@ -120,6 +119,5 @@ test('seats quick-add on the photo area even when the card has no image', () => 
   expect(screen.getByText('1,80 €').textContent).toBe('1,80 €')
   expect(screen.getByRole('heading', { name: 'Te verde' })).toBeInTheDocument()
   const quickAdd = screen.getByRole('button', { name: 'Añadir Te verde' })
-  expect(container.querySelector('.aspect-square')).toContainElement(quickAdd)
-  expect(screen.getByText('1,80 €').closest('.p-3')).not.toContainElement(quickAdd)
+  expect(container.querySelector('.aspect-square')).not.toContainElement(quickAdd)
 })

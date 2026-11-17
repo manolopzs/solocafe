@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { MobileNav } from "@/components/landing/mobile-nav";
 import { env } from "@/lib/env";
 import { formatMoney } from "@/lib/ordering";
+import { SoloCafeWordmark } from "@/components/brand/solo-cafe-logo";
 
 type PricingTier = {
   name: string;
@@ -43,13 +44,8 @@ export default async function Home() {
     <main className="flex flex-1 flex-col" data-hide-bottom-nav>
       <nav className="sticky top-0 z-50 border-b border-border bg-background/90 px-4 py-4 backdrop-blur-md sm:px-6">
         <div className="mx-auto flex max-w-6xl items-center justify-between">
-          <Link href="/" className="flex shrink-0 items-center gap-2 whitespace-nowrap">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm">
-              <Icon name="coffee" className="h-5 w-5" />
-            </div>
-            <span className="font-sans text-lg font-semibold tracking-tight text-foreground sm:text-xl">
-              Solo Café
-            </span>
+          <Link href="/" className="flex min-h-11 shrink-0 items-center" aria-label="Solo Café, inicio">
+            <SoloCafeWordmark height={26} />
           </Link>
           <div className="hidden items-center gap-8 text-sm font-medium text-muted-foreground lg:flex">
             <Link href="#plataforma" className="hover:text-foreground">Plataforma</Link>
@@ -213,12 +209,7 @@ export default async function Home() {
 
       <footer className="border-t border-border bg-background px-6 py-12">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-6 sm:flex-row">
-          <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground">
-              <Icon name="coffee" className="h-4 w-4" />
-            </div>
-            <span className="font-sans font-semibold text-foreground">Solo Café</span>
-          </div>
+          <SoloCafeWordmark height={24} />
           <p className="text-center text-sm text-muted-foreground sm:text-left">
             Pedidos pagados por adelantado para tu cafetería.
           </p>
