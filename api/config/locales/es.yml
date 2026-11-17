@@ -5,3 +5,54 @@ es:
   customer_ready_push:
     title: Tu pedido está listo
     body: Pasa a recogerlo.
+  activerecord:
+    attributes:
+      user:
+        email: Email
+        name: Nombre
+        password: Contraseña
+        password_confirmation: Confirmación de contraseña
+    errors:
+      models:
+        user:
+          attributes:
+            password:
+              too_short:
+                one: es demasiado corta (mínimo 1 carácter)
+                other: es demasiado corta (mínimo %{count} caracteres)
+      messages:
+        record_invalid: "La validación ha fallado: %{errors}"
+        restrict_dependent_destroy:
+          has_one: No se puede eliminar porque existe un registro dependiente
+          has_many: No se puede eliminar porque existen registros dependientes
+  errors:
+    format: "%{attribute} %{message}"
+    messages:
+      accepted: debe ser aceptado
+      blank: no puede estar en blanco
+      confirmation: no coincide con %{attribute}
+      empty: no puede estar vacío
+      equal_to: debe ser igual a %{count}
+      exclusion: está reservado
+      greater_than: debe ser mayor que %{count}
+      greater_than_or_equal_to: debe ser mayor o igual que %{count}
+      inclusion: no está incluido en la lista
+      invalid: no es válido
+      less_than: debe ser menor que %{count}
+      less_than_or_equal_to: debe ser menor o igual que %{count}
+      not_a_number: no es un número
+      not_an_integer: debe ser un número entero
+      other_than: debe ser distinto de %{count}
+      password_too_long: es demasiado larga
+      present: debe estar en blanco
+      required: debe existir
+      taken: ya está en uso
+      too_long:
+        one: es demasiado largo (1 carácter máximo)
+        other: es demasiado largo (%{count} caracteres máximo)
+      too_short:
+        one: es demasiado corto (1 carácter mínimo)
+        other: es demasiado corto (%{count} caracteres mínimo)
+      wrong_length:
+        one: no tiene la longitud correcta (exactamente 1 carácter)
+        other: no tiene la longitud correcta (exactamente %{count} caracteres)

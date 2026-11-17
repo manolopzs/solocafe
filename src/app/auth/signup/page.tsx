@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Icon } from '@/components/ui/icon'
 import { SoloCafeWordmark } from '@/components/brand/solo-cafe-logo'
+import { SignupError } from '@/components/auth/signup-error'
 
 export default function SignupPage() {
   const [state, formAction, pending] = useActionState(signupAction, null)
@@ -115,16 +116,7 @@ export default function SignupPage() {
                   </p>
                 </div>
 
-                {state?.error && (
-                  <div
-                    role="alert"
-                    aria-live="polite"
-                    className="flex items-start gap-2 rounded-lg border border-danger/20 bg-danger/10 p-3 text-sm text-danger"
-                  >
-                    <Icon name="x" className="mt-0.5 h-4 w-4 shrink-0" />
-                    <span>{state.error}</span>
-                  </div>
-                )}
+                {state?.error && <SignupError state={state} loginHref="/auth/login" recoverHref="/auth/forgot-password" />}
 
                 <Button type="submit" disabled={pending} className="w-full">
                   {pending ? 'Creando cuenta...' : 'Crear cuenta gratis'}

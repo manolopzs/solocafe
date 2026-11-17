@@ -3,6 +3,7 @@
 import { redirect, unstable_rethrow } from 'next/navigation'
 import { apiPost, apiPatch } from '@/lib/api/server'
 import { setToken, removeToken } from '@/lib/auth'
+import { loginErrorMessage, signupErrorState, userFacingApiError } from '@/lib/api/errors'
 
 export async function loginAction(prevState: unknown, formData: FormData) {
   const email = formData.get('email') as string
@@ -21,8 +22,7 @@ export async function loginAction(prevState: unknown, formData: FormData) {
     )
     token = data.token
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'Error al iniciar sesión'
-    return { error: message }
+    return { error: loginErrorMessage(err) }
   }
 
   if (token) {
@@ -49,8 +49,7 @@ export async function signupAction(prevState: unknown, formData: FormData) {
     )
     token = data.token
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'Error al crear la cuenta'
-    return { error: message }
+    return signupErrorState(err)
   }
 
   if (token) {
@@ -85,8 +84,7 @@ export async function forgotPasswordAction(prevState: unknown, formData: FormDat
   try {
     await apiPost('/auth/password_resets', { email }, false)
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'Error al solicitar el restablecimiento'
-    return { error: message }
+    return { error: userFacingApiError(err, 'No hemos podido enviar el enlace. Inténtalo de nuevo.') }
   }
 
   return { success: 'Si el correo existe, recibirás instrucciones para restablecer tu contraseña.' }
@@ -112,8 +110,7 @@ export async function resetPasswordAction(prevState: unknown, formData: FormData
   try {
     await apiPatch('/auth/password_resets/' + encodeURIComponent(token), { password }, false)
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'Error al restablecer la contraseña'
-    return { error: message }
+    return { error: userFacingApiError(err, 'No hemos podido cambiar la contraseña. Inténtalo de nuevo.') }
   }
 
   redirect('/auth/login?reset=success')

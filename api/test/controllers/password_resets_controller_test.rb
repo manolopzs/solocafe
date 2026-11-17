@@ -44,6 +44,6 @@ class PasswordResetsControllerTest < ActionDispatch::IntegrationTest
     patch "/auth/password_resets/#{token}", params: { password: "short" }, as: :json
 
     assert_response :unprocessable_entity
-    assert_includes response.parsed_body["errors"].join, "password"
+    assert_equal [ "Contraseña es demasiado corta (mínimo 8 caracteres)" ], response.parsed_body["errors"]
   end
 end
