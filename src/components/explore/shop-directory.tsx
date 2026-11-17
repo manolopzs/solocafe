@@ -16,11 +16,6 @@ function explorePlaceholderStyle(brandColor: string | null): CSSProperties {
   return { backgroundColor: background, color: foreground }
 }
 
-function explorePlaceholderStyle(brandColor: string | null): CSSProperties {
-  const { background, foreground } = brandIdentityColor(brandColor) ?? NEUTRAL_TILE
-  return { backgroundColor: background, color: foreground }
-}
-
 function formatDistance(km: number) {
   if (km < 1) return `${Math.max(1, Math.round(km * 1000))} m`
   return `${km.toFixed(km < 10 ? 1 : 0)} km`
