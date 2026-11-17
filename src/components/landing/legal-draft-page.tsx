@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import type { ReactNode } from 'react'
-import { Icon } from '@/components/ui/icon'
+import { SoloCafeWordmark } from '@/components/brand/solo-cafe-logo'
 
 const legalLinks = [
   { href: '/aviso-legal', label: 'Aviso legal' },
@@ -15,11 +15,8 @@ export function LegalDraftPage({ title, children }: { title: string; children: R
     <main className="flex flex-1 flex-col bg-background">
       <header className="border-b border-border px-6 py-4">
         <div className="mx-auto flex max-w-3xl items-center justify-between gap-4">
-          <Link href="/" className="flex items-center gap-2 text-foreground">
-            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-terracotta-700 text-white">
-              <Icon name="coffee" className="h-5 w-5" />
-            </span>
-            <span className="font-semibold">Solo Café</span>
+          <Link href="/" className="flex min-h-11 items-center" aria-label="Solo Café, inicio">
+            <SoloCafeWordmark height={24} />
           </Link>
           <Link href="/auth/login" className="text-sm font-medium text-terracotta-800 hover:text-foreground">
             Soy cafetería

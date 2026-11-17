@@ -2,7 +2,8 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getShopById } from '@/server/queries/shops'
 import { LogoutButton } from '@/components/auth/logout-button'
-import { Icon, type IconName } from '@/components/ui/icon'
+import { type IconName } from '@/components/ui/icon'
+import { SoloCafeWordmark } from '@/components/brand/solo-cafe-logo'
 import { NavLink } from '@/components/dashboard/nav-link'
 
 export default async function DashboardLayout({
@@ -29,11 +30,8 @@ export default async function DashboardLayout({
       <header className="sticky top-0 z-40 border-b border-warm-200 bg-paper/80 px-5 py-4 backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center justify-between">
           <div className="flex items-center gap-3">
-            <Link href="/" className="flex items-center gap-2">
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-terracotta-500 text-white shadow-sm">
-                <Icon name="coffee" className="h-5 w-5" />
-              </div>
-              <span className="font-serif text-lg font-semibold tracking-tight text-foreground">Solo Café</span>
+            <Link href="/" className="flex min-h-11 items-center" aria-label="Solo Café, inicio">
+              <SoloCafeWordmark height={24} />
             </Link>
             <span className="hidden text-sm text-muted-foreground sm:inline">/</span>
             <span className="hidden max-w-[200px] truncate text-sm font-medium text-foreground sm:inline">
