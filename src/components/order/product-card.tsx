@@ -12,6 +12,8 @@ export function ProductCard({
   showFavorite,
   onClick,
   onQuickAdd,
+  quantity = 0,
+  onDecrement,
   onToggleFavorite,
   formatPrice,
   highlight,
@@ -22,6 +24,9 @@ export function ProductCard({
   showFavorite: boolean
   onClick: () => void
   onQuickAdd?: () => void
+  /** Units of this item (without options) already in the bag. */
+  quantity?: number
+  onDecrement?: () => void
   onToggleFavorite: () => void
   formatPrice: (cents: number) => string
   highlight?: boolean
@@ -32,7 +37,7 @@ export function ProductCard({
   return (
     <article
       className={[
-        'group relative overflow-hidden rounded-2xl bg-surface-elevated shadow-xs transition-all duration-200',
+        'group relative flex flex-col overflow-hidden rounded-2xl bg-surface-elevated shadow-xs transition-all duration-200',
         'hover:shadow-sm active:scale-[0.99]',
         highlight ? 'ring-2 ring-accent ring-offset-2 ring-offset-background' : '',
       ].join(' ')}
@@ -58,37 +63,35 @@ export function ProductCard({
             <Icon name="coffee" className="h-10 w-10 opacity-30" />
           </div>
         )}
-        {!customizable && onQuickAdd && (
-          <button
-            type="button"
-            onClick={(event) => {
-              event.stopPropagation()
-              onQuickAdd()
-            }}
-            className="absolute bottom-2 right-2 z-10 flex h-11 w-11 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-md transition-transform active:scale-90"
-            aria-label={`Añadir ${displayName}`}
-          >
-            <Icon name="plus" className="h-5 w-5" />
-          </button>
-        )}
       </div>
-      <button
-        type="button"
-        onClick={onClick}
-        className="block w-full text-left touch-manipulation"
-      >
-        <div className="p-3">
-          <div className="flex items-start justify-between gap-2">
-            <h3 className="text-[15px] font-medium leading-snug text-foreground line-clamp-2">{displayName}</h3>
-            <p className="shrink-0 pt-0.5 text-sm font-medium tabular-nums text-foreground">
-              {formatPrice(item.price_cents)}
-            </p>
-          </div>
-          {item.description && (
-            <p className="mt-1 line-clamp-1 text-xs leading-5 text-muted-foreground">{item.description}</p>
+      <div className="relative flex flex-1 flex-col p-3">
+        <button
+          type="button"
+          onClick={onClick}
+          tabIndex={-1}
+          aria-hidden="true"
+          className="absolute inset-0 touch-manipulation"
+        />
+        <h3 className="pointer-events-none relative text-[15px] font-medium leading-snug text-foreground line-clamp-2 break-words">
+          {displayName}
+        </h3>
+        {item.description && (
+          <p className="pointer-events-none relative mt-0.5 line-clamp-1 text-xs leading-5 text-muted-foreground">{item.description}</p>
+        )}
+        <div className="pointer-events-none relative mt-auto flex min-h-11 items-center justify-between gap-1.5 pt-1">
+          <p className="pointer-events-none shrink-0 whitespace-nowrap text-sm font-medium tabular-nums text-foreground">
+            {formatPrice(item.price_cents)}
+          </p>
+          {!customizable && onQuickAdd && (
+            <QuickAddControl
+              name={displayName}
+              quantity={quantity}
+              onAdd={onQuickAdd}
+              onDecrement={onDecrement}
+            />
           )}
         </div>
-      </button>
+      </div>
       {showFavorite && (
         <button
           type="button"
@@ -103,5 +106,64 @@ export function ProductCard({
         </button>
       )}
     </article>
+  )
+}
+
+/**
+ * Sky "+" disc (36px visual, 44px tap area) that turns into a "− 1 +" stepper
+ * once the item is in the bag. Removing the last unit brings the disc back.
+ */
+function QuickAddControl({
+  name,
+  quantity,
+  onAdd,
+  onDecrement,
+}: {
+  name: string
+  quantity: number
+  onAdd: () => void
+  onDecrement?: () => void
+}) {
+  if (quantity > 0 && onDecrement) {
+    return (
+      <div
+        role="group"
+        aria-label={`Cantidad de ${name}`}
+        className="pointer-events-auto -mr-0.5 flex h-9 shrink-0 items-center rounded-full bg-sky text-foreground"
+      >
+        <button
+          type="button"
+          onClick={onDecrement}
+          className="flex h-11 w-8 items-center justify-center rounded-full touch-manipulation active:scale-90"
+          aria-label={`Quitar ${name}`}
+        >
+          <Icon name="minus" className="h-4 w-4" />
+        </button>
+        <span className="min-w-4 text-center text-sm font-semibold tabular-nums" aria-live="polite" data-testid="quick-add-quantity">
+          {quantity}
+        </span>
+        <button
+          type="button"
+          onClick={onAdd}
+          className="flex h-11 w-8 items-center justify-center rounded-full touch-manipulation active:scale-90"
+          aria-label={`Añadir ${name}`}
+        >
+          <Icon name="plus" className="h-4 w-4" />
+        </button>
+      </div>
+    )
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={onAdd}
+      className="pointer-events-auto -mr-1.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-full touch-manipulation transition-transform active:scale-90"
+      aria-label={`Añadir ${name}`}
+    >
+      <span className="flex h-9 w-9 items-center justify-center rounded-full bg-sky text-foreground">
+        <Icon name="plus" className="h-4 w-4" />
+      </span>
+    </button>
   )
 }
