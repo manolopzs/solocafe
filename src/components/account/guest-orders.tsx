@@ -194,7 +194,7 @@ function PastOrderRow({ order }: { order: GuestOrder }) {
       {reorderHref && (
         <Link
           href={reorderHref}
-          className="inline-flex min-h-11 shrink-0 items-center px-1 text-base font-semibold text-accent"
+          className="inline-flex min-h-11 shrink-0 items-center px-1 text-base font-semibold text-accent underline underline-offset-4"
           aria-label={`Repetir pedido de ${order.shopName ?? 'esta cafetería'}`}
         >
           Repetir

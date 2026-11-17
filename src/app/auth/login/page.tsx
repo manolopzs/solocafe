@@ -109,7 +109,7 @@ export default function LoginPage() {
                 </Button>
 
                 <p className="text-center text-sm">
-                  <Link href="/auth/forgot-password" className="font-medium text-accent hover:text-accent/80">
+                  <Link href="/auth/forgot-password" className="font-medium text-accent underline underline-offset-2 hover:text-accent/80">
                     ¿Olvidaste tu contraseña?
                   </Link>
                 </p>
@@ -117,7 +117,7 @@ export default function LoginPage() {
 
               <p className="mt-5 text-center text-sm text-muted-foreground">
                 ¿No tienes cuenta?{' '}
-                <Link href="/auth/signup" className="font-medium text-accent hover:text-accent/80">
+                <Link href="/auth/signup" className="font-medium text-accent underline underline-offset-2 hover:text-accent/80">
                   Crear cuenta gratis
                 </Link>
               </p>

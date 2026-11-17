@@ -328,7 +328,7 @@ export function OrderPageClient({
           <div className="flex min-w-0 flex-1 items-start justify-between gap-2 pt-3">
             <div className="min-w-0">
               <div className="flex min-w-0 items-center">
-                <h1 className="shop-display-font min-w-0 truncate text-[1.7rem] font-medium leading-none tracking-tight text-foreground">
+                <h1 className="shop-display-font min-w-0 truncate text-[1.7rem] font-medium leading-none tracking-tight text-heading">
                   {shop.name}
                 </h1>
                 <ShopSwitcher shop={{ slug: shop.slug, name: shop.name }} />
@@ -462,7 +462,7 @@ export function OrderPageClient({
           if (categoryItems.length === 0) return null
           return (
             <section key={category.id} ref={setRef(category.id)} className="scroll-mt-16 pb-8">
-              <h2 className="shop-display-font pt-4 text-[1.65rem] font-medium tracking-tight text-foreground">{storefrontCategoryName(category.name)}</h2>
+              <h2 className="shop-display-font pt-4 text-[1.65rem] font-medium tracking-tight text-heading">{storefrontCategoryName(category.name)}</h2>
               <div className="mt-3 grid grid-cols-2 gap-3">
                 {categoryItems.map((item) => (
                   <ProductCard
@@ -485,7 +485,7 @@ export function OrderPageClient({
 
         {uncategorizedItems.length > 0 && (
           <section ref={setRef('uncategorized')} className="scroll-mt-16 pb-8">
-            <h2 className="shop-display-font pt-4 text-[1.65rem] font-medium tracking-tight text-foreground">Otros</h2>
+            <h2 className="shop-display-font pt-4 text-[1.65rem] font-medium tracking-tight text-heading">Otros</h2>
             <div className="mt-3 grid grid-cols-2 gap-3">
               {uncategorizedItems.map((item) => (
                 <ProductCard

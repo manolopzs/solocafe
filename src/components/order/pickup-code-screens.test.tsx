@@ -43,3 +43,20 @@ describe('pickup code on the customer order screen', () => {
     expect(screen.queryByText('1B7E3D')).not.toBeInTheDocument()
   })
 })
+
+describe('"Avísame" on the tracker', () => {
+  const original = (globalThis as { Notification?: unknown }).Notification
+  beforeEach(() => {
+    ;(globalThis as { Notification?: unknown }).Notification = { permission: 'default' }
+  })
+  afterEach(() => {
+    ;(globalThis as { Notification?: unknown }).Notification = original
+  })
+
+  it('keeps the bell inline, left of the label', () => {
+    render(<OrderStatusClient initialOrder={{ ...order, status: 'preparing' }} />)
+    const label = screen.getByText('Avísame cuando esté listo')
+    expect(label).toHaveClass('inline-flex', 'items-center', 'gap-2')
+    expect(label.firstElementChild?.tagName.toLowerCase()).toBe('svg')
+  })
+})

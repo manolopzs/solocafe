@@ -163,7 +163,7 @@ export function OrderStatusClient({
           </div>
           <div>
             {shopName && <p className="text-sm font-medium text-accent">{shopName}</p>}
-            <h1 className="mt-1 text-[2rem] font-medium leading-tight tracking-tight text-foreground">{confirmingPayment ? 'Confirmando tu pago' : headline(order.status)}</h1>
+            <h1 className="mt-1 text-[2rem] font-medium leading-tight tracking-tight text-heading">{confirmingPayment ? 'Confirmando tu pago' : headline(order.status)}</h1>
             <p className="mt-2 text-base leading-6 text-muted-foreground">{confirmingPayment ? 'Tarda unos segundos. Esta página se actualiza sola.' : subhead(order.status)}</p>
           </div>
         </div>
@@ -183,8 +183,8 @@ export function OrderStatusClient({
                   <div
                     className={[
                       'flex h-9 w-9 items-center justify-center rounded-full text-xs font-medium transition-colors',
-                      done ? 'bg-primary text-primary-foreground' : 'bg-surface text-muted-foreground',
-                      active ? 'animate-soft-pulse ring-4 ring-primary/20' : '',
+                      done ? 'bg-sky text-foreground' : 'bg-surface text-muted-foreground',
+                      active ? 'animate-soft-pulse ring-4 ring-sky-tint' : '',
                     ].join(' ')}
                   >
                     {done ? <Icon name="check" className="h-4 w-4" /> : index + 1}
@@ -197,7 +197,7 @@ export function OrderStatusClient({
             })}
             <div className="absolute left-8 right-8 top-[18px] -z-0 h-0.5 bg-border">
               <div
-                className="h-full bg-primary transition-all"
+                className="h-full bg-sky transition-all"
                 style={{ width: `${(Math.max(0, progressIndex) / (statusSteps.length - 1)) * 100}%` }}
               />
             </div>
@@ -239,8 +239,10 @@ export function OrderStatusClient({
 
         {notificationPermission === 'default' && order.status !== 'cancelled' && order.status !== 'picked_up' && (
           <Button variant="outline" className="mt-4 w-full" onClick={() => void requestNotification()}>
-            <Icon name="bell" className="mr-2 h-4 w-4" />
-            Avísame cuando esté listo
+            <span className="inline-flex items-center gap-2">
+              <Icon name="bell" className="h-4 w-4" />
+              Avísame cuando esté listo
+            </span>
           </Button>
         )}
 

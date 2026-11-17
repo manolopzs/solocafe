@@ -42,7 +42,7 @@ export function GuestAccount() {
           </Button>
           <Link
             href="/account/login"
-            className="inline-flex min-h-11 items-center px-3 text-base font-semibold text-accent underline-offset-4 hover:underline"
+            className="inline-flex min-h-11 items-center px-3 text-base font-semibold text-accent underline underline-offset-4"
           >
             Ya tengo cuenta · Entrar
           </Link>

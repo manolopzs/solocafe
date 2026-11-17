@@ -1,10 +1,10 @@
 require "test_helper"
 
 class ShopPersonalityTest < ActiveSupport::TestCase
-  test "defaults to a contrast safe brand color and the DM Sans display font" do
+  test "defaults to no brand color and the DM Sans display font" do
     shop = Shop.create!(name: "Default", slug: "default-personality", currency: "MXN")
 
-    assert_equal "#8c3d25", shop.brand_color
+    assert_nil shop.brand_color
     assert_equal "dm_sans", shop.display_font
     assert_equal "DM Sans", Shop::DISPLAY_FONTS[shop.display_font]
   end
@@ -28,6 +28,12 @@ class ShopPersonalityTest < ActiveSupport::TestCase
 
     assert_not shop.valid?
     assert_includes shop.errors.full_messages.join(" "), "contraste WCAG AA"
+  end
+
+  test "treats a blank brand color as unset" do
+    shop = Shop.create!(name: "Sin color", slug: "sin-color", currency: "MXN", brand_color: "  ")
+
+    assert_nil shop.brand_color
   end
 
   test "rejects white and short hex colors" do

@@ -96,7 +96,7 @@ function PaymentForm({
           {error}
         </div>
       )}
-      <Button type="submit" disabled={!stripe || loading} size="lg" className="w-full">
+      <Button type="submit" disabled={!stripe || loading} variant="cta" size="lg" className="w-full">
         {loading ? (
           <span className="flex items-center gap-2">
             <span className="inline-flex h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />

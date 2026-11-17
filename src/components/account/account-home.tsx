@@ -29,7 +29,7 @@ export function AccountHome({
           Cafeterías
         </Link>
 
-        <h1 className="mt-8 text-[2rem] font-medium leading-tight tracking-tight text-foreground">
+        <h1 className="mt-8 text-[2rem] font-medium leading-tight tracking-tight text-heading">
           {firstName ? `Hola, ${firstName}` : 'Tu cuenta'}
         </h1>
         <p className="mt-2 text-base text-muted-foreground">{customer.email || 'Gestiona tu perfil y revisa tus pedidos.'}</p>
