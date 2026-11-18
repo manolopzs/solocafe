@@ -72,6 +72,19 @@ class PasswordResetsControllerTest < ActionDispatch::IntegrationTest
     assert_response :ok
   end
 
+  test "create returns 429 after too many attempts for the same email" do
+    User.create!(email: "reset@example.com", password: "password123")
+
+    5.times do
+      post "/auth/password_resets", params: { email: "reset@example.com" }, as: :json
+    end
+
+    post "/auth/password_resets", params: { email: "reset@example.com" }, as: :json
+
+    assert_response :too_many_requests
+    assert_equal "Demasiados intentos. Espera unos minutos y vuelve a intentarlo.", response.parsed_body["error"]
+  end
+
   test "update rejects invalid token" do
     patch "/auth/password_resets/not-a-token", params: { password: "newpassword456" }, as: :json
 
@@ -87,5 +100,17 @@ class PasswordResetsControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :unprocessable_entity
     assert_equal [ "Contraseña es demasiado corta (mínimo 8 caracteres)" ], response.parsed_body["errors"]
+  end
+
+  test "update rejects a token that has already been used" do
+    user = User.create!(email: "owner@example.com", password: "password123")
+    token = user.generate_token_for(:password_reset)
+
+    patch "/auth/password_resets/#{token}", params: { password: "newpassword456" }, as: :json
+    assert_response :ok
+
+    patch "/auth/password_resets/#{token}", params: { password: "anotherpassword789" }, as: :json
+    assert_response :unprocessable_entity
+    assert_equal "El enlace de restablecimiento no es válido o ha caducado.", response.parsed_body["error"]
   end
 end

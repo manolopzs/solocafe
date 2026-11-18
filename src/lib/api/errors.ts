@@ -3,6 +3,7 @@ import { ApiError } from '@/lib/api/client'
 export const SIGNUP_FALLBACK_MESSAGE = 'No hemos podido completar el registro. Inténtalo de nuevo.'
 export const EMAIL_TAKEN_MESSAGE = 'Ya existe una cuenta con este email.'
 export const LOGIN_INVALID_MESSAGE = 'El email o la contraseña no son correctos.'
+export const RATE_LIMITED_MESSAGE = 'Demasiados intentos. Espera unos minutos y vuelve a intentarlo.'
 
 export type SignupErrorState = { error: string; code?: 'email_taken' }
 
@@ -33,6 +34,7 @@ export function isEmailTakenError(err: unknown) {
 
 /** Spanish message from the API when it is safe to show, else the fallback. */
 export function userFacingApiError(err: unknown, fallback: string) {
+  if (err instanceof ApiError && err.status === 429) return RATE_LIMITED_MESSAGE
   const body = bodyOf(err)
   if (!body) return fallback
   const messages = typeof body.error === 'string' ? [body.error] : stringList(body.errors)
@@ -41,11 +43,13 @@ export function userFacingApiError(err: unknown, fallback: string) {
 }
 
 export function signupErrorState(err: unknown): SignupErrorState {
+  if (err instanceof ApiError && err.status === 429) return { error: RATE_LIMITED_MESSAGE }
   if (isEmailTakenError(err)) return { error: EMAIL_TAKEN_MESSAGE, code: 'email_taken' }
   return { error: userFacingApiError(err, SIGNUP_FALLBACK_MESSAGE) }
 }
 
 export function loginErrorMessage(err: unknown) {
   if (err instanceof ApiError && err.status === 401) return LOGIN_INVALID_MESSAGE
+  if (err instanceof ApiError && err.status === 429) return RATE_LIMITED_MESSAGE
   return 'No hemos podido iniciar sesión. Inténtalo de nuevo.'
 }

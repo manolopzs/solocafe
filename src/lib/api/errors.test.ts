@@ -2,6 +2,7 @@ import { ApiError } from '@/lib/api/client'
 import {
   EMAIL_TAKEN_MESSAGE,
   LOGIN_INVALID_MESSAGE,
+  RATE_LIMITED_MESSAGE,
   SIGNUP_FALLBACK_MESSAGE,
   loginErrorMessage,
   signupErrorState,
@@ -55,12 +56,22 @@ describe('signupErrorState', () => {
       expect(error).toBe(SIGNUP_FALLBACK_MESSAGE)
     }
   })
+
+  it('maps 429 to the rate-limited message', () => {
+    const err = new ApiError('Too Many Requests', 429, { error: 'Too Many Requests' })
+    expect(signupErrorState(err)).toEqual({ error: RATE_LIMITED_MESSAGE })
+  })
 })
 
 describe('userFacingApiError', () => {
   it('uses a Spanish error string from the API', () => {
     const err = new ApiError('x', 422, { error: 'El enlace de restablecimiento no es válido o ha caducado.' })
     expect(userFacingApiError(err, 'fallback')).toBe('El enlace de restablecimiento no es válido o ha caducado.')
+  })
+
+  it('maps 429 to the rate-limited message', () => {
+    const err = new ApiError('Too Many Requests', 429, { error: 'Too Many Requests' })
+    expect(userFacingApiError(err, 'fallback')).toBe(RATE_LIMITED_MESSAGE)
   })
 
   it('falls back for plain errors', () => {
@@ -73,6 +84,10 @@ describe('loginErrorMessage', () => {
     expect(loginErrorMessage(new ApiError('Invalid email or password', 401, { error: 'Invalid email or password' }))).toBe(
       LOGIN_INVALID_MESSAGE,
     )
+  })
+
+  it('maps 429 to the rate-limited message', () => {
+    expect(loginErrorMessage(new ApiError('Too Many Requests', 429, { error: 'Too Many Requests' }))).toBe(RATE_LIMITED_MESSAGE)
   })
 
   it('uses a generic message for anything else', () => {

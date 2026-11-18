@@ -1,6 +1,11 @@
 class OrdersController < ApplicationController
   ORDER_INCLUDES = { order_items: [ :item, :order_item_modifiers ], pickup_slot: [], shop: [] }.freeze
 
+  rate_limit to: 30, within: 1.minute,
+    by: -> { current_user&.id || request.remote_ip },
+    with: :render_rate_limited,
+    only: :create
+
   before_action :authenticate_user!, only: [ :index, :update, :recent, :usual ]
   before_action :require_shop_member!, only: [ :index, :update ]
   before_action :set_public_shop, only: [ :create, :show, :recent, :usual ]
