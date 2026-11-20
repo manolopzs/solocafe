@@ -62,7 +62,7 @@ export async function Pricing() {
         <div className="text-center">
           <h2 className="landing-font-display text-3xl font-normal tracking-tight text-background sm:text-4xl">Pricing</h2>
           <p className="mt-4 text-background/70">
-            Prices in euros for your cafe. During the pilot there is no monthly fee and no commission.
+            Prices follow the location of your cafe. During the pilot there is no monthly fee and no commission.
           </p>
         </div>
         <PricingSection pricing={pricing} />
@@ -77,7 +77,7 @@ function PricingSection({ pricing }: { pricing: PublicPricing | null }) {
       <Card className="mx-auto mt-14 max-w-xl p-8 text-center">
         <h3 className="text-3xl font-semibold text-foreground">Free during the pilot</h3>
         <p className="mt-4 text-sm text-muted-foreground">
-          The pilot on the IE campus is free. When we set a price, you will see it here in euros before it applies.
+          The pilot on the IE campus is free. When we set a price, you will see it here before it applies.
         </p>
       </Card>
     )
@@ -104,7 +104,7 @@ function PricingSection({ pricing }: { pricing: PublicPricing | null }) {
       </div>
       {Number.isFinite(pricing.platform_fee_percent) && pricing.platform_fee_percent > 0 && (
         <p className="mt-6 text-center text-sm text-background/70">
-          Platform fee: {String(pricing.platform_fee_percent)}% per order, in euros.
+          Platform fee: {String(pricing.platform_fee_percent)}% per order.
         </p>
       )}
     </>

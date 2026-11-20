@@ -30,11 +30,11 @@ export function HowItWorks() {
           <div className="space-y-8">
             {steps.map((step, index) => (
               <Reveal key={step.title} delay={(index + 1) as 1 | 2 | 3}>
-                <div className="flex gap-5">
-                  <span className="landing-font-display text-3xl font-light text-muted-foreground/60">
+                <div className="flex items-start gap-4">
+                  <span className="landing-font-display w-12 shrink-0 text-3xl font-light leading-none tabular-nums text-muted-foreground/60">
                     0{index + 1}
                   </span>
-                  <div>
+                  <div className="min-w-0 pt-0.5">
                     <h3 className="text-lg font-semibold text-foreground">{step.title}</h3>
                     <p className="mt-1 text-muted-foreground">{step.description}</p>
                   </div>

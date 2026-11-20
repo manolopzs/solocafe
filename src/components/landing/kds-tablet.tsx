@@ -74,7 +74,7 @@ export function KdsTablet() {
 
   return (
     <div ref={frameRef} data-visible={visible} className="relative mx-auto w-full max-w-[560px]">
-      <div className="relative aspect-[5/4] w-full overflow-hidden rounded-[1.5rem] sm:aspect-[4/3] border-[10px] border-foreground bg-foreground p-[10px] shadow-landing-tablet lg:rounded-[2rem] lg:border-[12px] lg:p-[12px]">
+      <div className="relative aspect-[10/9] w-full overflow-hidden rounded-[1.5rem] sm:aspect-[4/3] border-[10px] border-foreground bg-foreground p-[10px] shadow-landing-tablet lg:rounded-[2rem] lg:border-[12px] lg:p-[12px]">
         <div className="relative flex h-full w-full flex-col overflow-hidden rounded-[1rem] bg-background lg:rounded-[1.25rem]">
           <div className="flex items-center justify-between border-b border-border bg-surface px-3 py-2 lg:px-4 lg:py-3">
             <div className="flex items-center gap-2">
@@ -115,7 +115,7 @@ function TicketCard({ ticket, ready, animate }: { ticket: (typeof tickets)[numbe
         animate ? 'animate-kds-ticket-in' : ''
       }`}
     >
-      <div className="flex items-baseline justify-between gap-1">
+      <div className="flex flex-col gap-1 min-[400px]:flex-row min-[400px]:items-baseline min-[400px]:justify-between">
         <p className="landing-font-display text-base font-medium leading-none tracking-tight text-foreground lg:text-xl">
           {ticket.code}
         </p>

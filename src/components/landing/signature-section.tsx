@@ -103,7 +103,7 @@ export function SignatureSection() {
             <p className="mt-4 max-w-md text-lg text-background/70">
               A preview of what a customer sees after ordering. Scroll to walk through each step.
             </p>
-            <div className="sticky top-20 z-10 -mx-6 mt-8 flex h-[350px] justify-center overflow-hidden bg-foreground pt-4 lg:hidden">
+            <div className="sticky top-20 z-10 -mx-6 mt-8 flex h-[370px] justify-center bg-gradient-to-b from-foreground from-[88%] to-transparent pt-4 lg:hidden">
               <div className="origin-top scale-[0.7]">
                 <PhoneStage active={active} activeIndex={activeIndex} reduced={reduced} />
               </div>
@@ -119,26 +119,26 @@ export function SignatureSection() {
                     }}
                     type="button"
                     onClick={() => scrollToStep(step.key)}
-                    className={`group flex min-h-[50vh] w-full items-center gap-5 py-8 text-left transition-opacity duration-300 lg:h-[70vh] lg:min-h-0 lg:py-0 ${
-                      isActive ? 'opacity-100' : 'opacity-40'
+                    className={`group flex h-[45vh] w-full items-center gap-4 text-left transition-opacity duration-300 lg:h-[70vh] ${
+                      isActive ? 'opacity-100' : 'opacity-75'
                     }`}
                   >
                     <span
-                      className={`landing-font-display text-2xl font-light transition-colors duration-300 ${
-                        isActive ? 'text-background' : 'text-background/40'
+                      className={`landing-font-display w-10 shrink-0 text-2xl font-light tabular-nums transition-colors duration-300 ${
+                        isActive ? 'text-background' : 'text-background/55'
                       }`}
                     >
                       0{index + 1}
                     </span>
-                    <div>
+                    <div className="min-w-0">
                       <h3
                         className={`text-xl font-semibold transition-colors duration-300 ${
-                          isActive ? 'text-background' : 'text-background/60'
+                          isActive ? 'text-background' : 'text-background/80'
                         }`}
                       >
                         {step.title}
                       </h3>
-                      <p className="mt-1 max-w-sm text-base text-background/70">
+                      <p className="mt-1 max-w-sm text-base text-background/75">
                         {step.description}
                       </p>
                     </div>
@@ -178,13 +178,13 @@ function PhoneStage({
           <div
             key={step.key}
             className={`${index === 0 ? 'relative' : 'absolute inset-0'} ${
-              reduced ? '' : 'transition-[opacity,transform] duration-500 ease-out'
+              reduced ? '' : 'transition-[opacity,transform] ease-out'
             } ${
               isActive
-                ? 'opacity-100 translate-x-0'
+                ? 'opacity-100 translate-x-0 duration-[420ms] delay-[220ms]'
                 : isPrev
-                  ? 'pointer-events-none opacity-0 -translate-x-4'
-                  : 'pointer-events-none opacity-0 translate-x-4'
+                  ? 'pointer-events-none opacity-0 -translate-x-4 duration-200'
+                  : 'pointer-events-none opacity-0 translate-x-4 duration-200'
             }`}
             aria-hidden={!isActive}
           >

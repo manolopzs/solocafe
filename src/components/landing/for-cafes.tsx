@@ -42,15 +42,12 @@ export function ForCafes() {
               </ul>
             </Reveal>
             <Reveal delay={2}>
-              <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-                <Button asChild variant="outline" size="lg" className="w-full whitespace-nowrap sm:w-auto">
-                  <Link href="/demo">See demo</Link>
+              <div className="mt-10 flex flex-col gap-3 sm:flex-row">
+                <Button asChild variant="espresso" size="lg" className="w-full whitespace-nowrap sm:w-auto">
+                  <Link href="/auth/signup">Open my cafe for free</Link>
                 </Button>
                 <Button asChild variant="outline" size="lg" className="w-full whitespace-nowrap sm:w-auto">
                   <Link href="/demo/kds">See the bar screen</Link>
-                </Button>
-                <Button asChild variant="espresso" size="lg" className="w-full whitespace-nowrap sm:w-auto">
-                  <Link href="/auth/signup">Open my cafe for free</Link>
                 </Button>
               </div>
             </Reveal>

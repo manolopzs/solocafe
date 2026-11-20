@@ -608,8 +608,7 @@ body:has([data-hide-bottom-nav]) .customer-bottom-nav {
   inset: 0;
   z-index: 20; /* above the sticky phone too, so the texture stays continuous */
   pointer-events: none;
-  opacity: 0.08;
-  mix-blend-mode: overlay;
+  opacity: 0.05;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
 }
 
@@ -896,6 +895,40 @@ body:has([data-hide-bottom-nav]) .customer-bottom-nav {
 
 @media (prefers-reduced-motion: reduce) {
   .landing-live-dot::before {
+    animation: none;
+  }
+}
+
+/* Hero loop rewind: menu rows rise in one after another */
+@keyframes landing-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.landing-rise {
+  animation: landing-rise 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.landing-rise-1 {
+  animation-delay: 0.3s;
+}
+
+.landing-rise-2 {
+  animation-delay: 0.38s;
+}
+
+.landing-rise-3 {
+  animation-delay: 0.46s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-rise {
     animation: none;
   }
 }

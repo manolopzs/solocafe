@@ -7,7 +7,7 @@ export function Hero() {
   return (
     <section className="landing-grain relative overflow-hidden bg-foreground text-background">
       <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
-        <div className="absolute -right-20 top-1/2 h-[600px] w-[600px] -translate-y-1/2 rounded-full bg-[radial-gradient(circle_at_center,var(--surface-elevated)_0%,transparent_65%)] opacity-25 blur-3xl lg:right-[10%]" />
+        <div className="absolute -right-20 top-1/2 h-[600px] w-[600px] -translate-y-1/2 rounded-full bg-[radial-gradient(circle_at_center,var(--surface-elevated)_0%,transparent_65%)] opacity-20 lg:right-[10%]" />
       </div>
       <div className="relative mx-auto max-w-6xl px-6 pt-28 pb-32 sm:pt-32 sm:pb-40 lg:pt-40 lg:pb-48">
         <div className="grid items-center gap-12 lg:grid-cols-[1.25fr_0.75fr]">
@@ -38,7 +38,6 @@ export function Hero() {
             </div>
           </div>
           <div className="relative flex justify-center lg:justify-end">
-            <div className="absolute -inset-8 -z-10 rounded-full bg-[radial-gradient(circle_at_center,var(--surface-elevated)_0%,transparent_70%)] opacity-30 blur-2xl" aria-hidden="true" />
             <SteamWisps />
             <DeviceFrame />
           </div>

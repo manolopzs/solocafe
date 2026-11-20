@@ -6,7 +6,20 @@ import { formatMoney } from '@/lib/ordering'
 import { PreparingScreen, ReadyScreen } from './phone-screens'
 import { useReducedMotion } from './use-reduced-motion'
 
-type Phase = 'menu' | 'add' | 'order' | 'preparing' | 'ready' | 'notification'
+type Phase = 'menu' | 'add' | 'order' | 'preparing' | 'ready' | 'notification' | 'dismiss'
+
+const PHASES: Phase[] = ['menu', 'add', 'order', 'preparing', 'ready', 'notification', 'dismiss']
+
+/** Which screen each phase shows: 0 menu, 1 preparing, 2 ready. */
+const SCREEN_OF: Record<Phase, number> = {
+  menu: 0,
+  add: 0,
+  order: 0,
+  preparing: 1,
+  ready: 2,
+  notification: 2,
+  dismiss: 2,
+}
 
 const menuItems = [
   { name: 'Latte', cents: 200, image: '/menu/latte.jpg' },
@@ -21,11 +34,14 @@ const PHASE_DURATION_MS: Record<Phase, number> = {
   preparing: 3500,
   ready: 2400,
   notification: 2500,
+  // The notification slides away before the loop rewinds to the menu.
+  dismiss: 700,
 }
 
 export function DeviceFrame() {
   const reduced = useReducedMotion()
   const [phase, setPhase] = useState<Phase>('menu')
+  const [loop, setLoop] = useState(0)
   const [visible, setVisible] = useState(true)
   const frameRef = useRef<HTMLDivElement>(null)
   const wrapperRef = useRef<HTMLDivElement>(null)
@@ -62,7 +78,6 @@ export function DeviceFrame() {
     document.addEventListener('visibilitychange', onVisibility)
 
     // One step at a time; while the phone is off-screen or the tab is hidden, wait without advancing.
-    const order: Phase[] = ['menu', 'add', 'order', 'preparing', 'ready', 'notification']
     let index = 0
     let timer = 0
     let cancelled = false
@@ -73,11 +88,12 @@ export function DeviceFrame() {
         timer = window.setTimeout(tick, 400)
         return
       }
-      index = (index + 1) % order.length
-      setPhase(order[index])
-      timer = window.setTimeout(tick, PHASE_DURATION_MS[order[index]])
+      index = (index + 1) % PHASES.length
+      if (index === 0) setLoop((n) => n + 1)
+      setPhase(PHASES[index])
+      timer = window.setTimeout(tick, PHASE_DURATION_MS[PHASES[index]])
     }
-    timer = window.setTimeout(tick, PHASE_DURATION_MS[order[0]])
+    timer = window.setTimeout(tick, PHASE_DURATION_MS[PHASES[0]])
 
     return () => {
       cancelled = true
@@ -140,15 +156,15 @@ export function DeviceFrame() {
       data-visible={visible}
       role="img"
       aria-label="Preview of ordering a latte in Solo Café: add it, order, preparing, then Ready with pickup code 7E3D"
-      className="relative will-change-transform"
+      className="relative"
     >
-      <div className="landing-hero-float will-change-transform">
+      <div className="landing-hero-float">
         <div
           ref={frameRef}
-          className="relative rotate-[-6deg] sm:rotate-[-8deg] will-change-transform"
+          className="relative rotate-[-6deg] sm:rotate-[-8deg]"
         >
           <PhoneFrame>
-            <ScreenStack phase={phase} />
+            <ScreenStack phase={phase} loop={loop} />
           </PhoneFrame>
         </div>
       </div>
@@ -175,42 +191,42 @@ export function PhoneFrame({ children }: { children: React.ReactNode }) {
   )
 }
 
-function ScreenStack({ phase }: { phase: Phase }) {
+function ScreenStack({ phase, loop }: { phase: Phase; loop: number }) {
+  const screen = SCREEN_OF[phase]
   return (
-    <div className="relative h-full w-full">
-      <ScreenLayer active={phase === 'menu'}>
-        <MenuScreen />
+    <div className="relative h-full w-full bg-background">
+      <ScreenLayer index={0} screen={screen}>
+        {/* Remounted each loop so the rows rise in again after the rewind. */}
+        <MenuScreen key={loop} adding={phase === 'add'} ordering={phase === 'order'} stagger={loop > 0} />
       </ScreenLayer>
-      <ScreenLayer active={phase === 'add'}>
-        <MenuScreen adding />
+      <ScreenLayer index={1} screen={screen}>
+        <PreparingScreen animateBar={phase === 'preparing'} />
       </ScreenLayer>
-      <ScreenLayer active={phase === 'order'}>
-        <MenuScreen ordering />
-      </ScreenLayer>
-      <ScreenLayer active={phase === 'preparing'}>
-        <PreparingScreen animateBar />
-      </ScreenLayer>
-      <ScreenLayer active={phase === 'ready' || phase === 'notification'}>
+      <ScreenLayer index={2} screen={screen}>
         <ReadyScreen showNotification={phase === 'notification'} animateCode={phase === 'ready'} />
       </ScreenLayer>
     </div>
   )
 }
 
-function ScreenLayer({ active, children }: { active: boolean; children: React.ReactNode }) {
+/**
+ * Out, then in: the leaving screen fades and slides away in 200ms, and the next one only starts after that,
+ * so two screens are never opaque at once. Screens before the current one wait on the left and later ones
+ * on the right, so the rewind from Ready to the menu slides the other way.
+ */
+function ScreenLayer({ index, screen, children }: { index: number; screen: number; children: React.ReactNode }) {
+  const active = index === screen
+  const position = active
+    ? 'opacity-100 translate-x-0 duration-[420ms] delay-[220ms] ease-out'
+    : `pointer-events-none opacity-0 duration-200 ease-in ${index < screen ? '-translate-x-6' : 'translate-x-6'}`
   return (
-    <div
-      className={`absolute inset-0 transition-[opacity,transform] duration-500 ease-out ${
-        active ? 'opacity-100 translate-x-0' : 'pointer-events-none opacity-0 translate-x-4'
-      }`}
-      aria-hidden={!active}
-    >
+    <div className={`absolute inset-0 transition-[opacity,transform] ${position}`} aria-hidden={!active}>
       {children}
     </div>
   )
 }
 
-function MenuScreen({ adding, ordering }: { adding?: boolean; ordering?: boolean }) {
+function MenuScreen({ adding, ordering, stagger }: { adding?: boolean; ordering?: boolean; stagger?: boolean }) {
   return (
     <div className="flex h-full flex-col bg-background p-3 pt-6 lg:p-4 lg:pt-7">
       <div className="mb-3 lg:mb-4">
@@ -225,6 +241,7 @@ function MenuScreen({ adding, ordering }: { adding?: boolean; ordering?: boolean
             key={item.name}
             item={item}
             pressed={adding && index === 0}
+            className={stagger ? `landing-rise landing-rise-${index + 1}` : ''}
           />
         ))}
       </div>
@@ -249,9 +266,17 @@ function MenuScreen({ adding, ordering }: { adding?: boolean; ordering?: boolean
   )
 }
 
-function MenuItemRow({ item, pressed }: { item: (typeof menuItems)[number]; pressed?: boolean }) {
+function MenuItemRow({
+  item,
+  pressed,
+  className = '',
+}: {
+  item: (typeof menuItems)[number]
+  pressed?: boolean
+  className?: string
+}) {
   return (
-    <div className="flex items-center gap-2.5 rounded-xl bg-surface p-2 lg:gap-3 lg:p-3">
+    <div className={`flex items-center gap-2.5 rounded-xl bg-surface p-2 lg:gap-3 lg:p-3 ${className}`}>
       <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-lg lg:h-14 lg:w-14">
         <Image src={item.image} alt="" fill sizes="56px" className="object-cover" />
       </div>

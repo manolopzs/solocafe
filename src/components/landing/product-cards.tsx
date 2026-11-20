@@ -11,16 +11,16 @@ const products = [
 
 export function ProductCards() {
   return (
-    <section className="relative z-10 -mt-20 px-6 sm:-mt-28">
+    <section className="relative z-10 -mt-16 px-4 sm:-mt-28 sm:px-6">
       <div className="mx-auto max-w-5xl">
-        <div className="flex flex-col gap-3 sm:grid sm:grid-cols-3 sm:gap-4">
+        <div className="grid grid-cols-3 gap-2 sm:gap-4">
           {products.map((product) => (
             <Link
               key={product.name}
               href="/inicio"
               className="w-full"
             >
-              <Card className="landing-card-lift flex h-full items-center gap-4 overflow-hidden bg-surface-elevated p-3 sm:p-4">
+              <Card className="landing-card-lift flex h-full flex-col items-center gap-2 overflow-hidden bg-surface-elevated px-2 py-3 text-center sm:flex-row sm:gap-4 sm:p-4 sm:text-left">
                 <div className="relative h-14 w-14 shrink-0 sm:h-20 sm:w-20">
                   <Image
                     src={product.image}
@@ -30,8 +30,8 @@ export function ProductCards() {
                     className="object-contain"
                   />
                 </div>
-                <div>
-                  <p className="text-base font-semibold text-foreground">{product.name}</p>
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold leading-tight text-foreground sm:text-base">{product.name}</p>
                   <p className="mt-0.5 text-sm text-muted-foreground">{formatMoney(product.cents)}</p>
                 </div>
               </Card>
