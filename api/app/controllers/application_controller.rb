@@ -62,4 +62,8 @@ class ApplicationController < ActionController::API
       render json: { error: "Forbidden" }, status: :forbidden
     end
   end
+
+  def render_rate_limited
+    render json: { error: "Demasiados intentos. Espera unos minutos y vuelve a intentarlo." }, status: :too_many_requests
+  end
 end

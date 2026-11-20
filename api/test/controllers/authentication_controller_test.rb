@@ -39,4 +39,43 @@ class AuthenticationControllerTest < ActionDispatch::IntegrationTest
     assert_response :created
     assert response.parsed_body["token"].present?
   end
+
+  test "login returns 429 after too many attempts for the same email" do
+    User.create!(email: "locked@example.com", password: "password123")
+
+    10.times do
+      post "/auth/login", params: { email: "locked@example.com", password: "wrong" }, as: :json
+    end
+
+    post "/auth/login", params: { email: "locked@example.com", password: "wrong" }, as: :json
+
+    assert_response :too_many_requests
+    assert_equal "Demasiados intentos. Espera unos minutos y vuelve a intentarlo.", response.parsed_body["error"]
+  end
+
+  test "login still allows a different email when one is rate limited" do
+    User.create!(email: "locked@example.com", password: "password123")
+    User.create!(email: "other@example.com", password: "password123")
+
+    11.times do
+      post "/auth/login", params: { email: "locked@example.com", password: "wrong" }, as: :json
+    end
+    assert_response :too_many_requests
+
+    post "/auth/login", params: { email: "other@example.com", password: "password123" }, as: :json
+
+    assert_response :success
+    assert response.parsed_body["token"].present?
+  end
+
+  test "signup returns 429 after too many attempts from the same IP" do
+    20.times do |i|
+      post "/auth/signup", params: { user: { email: "signup#{i}@example.com", password: "password123" } }, as: :json
+    end
+
+    post "/auth/signup", params: { user: { email: "signup21@example.com", password: "password123" } }, as: :json
+
+    assert_response :too_many_requests
+    assert_equal "Demasiados intentos. Espera unos minutos y vuelve a intentarlo.", response.parsed_body["error"]
+  end
 end

@@ -1,7 +1,9 @@
 class User < ApplicationRecord
   has_secure_password
 
-  generates_token_for :password_reset, expires_in: 30.minutes
+  generates_token_for :password_reset, expires_in: 30.minutes do
+    password_salt.last(10)
+  end
 
   has_many :shop_memberships, class_name: "ShopMember", dependent: :destroy
   has_many :shops, through: :shop_memberships

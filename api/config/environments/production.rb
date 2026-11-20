@@ -40,8 +40,8 @@ Rails.application.configure do
   # Don't log any deprecations.
   config.active_support.report_deprecations = false
 
-  # Replace the default in-process memory cache store with a durable alternative.
-  # config.cache_store = :mem_cache_store
+  # Single Puma process on Render with no Redis/Solid Cache in the Gemfile.
+  config.cache_store = :memory_store
 
   # Solid Queue runs in this process when SOLID_QUEUE_IN_PUMA is set.
   config.active_job.queue_adapter = :solid_queue

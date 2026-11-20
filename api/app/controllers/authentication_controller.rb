@@ -1,4 +1,17 @@
 class AuthenticationController < ApplicationController
+  rate_limit to: 10, within: 3.minutes,
+    by: -> { params[:email].to_s.strip.downcase },
+    with: :render_rate_limited,
+    name: "per-email",
+    only: :login
+  rate_limit to: 60, within: 3.minutes,
+    with: :render_rate_limited,
+    name: "per-ip",
+    only: :login
+  rate_limit to: 20, within: 1.hour,
+    with: :render_rate_limited,
+    only: :signup
+
   def signup
     user = User.new(user_params)
     if user.save
