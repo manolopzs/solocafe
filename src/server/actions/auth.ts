@@ -1,7 +1,7 @@
 'use server'
 
 import { redirect, unstable_rethrow } from 'next/navigation'
-import { apiPost, apiPatch } from '@/lib/api/server'
+import { apiPost, apiPatch, apiDelete } from '@/lib/api/server'
 import { setToken, removeToken } from '@/lib/auth'
 import { loginErrorMessage, signupErrorState, userFacingApiError } from '@/lib/api/errors'
 import { loginFlowFrom, loginPathFor } from '@/lib/auth-flow'
@@ -71,6 +71,11 @@ export async function signupAction(prevState: unknown, formData: FormData) {
 }
 
 export async function logoutAction() {
+  try {
+    await apiDelete('/auth/logout')
+  } catch {
+    // Best-effort logout; always clear the local session.
+  }
   await removeToken()
   redirect('/auth/login')
 }

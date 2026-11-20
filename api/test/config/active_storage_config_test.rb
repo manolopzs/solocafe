@@ -27,6 +27,18 @@ class ActiveStorageConfigTest < ActiveSupport::TestCase
     assert_equal :local, ActiveStorageConfig.service_name({})
   end
 
+  test "missing_keys returns the names of missing R2 keys" do
+    env = {
+      "R2_ACCOUNT_ID" => "acct",
+      "R2_ACCESS_KEY_ID" => "",
+      "R2_SECRET_ACCESS_KEY" => "secret",
+      "R2_BUCKET" => "solocafe"
+    }
+
+    assert_equal [ "R2_ACCESS_KEY_ID" ], ActiveStorageConfig.missing_keys(env)
+    assert_equal ActiveStorageConfig::R2_KEYS, ActiveStorageConfig.missing_keys({})
+  end
+
   test "cloudflare storage reads R2 settings from the environment" do
     previous = r2_env
     ENV["R2_ACCOUNT_ID"] = "acct"

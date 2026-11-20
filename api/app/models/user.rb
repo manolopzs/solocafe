@@ -1,7 +1,9 @@
 class User < ApplicationRecord
   has_secure_password
 
-  generates_token_for :password_reset, expires_in: 30.minutes
+  generates_token_for :password_reset, expires_in: 30.minutes do
+    password_salt.last(10)
+  end
 
   has_many :shop_memberships, class_name: "ShopMember", dependent: :destroy
   has_many :shops, through: :shop_memberships
@@ -12,6 +14,8 @@ class User < ApplicationRecord
 
   validates :email, presence: true, uniqueness: { case_sensitive: false }
   validates :password, length: { minimum: 8 }, if: -> { new_record? || !password.nil? }
+
+  before_update :increment_token_version, if: -> { will_save_change_to_password_digest? }
 
   # Case-insensitive so rows saved before normalization still match.
   def self.find_by_email(email)
@@ -26,4 +30,15 @@ class User < ApplicationRecord
   end
 
   enum :role, { customer: "customer", admin: "admin" }, prefix: true
+
+  # Atomic and skips validations so logout never fails on legacy rows.
+  def revoke_tokens!
+    increment!(:token_version)
+  end
+
+  private
+
+  def increment_token_version
+    self.token_version = token_version.to_i + 1
+  end
 end

@@ -1,4 +1,17 @@
 class PasswordResetsController < ApplicationController
+  rate_limit to: 5, within: 15.minutes,
+    by: -> { params[:email].to_s.strip.downcase },
+    with: :render_rate_limited,
+    name: "per-email",
+    only: :create
+  rate_limit to: 30, within: 15.minutes,
+    with: :render_rate_limited,
+    name: "per-ip",
+    only: :create
+  rate_limit to: 20, within: 15.minutes,
+    with: :render_rate_limited,
+    only: :update
+
   def create
     user = User.find_by_email(params[:email])
 

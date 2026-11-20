@@ -23,7 +23,13 @@ class ApplicationController < ActionController::API
     return nil if token.blank?
 
     payload = JsonWebToken.decode(token)
-    @current_user = User.find_by(id: payload["user_id"]) if payload
+    return nil unless payload
+
+    user = User.find_by(id: payload["user_id"])
+    return nil unless user
+    return nil if payload.fetch("tv", 0).to_i != user.token_version
+
+    @current_user = user
   end
 
   def authenticate_user!
@@ -61,5 +67,9 @@ class ApplicationController < ActionController::API
     unless Current.shop.shop_members.exists?(user_id: Current.user.id)
       render json: { error: "Forbidden" }, status: :forbidden
     end
+  end
+
+  def render_rate_limited
+    render json: { error: "Demasiados intentos. Espera unos minutos y vuelve a intentarlo." }, status: :too_many_requests
   end
 end

@@ -266,6 +266,36 @@ class OrdersControllerTest < ActionDispatch::IntegrationTest
     assert_equal 0, TenantScoped.unscoped_for_system { Notification.where(notification_type: "order.ready").count }
   end
 
+  # Every attempt counts toward the limit, so the loop does not assert success.
+  test "guest checkout returns 429 after too many order attempts from the same IP" do
+    item = MenuItem.create!(shop: @shop, name: "Café", description: "Café con leche", price_cents: 280, prep_time_min: 4, is_active: true, is_86ed: false)
+
+    travel_to Time.find_zone(@shop.timezone).local(2026, 10, 20, 10, 0, 0) do
+      30.times do |i|
+        post shop_orders_url(@shop), params: {
+          order: {
+            customer_name: "Cliente #{i}",
+            customer_phone: "60000000#{i}",
+            pickup_type: "asap",
+            items: [ { menu_item_id: item.id, quantity: 1, modifier_option_ids: [] } ]
+          }
+        }
+      end
+
+      post shop_orders_url(@shop), params: {
+        order: {
+          customer_name: "Bloqueado",
+          customer_phone: "600000000",
+          pickup_type: "asap",
+          items: [ { menu_item_id: item.id, quantity: 1, modifier_option_ids: [] } ]
+        }
+      }
+    end
+
+    assert_response :too_many_requests
+    assert_equal "Demasiados intentos. Espera unos minutos y vuelve a intentarlo.", response.parsed_body["error"]
+  end
+
   test "guest checkout stores an optional receipt email" do
     item = MenuItem.create!(shop: @shop, name: "Café", description: "Café con leche", price_cents: 280, prep_time_min: 4, is_active: true, is_86ed: false)
 

@@ -39,4 +39,74 @@ class AuthenticationControllerTest < ActionDispatch::IntegrationTest
     assert_response :created
     assert response.parsed_body["token"].present?
   end
+
+  test "login token includes the current token version" do
+    user = User.create!(email: "owner@example.com", password: "password123")
+
+    post "/auth/login", params: { email: user.email, password: "password123" }, as: :json
+
+    assert_response :success
+    payload = JsonWebToken.decode(response.parsed_body["token"])
+    assert_equal user.token_version, payload["tv"]
+  end
+
+  test "token without a version is accepted while token_version is zero" do
+    user = User.create!(email: "owner@example.com", password: "password123")
+    token = JsonWebToken.encode(user_id: user.id)
+
+    get "/auth/me", headers: { "Authorization" => "Bearer #{token}" }
+
+    assert_response :success
+    assert_equal user.id, response.parsed_body.dig("user", "id")
+  end
+
+  test "logout revokes previously issued tokens" do
+    user = User.create!(email: "owner@example.com", password: "password123")
+    token = JsonWebToken.encode(user_id: user.id, tv: user.token_version)
+
+    delete "/auth/logout", headers: { "Authorization" => "Bearer #{token}" }
+    assert_response :no_content
+
+    get "/auth/me", headers: { "Authorization" => "Bearer #{token}" }
+    assert_response :unauthorized
+  end
+
+  test "login returns 429 after too many attempts for the same email" do
+    User.create!(email: "locked@example.com", password: "password123")
+
+    10.times do
+      post "/auth/login", params: { email: "locked@example.com", password: "wrong" }, as: :json
+    end
+
+    post "/auth/login", params: { email: "locked@example.com", password: "wrong" }, as: :json
+
+    assert_response :too_many_requests
+    assert_equal "Demasiados intentos. Espera unos minutos y vuelve a intentarlo.", response.parsed_body["error"]
+  end
+
+  test "login still allows a different email when one is rate limited" do
+    User.create!(email: "locked@example.com", password: "password123")
+    User.create!(email: "other@example.com", password: "password123")
+
+    11.times do
+      post "/auth/login", params: { email: "locked@example.com", password: "wrong" }, as: :json
+    end
+    assert_response :too_many_requests
+
+    post "/auth/login", params: { email: "other@example.com", password: "password123" }, as: :json
+
+    assert_response :success
+    assert response.parsed_body["token"].present?
+  end
+
+  test "signup returns 429 after too many attempts from the same IP" do
+    20.times do |i|
+      post "/auth/signup", params: { user: { email: "signup#{i}@example.com", password: "password123" } }, as: :json
+    end
+
+    post "/auth/signup", params: { user: { email: "signup21@example.com", password: "password123" } }, as: :json
+
+    assert_response :too_many_requests
+    assert_equal "Demasiados intentos. Espera unos minutos y vuelve a intentarlo.", response.parsed_body["error"]
+  end
 end
