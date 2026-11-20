@@ -178,7 +178,7 @@ function PhoneStage({
           <div
             key={step.key}
             className={`${index === 0 ? 'relative' : 'absolute inset-0'} ${
-              reduced ? '' : 'transition-[opacity,transform] ease-out'
+              reduced ? '' : 'transition-[opacity,translate] ease-out'
             } ${
               isActive
                 ? 'opacity-100 translate-x-0 duration-[420ms] delay-[220ms]'

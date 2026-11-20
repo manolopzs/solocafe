@@ -220,7 +220,7 @@ function ScreenLayer({ index, screen, children }: { index: number; screen: numbe
     ? 'opacity-100 translate-x-0 duration-[420ms] delay-[220ms] ease-out'
     : `pointer-events-none opacity-0 duration-200 ease-in ${index < screen ? '-translate-x-6' : 'translate-x-6'}`
   return (
-    <div className={`absolute inset-0 transition-[opacity,transform] ${position}`} aria-hidden={!active}>
+    <div className={`absolute inset-0 transition-[opacity,translate] ${position}`} aria-hidden={!active}>
       {children}
     </div>
   )

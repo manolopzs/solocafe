@@ -197,7 +197,7 @@ export function ReadyScreen({ showNotification = false, animateCode = false }: {
         {pickupTime}
       </div>
       <div
-        className={`absolute inset-x-2.5 top-10 z-30 transition-[opacity,transform] duration-500 ease-out lg:inset-x-3 lg:top-12 ${
+        className={`absolute inset-x-2.5 top-10 z-30 transition-[opacity,translate] duration-500 ease-out lg:inset-x-3 lg:top-12 ${
           showNotification ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'
         }`}
         aria-hidden={!showNotification}
