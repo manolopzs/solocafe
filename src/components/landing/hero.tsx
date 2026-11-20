@@ -13,11 +13,11 @@ export function Hero() {
         <div className="grid items-center gap-12 lg:grid-cols-[1.25fr_0.75fr]">
           <div>
             <h1 className="landing-font-display text-[2.9rem] font-light leading-[1.05] tracking-tight text-background sm:text-[4rem] lg:text-[5.25rem]">
-              Order your coffee ahead. Skip the{' '}
+              Order ahead. Skip the{' '}
               <span className="landing-font-accent italic">queue</span>.
             </h1>
             <p className="mt-6 max-w-lg text-lg text-background/75 sm:text-xl">
-              Choose on your phone, the cafe makes it, and you pick it up when it says Ready. You pay at the counter.
+              Pick your coffee on your phone. The cafe makes it. Walk in, show your code, pay at the counter.
             </p>
             <div className="mt-10 flex flex-col gap-3 sm:flex-row">
               <Magnetic className="w-full sm:w-auto">

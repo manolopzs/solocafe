@@ -5,12 +5,12 @@ const faqs = [
   {
     question: 'What is Solo Café?',
     answer:
-      'Solo Café lets you order ahead from a cafe and pick up your drink without queuing. You order on your phone, the cafe prepares it, and you pay when you collect.',
+      'Order ahead from your cafe and skip the queue. You order on your phone, they make it, you pay when you pick up.',
   },
   {
     question: 'Do I need to download an app?',
     answer:
-      'No. Solo Café works in your phone browser. You can add it to your home screen so it opens like an app.',
+      'No. It runs in your browser. Add it to your home screen and it opens like an app.',
   },
   {
     question: 'How do I pay?',

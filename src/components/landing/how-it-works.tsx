@@ -3,16 +3,16 @@ import { Reveal } from './reveal'
 
 const steps = [
   {
-    title: 'Order on your phone',
-    description: 'Pick your drink, choose a pickup time, and send the order to the cafe.',
+    title: 'Discover',
+    description: 'Find your cafe and see the menu.',
   },
   {
-    title: 'We tell you when it is ready',
-    description: 'The cafe receives the order on its bar screen and updates the status as it prepares it.',
+    title: 'Order',
+    description: 'Choose your drink and a pickup time. The cafe gets it instantly.',
   },
   {
-    title: 'Pick it up at the counter, skip the queue',
-    description: 'When the screen says Ready, show your pickup code at the counter and pay there.',
+    title: 'Pick up',
+    description: 'When it says Ready, show your code and pay at the counter.',
   },
 ]
 
@@ -23,7 +23,7 @@ export function HowItWorks() {
         <Reveal>
           <p className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">How it works</p>
           <h2 className="mt-3 landing-font-display text-3xl font-normal tracking-tight text-heading sm:text-4xl">
-            Three steps to your coffee
+            Three steps. No queue.
           </h2>
         </Reveal>
         <div className="mt-12 grid gap-10 lg:grid-cols-2 lg:items-center">

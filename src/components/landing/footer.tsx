@@ -26,7 +26,7 @@ export function Footer() {
               <SoloCafeWordmark height={24} />
             </Link>
             <p className="mt-3 text-sm text-muted-foreground">
-              Order ahead, skip the queue, pay at the counter.
+              Order ahead. Skip the queue. Pay at the counter.
             </p>
           </div>
           <div className="grid grid-cols-2 gap-8 sm:gap-12 lg:gap-16">

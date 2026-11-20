@@ -62,7 +62,7 @@ export async function Pricing() {
         <div className="text-center">
           <h2 className="landing-font-display text-3xl font-normal tracking-tight text-background sm:text-4xl">Pricing</h2>
           <p className="mt-4 text-background/70">
-            Prices follow the location of your cafe. During the pilot there is no monthly fee and no commission.
+            Priced in your local currency. No monthly fee and no commission during the pilot.
           </p>
         </div>
         <PricingSection pricing={pricing} />
@@ -77,7 +77,7 @@ function PricingSection({ pricing }: { pricing: PublicPricing | null }) {
       <Card className="mx-auto mt-14 max-w-xl p-8 text-center">
         <h3 className="text-3xl font-semibold text-foreground">Free during the pilot</h3>
         <p className="mt-4 text-sm text-muted-foreground">
-          The pilot on the IE campus is free. When we set a price, you will see it here before it applies.
+          The IE campus pilot is free. If that changes, you&apos;ll see it here first.
         </p>
       </Card>
     )

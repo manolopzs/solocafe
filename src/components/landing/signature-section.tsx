@@ -10,25 +10,25 @@ const steps = [
     key: 'received',
     label: 'Ordered',
     title: 'Order sent',
-    description: 'The cafe has your order and a pickup time is reserved for you.',
+    description: 'The cafe has it. Your pickup time is held.',
   },
   {
     key: 'preparing',
     label: 'Preparing',
     title: 'Preparing',
-    description: 'The barista starts making it and the progress bar keeps you updated.',
+    description: 'The barista is on it. Watch it move.',
   },
   {
     key: 'ready',
     label: 'Ready',
     title: 'Ready',
-    description: 'Your pickup code appears. Show it at the counter and pay there.',
+    description: 'Your code appears. Show it, pay, go.',
   },
   {
     key: 'picked-up',
     label: 'Picked up',
     title: 'Picked up',
-    description: 'Grab your coffee and skip the queue. Ordering again is one tap away.',
+    description: "Done. Next time it's one tap.",
   },
 ] as const
 
@@ -98,10 +98,10 @@ export function SignatureSection() {
               Follow an order
             </p>
             <h2 className="mt-3 landing-font-display text-3xl font-normal tracking-tight text-background sm:text-4xl">
-              From ordered to picked up
+              From order to cup
             </h2>
             <p className="mt-4 max-w-md text-lg text-background/70">
-              A preview of what a customer sees after ordering. Scroll to walk through each step.
+              What you see after you order. Scroll through it.
             </p>
             <div className="sticky top-20 z-10 -mx-6 mt-8 flex h-[370px] justify-center bg-gradient-to-b from-foreground from-[88%] to-transparent pt-4 lg:hidden">
               <div className="origin-top scale-[0.7]">

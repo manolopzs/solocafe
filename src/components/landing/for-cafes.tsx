@@ -5,9 +5,9 @@ import { Reveal } from './reveal'
 import { KdsTablet } from './kds-tablet'
 
 const benefits = [
-  'Orders arrive on the bar screen in real time',
-  'Set your menu and how many orders per time slot you take',
-  'Customers pay at the counter on pickup',
+  'Orders land on your bar screen instantly',
+  'You set the menu and how many orders per slot',
+  'Customers pay at the counter',
   'Free during the pilot',
 ]
 
@@ -23,10 +23,10 @@ export function ForCafes() {
             <Reveal>
               <p className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">For cafes</p>
               <h2 className="mt-3 landing-font-display text-3xl font-normal tracking-tight text-heading sm:text-4xl">
-                Serve more orders without the chaos
+                More orders. Less chaos.
               </h2>
               <p className="mt-4 text-lg text-muted-foreground">
-                Solo Café gives your customers a simple way to order ahead and gives your bar a clear, real-time view of what to make.
+                Customers order ahead. Your bar sees every order on one screen, in real time.
               </p>
             </Reveal>
             <Reveal delay={1}>

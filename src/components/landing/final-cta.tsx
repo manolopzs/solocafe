@@ -9,10 +9,10 @@ export function FinalCTA() {
       <div className="mx-auto max-w-3xl text-center">
         <Reveal>
           <h2 className="landing-font-display text-3xl font-normal tracking-tight text-background sm:text-4xl">
-            Skip the queue tomorrow morning
+            Tomorrow, skip the queue.
           </h2>
           <p className="mt-4 text-lg text-background/70">
-            Order from your phone and pick it up when it says Ready.
+            Order now. Pick it up when it says Ready.
           </p>
           <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Magnetic className="w-full sm:w-auto">
