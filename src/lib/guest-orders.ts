@@ -9,6 +9,7 @@ export interface GuestOrder {
   status: OrderStatus
   totalCents: number
   currency: string
+  locale?: string
   itemCount: number
   /** e.g. "1 × Latte, 2 × Cortado". Missing on orders saved before it existed. */
   itemsSummary?: string
@@ -41,6 +42,7 @@ export function guestOrderFromOrder(order: Order, token: string): GuestOrder {
     status: order.status,
     totalCents: order.total_cents,
     currency: order.currency,
+    locale: order.shop?.locale ?? 'es',
     itemCount: order.item_count ?? (order.items ?? []).reduce((sum, item) => sum + item.quantity, 0),
     ...(itemsSummary(order) ? { itemsSummary: itemsSummary(order) } : {}),
     ...(order.estimated_ready_minutes && order.estimated_ready_minutes > 0

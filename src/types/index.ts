@@ -164,6 +164,7 @@ export interface OrderShopSummary {
   lat: number | null
   lng: number | null
   timezone: string
+  locale: string
   directions_url: string | null
 }
 
@@ -244,6 +245,7 @@ export interface CartPreview {
   tax_cents: number
   total_cents: number
   currency: string
+  locale: string
   loyalty?: LoyaltyProgress | null
   lines: CartPreviewLine[]
   can_checkout: boolean

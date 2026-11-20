@@ -20,29 +20,29 @@ export default function LoginPage() {
     <main className="flex flex-1 flex-col lg:grid lg:grid-cols-2">
       <section className="flex flex-col justify-center bg-surface px-5 pb-8 pt-4 lg:px-16 lg:py-12 xl:px-24">
         <div className="mx-auto w-full max-w-md">
-          <Link href="/" className="inline-flex min-h-11 items-center" aria-label="Solo Café, inicio">
+          <Link href="/" className="inline-flex min-h-11 items-center" aria-label="Solo Café, home">
             <SoloCafeWordmark height={24} />
           </Link>
 
           <h1 className="mt-10 text-h1 text-heading sm:text-4xl">
-            Tu café, más cerca de tus clientes
+            Your coffee, closer to your customers
           </h1>
           <p className="mt-2 text-body text-muted-foreground">
-            Recibe pedidos anticipados, reduce colas y conecta con quienes te eligen.
+            Receive orders ahead of time, cut queues and connect with the people who choose you.
           </p>
 
           <ul className="mt-6">
             <li className="flex min-h-7 items-center gap-2 text-body-sm text-foreground">
               <Icon name="check" className="h-4 w-4 shrink-0 text-foreground" strokeWidth={2.25} />
-              <span>Pedidos organizados en tiempo real</span>
+              <span>Orders organized in real time</span>
             </li>
             <li className="flex min-h-7 items-center gap-2 text-body-sm text-foreground">
               <Icon name="check" className="h-4 w-4 shrink-0 text-foreground" strokeWidth={2.25} />
-              <span>Pago y recogida sin complicaciones</span>
+              <span>Payment and pickup without complications</span>
             </li>
             <li className="flex min-h-7 items-center gap-2 text-body-sm text-foreground">
               <Icon name="check" className="h-4 w-4 shrink-0 text-foreground" strokeWidth={2.25} />
-              <span>Menú digital listo en minutos</span>
+              <span>Digital menu ready in minutes</span>
             </li>
           </ul>
         </div>
@@ -52,8 +52,8 @@ export default function LoginPage() {
         <div className="w-full max-w-sm">
           <Card variant="outline" className="max-sm:rounded-none max-sm:border-0 max-sm:bg-transparent">
             <CardHeader className="max-sm:px-0 max-sm:pt-0 sm:text-center">
-              <CardTitle className="!text-h2 text-heading">Entra en tu cuenta</CardTitle>
-              <CardDescription className="mt-2 text-body-sm">Introduce tu correo y tu contraseña para continuar.</CardDescription>
+              <CardTitle className="!text-h2 text-heading">Log in to your account</CardTitle>
+              <CardDescription className="mt-2 text-body-sm">Enter your email and password to continue.</CardDescription>
             </CardHeader>
             <CardContent className="max-sm:px-0 max-sm:pb-0">
               <form action={formAction} className="space-y-4">
@@ -62,19 +62,19 @@ export default function LoginPage() {
                 </Suspense>
 
                 <div>
-                  <Label htmlFor="email">Correo electrónico</Label>
+                  <Label htmlFor="email">Email</Label>
                   <Input
                     id="email"
                     name="email"
                     type="email"
                     required
-                    placeholder="tu@cafeteria.com"
+                    placeholder="you@cafeteria.com"
                     className="mt-1.5"
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="password">Contraseña</Label>
+                  <Label htmlFor="password">Password</Label>
                   <div className="relative mt-1.5">
                     <Input
                       id="password"
@@ -89,7 +89,7 @@ export default function LoginPage() {
                       type="button"
                       onClick={() => setShowPassword((prev) => !prev)}
                       className="absolute right-2 top-1/2 inline-flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:text-foreground"
-                      aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
                     >
                       <Icon name={showPassword ? 'eye-off' : 'eye'} className="h-4 w-4" />
                     </button>
@@ -108,20 +108,20 @@ export default function LoginPage() {
                 )}
 
                 <Button type="submit" disabled={pending} className="w-full">
-                  {pending ? 'Entrando...' : 'Entrar'}
+                  {pending ? 'Logging in...' : 'Log in'}
                 </Button>
 
                 <p className="text-center text-sm">
                   <Link href="/auth/forgot-password" className="font-medium text-accent underline underline-offset-2 hover:text-accent/80">
-                    ¿Olvidaste tu contraseña?
+                    Forgot your password?
                   </Link>
                 </p>
               </form>
 
               <p className="mt-5 text-center text-sm text-muted-foreground">
-                ¿No tienes cuenta?{' '}
+                Don&apos;t have an account?{' '}
                 <Link href="/auth/signup" className="font-medium text-accent underline underline-offset-2 hover:text-accent/80">
-                  Crear cuenta gratis
+                  Sign up free
                 </Link>
               </p>
             </CardContent>

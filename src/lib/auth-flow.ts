@@ -9,4 +9,4 @@ export function loginPathFor(flow: LoginFlow) {
   return flow === 'account' ? '/account/login' : '/auth/login'
 }
 
-export const RESET_SUCCESS_MESSAGE = 'Contraseña cambiada. Entra con la nueva.'
+export const RESET_SUCCESS_MESSAGE = 'Password changed. Log in with the new one.'

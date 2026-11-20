@@ -15,7 +15,7 @@ export function isStorefrontPath(pathname: string): boolean {
   return segments.length === 1 && !appSegments.has(segments[0]) && !hiddenPaths.includes(pathname)
 }
 
-/** Customer tabs: Inicio (/inicio, the shop list and Lo de siempre), Pedidos and Cuenta. */
+/** Customer tabs: Home (/inicio, the shop list and Your usual), Orders and Account. */
 export function BottomNav() {
   const pathname = usePathname()
 
@@ -24,15 +24,15 @@ export function BottomNav() {
   if (hiddenPrefixes.some((prefix) => pathname.startsWith(prefix))) return null
 
   const navItems = [
-    { key: 'inicio', href: CUSTOMER_HOME_PATH, label: 'Inicio', icon: 'store' },
-    { key: 'pedidos', href: '/account/orders', label: 'Pedidos', icon: 'receipt-euro' },
-    { key: 'cuenta', href: '/account', label: 'Cuenta', icon: 'user' },
+    { key: 'inicio', href: CUSTOMER_HOME_PATH, label: 'Home', icon: 'store' },
+    { key: 'pedidos', href: '/account/orders', label: 'Orders', icon: 'receipt-euro' },
+    { key: 'cuenta', href: '/account', label: 'Account', icon: 'user' },
   ] as const
 
   const isActive = (key: (typeof navItems)[number]['key'], href: string) => {
     if (key === 'inicio') return pathname === CUSTOMER_HOME_PATH || isStorefrontPath(pathname)
     if (key === 'cuenta') return pathname === href
-    // An order's live tracker belongs to Pedidos.
+    // An order's live tracker belongs to Orders.
     if (key === 'pedidos' && pathname.startsWith('/order/')) return true
     return pathname === href || pathname.startsWith(`${href}/`)
   }

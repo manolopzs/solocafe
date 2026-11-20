@@ -47,7 +47,7 @@ describe('payment return goes to the tracker', () => {
     notFound.mockClear()
   })
 
-  it('redirects the success URL to /order/<id> instead of showing "Pago confirmado"', async () => {
+  it('redirects the success URL to /order/<id> instead of showing "Payment confirmed"', async () => {
     await expect(
       CheckoutSuccessPage({
         params: Promise.resolve({ orderId: 'ord-1' }),
@@ -74,14 +74,14 @@ describe('payment return goes to the tracker', () => {
 
   it('says the payment is being confirmed while the webhook catches up', () => {
     render(<OrderStatusClient initialOrder={pendingOrder} accessToken="tok" paymentReturn />)
-    expect(screen.getByRole('heading', { name: 'Confirmando tu pago' })).toBeInTheDocument()
-    expect(screen.queryByText('Completar pago')).not.toBeInTheDocument()
-    expect(screen.queryByText('Pago confirmado')).not.toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Confirming your payment' })).toBeInTheDocument()
+    expect(screen.queryByText('Complete payment')).not.toBeInTheDocument()
+    expect(screen.queryByText('Payment confirmed')).not.toBeInTheDocument()
   })
 
   it('still asks for payment when the customer did not just pay', () => {
     render(<OrderStatusClient initialOrder={pendingOrder} accessToken="tok" />)
-    expect(screen.getByRole('heading', { name: 'Pago pendiente' })).toBeInTheDocument()
-    expect(screen.getByText('Completar pago')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Payment pending' })).toBeInTheDocument()
+    expect(screen.getByText('Complete payment')).toBeInTheDocument()
   })
 })

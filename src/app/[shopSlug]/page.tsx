@@ -21,7 +21,7 @@ export async function generateMetadata({ params }: { params: Promise<{ shopSlug:
   const shopName = storefront?.shop.name ?? null
   const title = storefrontTitle(shopName)
   const description = shopName
-    ? `Pide en ${shopName} desde el móvil y recógelo sin colas.`
+    ? `Order from ${shopName} on your phone and pick it up without the queue.`
     : SITE_DESCRIPTION
   return {
     title: { absolute: title },

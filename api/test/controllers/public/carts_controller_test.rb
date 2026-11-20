@@ -47,6 +47,7 @@ class Public::CartsControllerTest < ActionDispatch::IntegrationTest
     assert_equal true, body["lines"][1]["available"]
     assert_equal 27, body["estimated_ready_minutes"]
     assert_equal 10000, body["total_cents"]
+    assert_equal "es", body["locale"]
   end
 
   test "preview blocks asap checkout when the shop is closed" do

@@ -10,6 +10,7 @@ const guest = (over: Partial<GuestOrder> = {}): GuestOrder => ({
   status: 'picked_up',
   totalCents: 200,
   currency: 'EUR',
+  locale: 'es',
   itemCount: 1,
   itemsSummary: '1 × Latte',
   createdAt: '2026-11-10T10:00:00Z',
@@ -34,7 +35,7 @@ describe('lastGuestOrder', () => {
     expect(lastGuestOrder([])).toBeNull()
   })
 
-  it('uses the newest repeatable order and the Pedidos repeat link', () => {
+  it('uses the newest repeatable order and the Orders repeat link', () => {
     const last = lastGuestOrder([guest()])
     expect(last).toMatchObject({
       shopName: 'Solo cafe',

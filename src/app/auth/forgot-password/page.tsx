@@ -20,9 +20,9 @@ function ForgotPasswordForm() {
       <div className="w-full max-w-sm">
         <Card variant="outline">
           <CardHeader className="text-center">
-            <CardTitle>Recupera tu contraseña</CardTitle>
+            <CardTitle>Recover your password</CardTitle>
             <CardDescription>
-              Introduce tu correo y te enviaremos un enlace para restablecerla.
+              Enter your email and we will send you a link to reset it.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -39,13 +39,13 @@ function ForgotPasswordForm() {
                 {flow === 'account' && <input type="hidden" name="from" value="account" />}
 
                 <div>
-                  <Label htmlFor="email">Correo electrónico</Label>
+                  <Label htmlFor="email">Email</Label>
                   <Input
                     id="email"
                     name="email"
                     type="email"
                     required
-                    placeholder="tu@cafeteria.com"
+                    placeholder="you@cafeteria.com"
                     className="mt-1.5"
                   />
                 </div>
@@ -62,14 +62,14 @@ function ForgotPasswordForm() {
                 )}
 
                 <Button type="submit" disabled={pending} className="w-full">
-                  {pending ? 'Enviando...' : 'Enviar enlace'}
+                  {pending ? 'Sending...' : 'Send link'}
                 </Button>
               </form>
             )}
 
             <p className="mt-5 text-center text-sm text-muted-foreground">
               <Link href={loginPathFor(flow)} className="font-medium text-accent underline underline-offset-2 hover:text-accent/80">
-                Volver al inicio de sesión
+                Back to log in
               </Link>
             </p>
           </CardContent>
@@ -81,7 +81,7 @@ function ForgotPasswordForm() {
 
 export default function ForgotPasswordPage() {
   return (
-    <Suspense fallback={<main className="flex min-h-screen items-center justify-center px-6 py-12 text-sm text-muted-foreground">Cargando...</main>}>
+    <Suspense fallback={<main className="flex min-h-screen items-center justify-center px-6 py-12 text-sm text-muted-foreground">Loading...</main>}>
       <ForgotPasswordForm />
     </Suspense>
   )

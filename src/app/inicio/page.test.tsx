@@ -56,7 +56,7 @@ describe('/inicio', () => {
     expect(element.type).toBe(ShopDirectory)
     expect(element.props.shops.map((s) => s.slug)).toEqual(['solo-cafe'])
     expect(element.props.shops[0].cutouts).toEqual(['/menu/cutouts/latte.png'])
-    expect(element.props.title).toMatch(/^Buen(os días|as tardes|as noches)$/)
+    expect(element.props.title).toMatch(/^(Good morning|Good afternoon|Good evening)$/)
   })
 
   it('lists every shop when there are several', async () => {
@@ -71,7 +71,7 @@ describe('/inicio', () => {
     expect(element.props.shops).toEqual([])
   })
 
-  it('guests get Entrar and the on-device Lo de siempre, without calling the account API', async () => {
+  it('guests get no header action and the on-device Lo de siempre, without calling the account API', async () => {
     explore.getPublicShops.mockResolvedValue({ sort: 'name', shops: [shop('solo-cafe', 'Solo cafe')] })
     const element = (await InicioPage()) as ReactElement<Props>
     expect(element.props.headerAction).toBeUndefined()

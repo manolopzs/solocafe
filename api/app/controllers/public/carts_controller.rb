@@ -33,6 +33,7 @@ module Public
         total_cents: totals[:total_cents],
         loyalty: loyalty,
         currency: shop.currency,
+        locale: shop.locale,
         lines: lines.map { |line| public_line(line) },
         can_checkout: reason.nil?,
         checkout_blocked_reason: reason

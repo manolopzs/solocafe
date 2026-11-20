@@ -42,7 +42,7 @@ describe('Solo Café logo', () => {
   })
 
   it('shows the wordmark in the Explore header instead of the coffee icon', () => {
-    render(<ShopDirectory sort="name" shops={[]} title="Buenas tardes" />)
+    render(<ShopDirectory sort="name" shops={[]} title="Good afternoon" />)
     expect(screen.getByRole('img', { name: 'Solo Café' })).toBeInTheDocument()
     expect(screen.queryByText('Solo Café')).not.toBeInTheDocument()
   })
@@ -50,10 +50,10 @@ describe('Solo Café logo', () => {
   it('shows the SO/LO tile on the loading screen', () => {
     render(<RootLoading />)
     expect(screen.getByRole('img', { name: 'Solo Café' })).toBeInTheDocument()
-    expect(screen.getByText('Cargando...')).toBeInTheDocument()
+    expect(screen.getByText('Loading...')).toBeInTheDocument()
   })
 
-  it('keeps the cafe name, not our logo, on the Listo screen', () => {
+  it('keeps the cafe name, not our logo, on the Ready screen', () => {
     const order = {
       id: 'a1b2c3d4-0000-4000-8000-00000000c0de', shop_id: 'shop-1',
       shop: { name: 'Cafetería de prueba', slug: 'prueba' }, status: 'ready', customer_id: null,

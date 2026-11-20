@@ -6,7 +6,7 @@ class PasswordResetMailer < ApplicationMailer
 
     mail(
       to: @user.email,
-      subject: "Restablece tu contraseña de Solo Café"
+      subject: "Reset your Solo Café password"
     )
   end
 end

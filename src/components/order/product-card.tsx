@@ -62,7 +62,7 @@ export function ProductCard({
             type="button"
             onClick={onToggleFavorite}
             className="absolute right-0 top-0 z-[2] flex h-11 w-11 items-center justify-center touch-manipulation"
-            aria-label={isFavorite ? 'Quitar de favoritos' : 'Añadir a favoritos'}
+            aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
           >
             <span className="flex h-8 w-8 items-center justify-center rounded-full bg-surface-elevated shadow-card">
               <Icon name="heart" className={['h-3.5 w-3.5', isFavorite ? 'fill-danger text-danger' : 'text-muted-foreground'].join(' ')} />
@@ -99,7 +99,7 @@ function QuickAddControl({
   return (
     <div
       role={expanded ? 'group' : undefined}
-      aria-label={expanded ? `Cantidad de ${name}` : undefined}
+      aria-label={expanded ? `Quantity of ${name}` : undefined}
       className={[
         'flex h-9 items-center justify-end rounded-full bg-surface-elevated text-foreground shadow-card transition-[width] duration-200 ease-out-soft',
         expanded ? 'w-[108px]' : 'w-9',
@@ -111,7 +111,7 @@ function QuickAddControl({
             type="button"
             onClick={onDecrement}
             className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full touch-manipulation after:absolute after:-inset-1 active:scale-90"
-            aria-label={`Quitar ${name}`}
+            aria-label={`Remove ${name}`}
           >
             <Icon name="minus" className="h-4 w-4" />
           </button>
@@ -124,7 +124,7 @@ function QuickAddControl({
         type="button"
         onClick={onAdd}
         className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full touch-manipulation after:absolute after:-inset-1 active:scale-90"
-        aria-label={`Añadir ${name}`}
+        aria-label={`Add ${name}`}
       >
         <span
           className={[

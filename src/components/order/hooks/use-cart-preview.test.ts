@@ -30,6 +30,7 @@ function makePreview(overrides = {}) {
     tax_cents: 0,
     total_cents: 100,
     currency: 'EUR',
+    locale: 'es',
     lines: [],
     can_checkout: true,
     checkout_blocked_reason: null,

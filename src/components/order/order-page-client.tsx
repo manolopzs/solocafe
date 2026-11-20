@@ -130,7 +130,10 @@ export function OrderPageClient({
 
   const optionsForGroup = (groupId: string) => modifierOptions.filter((option) => option.group_id === groupId)
 
-  const formatPrice = useCallback((cents: number) => formatMoney(cents, shop.currency), [shop.currency])
+  const formatPrice = useCallback(
+    (cents: number) => formatMoney(cents, shop.currency, shop.locale),
+    [shop.currency, shop.locale],
+  )
 
   const viewLines: CartViewLine[] = useMemo(() => {
     return cart.lines.map((line, index) => {
@@ -143,7 +146,7 @@ export function OrderPageClient({
       const lineCents = remote?.line_total_cents ?? catalogUnit * line.quantity
       return {
         key: `${line.itemId}:${line.modifierIds.join(',')}:${index}`,
-        name: item?.name ?? remote?.name ?? 'Producto',
+        name: item?.name ?? remote?.name ?? 'Item',
         detail: modifiers.map((option) => option.name).join(', '),
         quantity: line.quantity,
         lineTotal: formatPrice(lineCents),
@@ -281,7 +284,7 @@ export function OrderPageClient({
         modifierIds: item.modifier_option_ids,
       }))
     )
-    setNotice(available.length < usualOrder.items.length ? 'Quitamos lo que ya no está disponible.' : null)
+    setNotice(available.length < usualOrder.items.length ? 'We removed what is no longer available.' : null)
     setSheetOpen(true)
   }
 
@@ -331,14 +334,14 @@ export function OrderPageClient({
     <div className="pb-bag min-h-screen bg-background">
       <header className="mx-auto max-w-3xl px-5">
         <div className="-mx-3 flex h-14 items-center justify-between">
-          <Link href="/inicio" className="flex h-11 w-11 items-center justify-center rounded-full text-foreground" aria-label="Volver a Inicio">
+          <Link href="/inicio" className="flex h-11 w-11 items-center justify-center rounded-full text-foreground" aria-label="Back to Home">
             <Icon name="arrow-left" className="h-[22px] w-[22px]" />
           </Link>
           <SoloCafeWordmark height={20} />
           <Link
             href={customer ? '/account' : '/account/login'}
             className="flex h-11 w-11 items-center justify-center rounded-full text-foreground"
-            aria-label={customer ? 'Mi cuenta' : 'Iniciar sesión'}
+            aria-label={customer ? 'Account' : 'Log in'}
           >
             <Icon name="user" className="h-[22px] w-[22px]" />
           </Link>
@@ -359,7 +362,7 @@ export function OrderPageClient({
               <span aria-hidden="true">·</span>
             </>
           )}
-          <span className="shrink-0">Para recoger</span>
+          <span className="shrink-0">Pickup</span>
         </p>
       </header>
 
@@ -377,13 +380,13 @@ export function OrderPageClient({
 
       {reorderCount > 0 && (
         <div className="mx-auto max-w-3xl px-5 pt-3">
-          <Notice>Añadimos {reorderCount} productos de tu pedido anterior. Revisa tu pedido.</Notice>
+          <Notice>We added {reorderCount} items from your previous order. Review your order.</Notice>
         </div>
       )}
 
       {recentOrders.length > 0 && (
         <section className="mx-auto max-w-3xl px-5 pt-5">
-          <h2 className="text-sm font-medium text-muted-foreground">Pedidos recientes</h2>
+          <h2 className="text-sm font-medium text-muted-foreground">Recent orders</h2>
           <div className="mt-3 flex snap-x snap-mandatory gap-3 overflow-x-auto pb-1 no-scrollbar">
             {recentOrders.map((order) => (
               <button
@@ -393,13 +396,13 @@ export function OrderPageClient({
                 className="w-52 shrink-0 snap-start rounded-2xl bg-surface p-3 text-left transition-colors hover:bg-secondary"
               >
                 <p className="text-xs font-semibold text-muted-foreground">
-                  {order.item_count ?? order.items?.reduce((sum, item) => sum + item.quantity, 0)} productos
+                  {order.item_count ?? order.items?.reduce((sum, item) => sum + item.quantity, 0)} items
                 </p>
                 <p className="mt-1 line-clamp-1 text-sm font-bold text-foreground">
                   {order.items?.map((item) => item.item_name_snapshot).join(', ')}
                 </p>
                 <p className="mt-1 text-xs text-accent">
-                  {formatPrice(order.total_cents)} · Repetir
+                  {formatPrice(order.total_cents)} · Reorder
                 </p>
               </button>
             ))}
@@ -409,7 +412,7 @@ export function OrderPageClient({
 
       {favoriteItems.length > 0 && (
         <section className="mx-auto max-w-3xl px-5 pt-5">
-          <h2 className="text-sm font-medium text-muted-foreground">Tus favoritos</h2>
+          <h2 className="text-sm font-medium text-muted-foreground">Your favorites</h2>
           <div className="mt-3 flex snap-x snap-mandatory gap-3 overflow-x-auto pb-1 no-scrollbar">
             {favoriteItems.map((item) => (
               <button
@@ -437,7 +440,7 @@ export function OrderPageClient({
 
       {featuredItems.length > 0 && (
         <section className="mx-auto max-w-3xl px-5 pt-5">
-          <h2 className="text-sm font-medium text-muted-foreground">Destacados</h2>
+          <h2 className="text-sm font-medium text-muted-foreground">Featured</h2>
           <div className="mt-3 flex snap-x snap-mandatory gap-3 overflow-x-auto pb-1 no-scrollbar">
             {featuredItems.map((item) => (
               <button
@@ -463,8 +466,8 @@ export function OrderPageClient({
         {menuIsEmpty && (
           <EmptyState
             icon={<Icon name="coffee" className="h-6 w-6" />}
-            title="El menú está por llegar"
-            description="Esta cafetería todavía no ha publicado productos para recoger."
+            title="The menu is on its way"
+            description="This coffee shop hasn't published pickup items yet."
           />
         )}
         {visibleCategories.map((category) => {
@@ -497,7 +500,7 @@ export function OrderPageClient({
 
         {uncategorizedItems.length > 0 && (
           <section ref={setRef('uncategorized')} className="scroll-mt-16 pb-8">
-            <h2 className="shop-display-font text-h2 text-heading">Otros</h2>
+            <h2 className="shop-display-font text-h2 text-heading">Others</h2>
             <div className="mt-3 grid grid-cols-2 gap-x-3 gap-y-5">
               {uncategorizedItems.map((item) => (
                 <ProductCard

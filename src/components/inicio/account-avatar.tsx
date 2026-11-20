@@ -3,11 +3,11 @@ import { Icon } from '@/components/ui/icon'
 
 /** Signed-in header action on Inicio: the name's initial in a 36px sky disc, 44px tap zone. */
 export function AccountAvatar({ name }: { name: string | null | undefined }) {
-  const initial = name?.trim().charAt(0).toLocaleUpperCase('es-ES') || null
+  const initial = name?.trim().charAt(0).toLocaleUpperCase('en-GB') || null
   return (
     <Link
       href="/account"
-      aria-label="Tu cuenta"
+      aria-label="Your account"
       className="-mr-1 flex h-11 w-11 items-center justify-center rounded-full"
       data-testid="account-avatar"
     >

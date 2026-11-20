@@ -6,7 +6,7 @@ import { getPublicShops, withMenuCutouts } from '@/server/queries/explore'
 export const instant = false
 
 export const metadata: Metadata = {
-  title: 'Cafeterías para recoger',
+  title: 'Coffee shops for pickup',
 }
 
 function originFromParams(lat?: string, lng?: string) {
@@ -31,7 +31,7 @@ export default async function ExplorePage({
   return (
     <>
       <ExploreGeolocation hasOrigin={origin != null} />
-      <ShopDirectory shops={cards} sort={sort} title="Elige tu cafetería" />
+      <ShopDirectory shops={cards} sort={sort} title="Choose your coffee shop" />
     </>
   )
 }

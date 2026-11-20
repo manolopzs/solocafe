@@ -70,6 +70,6 @@ class ApplicationController < ActionController::API
   end
 
   def render_rate_limited
-    render json: { error: "Demasiados intentos. Espera unos minutos y vuelve a intentarlo." }, status: :too_many_requests
+    render json: { error: "Too many attempts. Please wait a few minutes and try again." }, status: :too_many_requests
   end
 end

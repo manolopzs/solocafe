@@ -11,7 +11,7 @@ export async function loginAction(prevState: unknown, formData: FormData) {
   const password = formData.get('password') as string
 
   if (!email || !password) {
-    return { error: 'Introduce tu correo y tu contraseña' }
+    return { error: 'Enter your email and password' }
   }
 
   let token: string | undefined
@@ -38,7 +38,7 @@ export async function signupAction(prevState: unknown, formData: FormData) {
   const shopName = String(formData.get('shopName') || '').trim()
 
   if (!email || !password || !shopName) {
-    return { error: 'Introduce tu correo, tu contraseña y el nombre de la cafetería' }
+    return { error: 'Enter your email, password and coffee shop name' }
   }
 
   let token: string | undefined
@@ -84,17 +84,17 @@ export async function forgotPasswordAction(prevState: unknown, formData: FormDat
   const email = formData.get('email') as string
 
   if (!email) {
-    return { error: 'Introduce tu correo electrónico' }
+    return { error: 'Enter your email' }
   }
 
   try {
     const from = formData.get('from') === 'account' ? 'account' : undefined
     await apiPost('/auth/password_resets', { email, from }, false)
   } catch (err) {
-    return { error: userFacingApiError(err, 'No hemos podido enviar el enlace. Inténtalo de nuevo.') }
+    return { error: userFacingApiError(err, "We couldn't send the link. Please try again.") }
   }
 
-  return { success: 'Si el correo existe, recibirás instrucciones para restablecer tu contraseña.' }
+  return { success: 'If the email exists, you will receive instructions to reset your password.' }
 }
 
 export async function resetPasswordAction(prevState: unknown, formData: FormData) {
@@ -103,15 +103,15 @@ export async function resetPasswordAction(prevState: unknown, formData: FormData
   const passwordConfirmation = formData.get('passwordConfirmation') as string
 
   if (!token || !password || !passwordConfirmation) {
-    return { error: 'Faltan el enlace, la contraseña o su confirmación' }
+    return { error: 'The link, password or confirmation is missing' }
   }
 
   if (password !== passwordConfirmation) {
-    return { error: 'Las contraseñas no coinciden' }
+    return { error: 'The passwords do not match' }
   }
 
   if (password.length < 8) {
-    return { error: 'La contraseña debe tener al menos 8 caracteres' }
+    return { error: 'The password must be at least 8 characters' }
   }
 
   let account: string | undefined
@@ -119,7 +119,7 @@ export async function resetPasswordAction(prevState: unknown, formData: FormData
     const data = await apiPatch<{ account?: string }>('/auth/password_resets/' + encodeURIComponent(token), { password }, false)
     account = data?.account
   } catch (err) {
-    return { error: userFacingApiError(err, 'No hemos podido cambiar la contraseña. Inténtalo de nuevo.') }
+    return { error: userFacingApiError(err, "We couldn't change the password. Please try again.") }
   }
 
   // The API account wins; the ?from=account link is the fallback for older API responses.

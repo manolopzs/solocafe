@@ -6,7 +6,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: SITE_NAME,
     short_name: SITE_NAME,
     description: SITE_DESCRIPTION,
-    lang: 'es-ES',
+    lang: 'en-US',
     dir: 'ltr',
     // Customers install from a shop or Inicio; never open the owner landing page.
     start_url: CUSTOMER_HOME_PATH,

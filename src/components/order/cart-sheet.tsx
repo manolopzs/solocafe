@@ -38,13 +38,13 @@ export function CartSheet({
   onCheckout: () => void
 }) {
   return (
-    <Sheet open={open} onClose={onClose} title="Tu pedido" position="bottom" className="flex flex-col">
+    <Sheet open={open} onClose={onClose} title="Your order" position="bottom" className="flex flex-col">
       <div className="flex h-full flex-col">
         {lines.length === 0 ? (
           <EmptyState
             icon={<Icon name="cart" className="h-6 w-6" />}
-            title="Tu pedido está vacío"
-            description="Añade algo del menú para empezar."
+            title="Your order is empty"
+            description="Add something from the menu to get started."
           />
         ) : (
           <>
@@ -57,7 +57,7 @@ export function CartSheet({
                       {line.detail && <p className="mt-0.5 text-sm text-muted-foreground">{line.detail}</p>}
                       {line.unavailable && (
                         <span className="mt-2 inline-flex rounded-full bg-danger/10 px-2.5 py-1 text-xs font-medium text-danger">
-                          Ya no disponible
+                          No longer available
                         </span>
                       )}
                       <p className="mt-1 text-sm font-medium tabular-nums text-foreground">{line.lineTotal}</p>
@@ -66,7 +66,7 @@ export function CartSheet({
                       type="button"
                       onClick={() => onRemove(index)}
                       className="flex h-11 w-11 items-center justify-center rounded-full text-muted-foreground hover:bg-surface hover:text-danger"
-                      aria-label={`Eliminar ${line.name}`}
+                      aria-label={`Remove ${line.name}`}
                     >
                       <Icon name="trash" className="h-4 w-4" />
                     </button>
@@ -92,7 +92,7 @@ export function CartSheet({
                 <span className="text-xl font-medium tabular-nums">{total}</span>
               </div>
               <Button onClick={onCheckout} disabled={Boolean(blockedCopy)} variant="cta" size="lg" className="w-full">
-                Continuar al pago
+                Continue to payment
               </Button>
             </div>
           </>

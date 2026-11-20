@@ -31,12 +31,12 @@ describe('BarHandoff', () => {
     expect(screen.getByText('Lucía')).toBeInTheDocument()
     expect(screen.getByText('1 × Latte')).toBeInTheDocument()
     expect(screen.getByText('Solo cafe')).toBeInTheDocument()
-    expect(screen.queryByText('Cerrar')).not.toBeInTheDocument()
+    expect(screen.queryByText('Close')).not.toBeInTheDocument()
   })
 
-  it('has one full-width Volver fixed at safe area + 12', () => {
+  it('has one full-width Back fixed at safe area + 12', () => {
     const onClose = renderHandoff()
-    const back = screen.getByRole('button', { name: 'Volver' })
+    const back = screen.getByRole('button', { name: 'Back' })
     expect(back.className).toContain('w-full')
     expect(back.className).toContain('h-12')
     expect(back.parentElement?.className).toContain('bottom-[calc(env(safe-area-inset-bottom)+12px)]')
@@ -44,7 +44,7 @@ describe('BarHandoff', () => {
     expect(onClose).toHaveBeenCalledTimes(1)
   })
 
-  it('places the code group at the optical centre between the header and Volver', () => {
+  it('places the code group at the optical centre between the header and Back', () => {
     renderHandoff()
     const group = screen.getByTestId('bar-handoff-group')
     expect(group.className).toContain('flex-1')
@@ -62,7 +62,7 @@ describe('BarHandoff', () => {
   it('without Wake Lock it does not promise the screen stays on', () => {
     renderHandoff()
     expect(screen.getByTestId('bar-handoff')).toHaveAttribute('data-wake-lock', 'unsupported')
-    expect(screen.queryByText(/no se apaga/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/screen stays on/)).not.toBeInTheDocument()
   })
 
   it('with Wake Lock it says the screen stays on', async () => {
@@ -73,6 +73,6 @@ describe('BarHandoff', () => {
     })
     renderHandoff()
     await act(async () => {})
-    expect(screen.getByText(/La pantalla no se apaga mientras esté abierta/)).toBeInTheDocument()
+    expect(screen.getByText(/screen stays on while this is open/)).toBeInTheDocument()
   })
 })

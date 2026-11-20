@@ -35,9 +35,9 @@ describe('hoursConfigured', () => {
 })
 
 describe('ShopStatusBadge', () => {
-  it('shows Abierto when the shop has set its hours', () => {
+  it('shows Open when the shop has set its hours', () => {
     render(<ShopStatusBadge ordering={ordering({ hours_configured: true })} />)
-    expect(screen.getByText('Abierto')).toBeInTheDocument()
+    expect(screen.getByText('Open')).toBeInTheDocument()
   })
 
   it('hides the open state when hours are not set', () => {
@@ -47,15 +47,15 @@ describe('ShopStatusBadge', () => {
 
   it('still says the shop is not taking orders when paused, even without hours', () => {
     render(<ShopStatusBadge ordering={ordering({ hours_configured: false, status: 'not_accepting', accepting_pickup: false })} />)
-    expect(screen.getByText('Sin pedidos')).toBeInTheDocument()
+    expect(screen.getByText('Not taking orders')).toBeInTheDocument()
   })
 })
 
 describe('ShopStatusBanner', () => {
   it('shows today and the week when hours are set', () => {
     render(<ShopStatusBanner ordering={ordering({ hours_configured: true })} hours={defaultHours} />)
-    expect(screen.getByText('Hoy de 07:00 a 20:00')).toBeInTheDocument()
-    expect(screen.getByText('Horario')).toBeInTheDocument()
+    expect(screen.getByText('Today 07:00 to 20:00')).toBeInTheDocument()
+    expect(screen.getByText('Hours')).toBeInTheDocument()
   })
 
   it('renders nothing when hours are not set and ordering is open', () => {
@@ -73,8 +73,8 @@ describe('ShopStatusBanner', () => {
         hours={defaultHours}
       />
     )
-    expect(screen.getByText('Ahora no preparamos pedidos al momento')).toBeInTheDocument()
-    expect(screen.getByText('Puedes programar tu recogida.')).toBeInTheDocument()
-    expect(screen.queryByText(/07:00|Horario|Cerrado/)).not.toBeInTheDocument()
+    expect(screen.getByText("We're not preparing on-demand orders right now")).toBeInTheDocument()
+    expect(screen.getByText('You can schedule your pickup.')).toBeInTheDocument()
+    expect(screen.queryByText(/07:00|Hours|Closed/)).not.toBeInTheDocument()
   })
 })

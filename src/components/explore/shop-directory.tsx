@@ -15,11 +15,11 @@ function formatDistance(km: number) {
 }
 
 function shopCountLabel(count: number) {
-  return count === 1 ? '1 cafetería' : `${count} cafeterías`
+  return count === 1 ? '1 coffee shop' : `${count} coffee shops`
 }
 
 /**
- * Inicio (mock 01): greeting, then "Cafeterías" with one card per shop. Each card
+ * Inicio (mock 01): greeting, then "Coffee shops" with one card per shop. Each card
  * leads to the shop's menu at /<slug>. With a single shop, a block explains that
  * more will come instead of leaving the screen empty.
  */
@@ -34,41 +34,41 @@ export function ShopDirectory({
   sort: 'name' | 'distance'
   /** H1, e.g. the greeting for the time of day. */
   title: string
-  /** Top-right of the header. Defaults to "Entrar". */
+  /** Top-right of the header. Defaults to "Log in". */
   headerAction?: ReactNode
-  /** Shown between the subtitle and "Cafeterías" (e.g. Lo de siempre). */
+  /** Shown between the subtitle and "Coffee shops" (e.g. Your usual). */
   children?: ReactNode
 }) {
   return (
     <main className="pb-tabs min-h-screen bg-background">
       <div className="mx-auto max-w-3xl px-5">
         <header className="flex h-14 items-center justify-between">
-          <Link href="/inicio" className="flex min-h-11 items-center" aria-label="Solo Café, inicio">
+          <Link href="/inicio" className="flex min-h-11 items-center" aria-label="Solo Café, home">
             <SoloCafeWordmark height={24} />
           </Link>
           {headerAction ?? (
             <Link href="/account/login" className="flex min-h-11 items-center px-1 text-body-sm font-semibold text-foreground">
-              Entrar
+              Log in
             </Link>
           )}
         </header>
 
         <h1 className="mt-4 text-h1 text-heading">{title}</h1>
-        <p className="mt-2 text-body text-muted-foreground">Pide desde aquí y recoge sin cola.</p>
+        <p className="mt-2 text-body text-muted-foreground">Order from here and pick up without the queue.</p>
         {sort === 'distance' && (
-          <p className="mt-1 text-body-sm text-muted-foreground">Ordenadas de la más cercana a la más lejana.</p>
+          <p className="mt-1 text-body-sm text-muted-foreground">Sorted from nearest to farthest.</p>
         )}
 
         {children}
 
-        <section className="mt-8" aria-labelledby="cafeterias">
+        <section className="mt-8" aria-labelledby="coffee-shops">
           <div className="flex items-baseline justify-between">
-            <h2 id="cafeterias" className="text-h2 text-heading">Cafeterías</h2>
+            <h2 id="coffee-shops" className="text-h2 text-heading">Coffee shops</h2>
             {shops.length > 0 && <span className="text-caption text-muted-foreground">{shopCountLabel(shops.length)}</span>}
           </div>
 
           {shops.length === 0 ? (
-            <ComingSoon className="mt-6" title="Aún no hay cafeterías en la red" text="Vuelve pronto para descubrir nuevas opciones." />
+            <ComingSoon className="mt-6" title="No coffee shops on the network yet" text="Come back soon to discover new options." />
           ) : (
             <ul className="mt-6 grid gap-6 md:grid-cols-2">
               {shops.map((shop) => (
@@ -82,8 +82,8 @@ export function ShopDirectory({
           {shops.length === 1 && (
             <ComingSoon
               className="mt-8"
-              title="Pronto, más cafeterías"
-              text="Cuando se unan cafeterías cerca de ti, aparecerán aquí."
+              title="More coffee shops coming soon"
+              text="When coffee shops near you join, they will appear here."
             />
           )}
         </section>
@@ -111,12 +111,12 @@ function ShopCard({ shop, showDistance }: { shop: DirectoryShop; showDistance: b
             )}
           </div>
           <span className="mt-1 inline-flex h-9 shrink-0 items-center rounded-full bg-pill px-4 text-body-sm font-semibold text-on-pill">
-            Ver carta
+            View menu
           </span>
         </div>
         <div className="mt-4 flex flex-wrap items-center gap-2">
           <span className="inline-flex h-7 items-center rounded-full bg-pill px-3 text-[13px] font-semibold leading-4 text-on-pill">
-            Para recoger
+            Pickup
           </span>
           {hoursConfigured(shop) && (
             <span
@@ -126,7 +126,7 @@ function ShopCard({ shop, showDistance }: { shop: DirectoryShop; showDistance: b
               ].join(' ')}
             >
               <span className="h-1.5 w-1.5 rounded-full bg-current" />
-              {shop.open_now ? 'Abierto' : 'Cerrado'}
+              {shop.open_now ? 'Open' : 'Closed'}
             </span>
           )}
           {showDistance && shop.distance_km != null && (
@@ -200,7 +200,7 @@ function ComingSoon({ title, text, className = '' }: { title: string; text: stri
           href="/"
           className="mt-3 inline-flex min-h-11 items-center text-body-sm font-semibold text-foreground underline underline-offset-[3px]"
         >
-          ¿Tienes una cafetería? Únete
+          Have a coffee shop? Join
         </Link>
       </div>
     </div>
