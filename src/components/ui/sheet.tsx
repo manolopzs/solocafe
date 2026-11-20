@@ -131,7 +131,7 @@ export function Sheet({ open, onClose, title, children, footer, position = 'bott
               type="button"
               onClick={onClose}
               className="-mr-0.5 flex h-11 w-11 items-center justify-center rounded-full"
-              aria-label="Cerrar"
+              aria-label="Close"
             >
               <span className="flex h-10 w-10 items-center justify-center rounded-full bg-pill text-foreground">
                 <X className="h-5 w-5" />

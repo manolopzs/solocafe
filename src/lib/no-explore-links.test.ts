@@ -12,11 +12,11 @@ function sourceFiles(dir: string): string[] {
   })
 }
 
-describe('Explorar is hidden', () => {
+describe('Explore is hidden', () => {
   // /explore still renders when opened directly, but nothing in the app points to it.
-  it('has no link or reference to /explore and no Explorar copy in the app', () => {
+  it('has no link or reference to /explore and no Explore copy in the app', () => {
     const offenders = sourceFiles(SRC)
-      .filter((file) => /['"`]\/explore\b|Explorar/.test(readFileSync(file, 'utf8')))
+      .filter((file) => /['"`]\/explore\b|\bExplore\b/.test(readFileSync(file, 'utf8')))
       .map((file) => relative(SRC, file))
     expect(offenders).toEqual([])
   })

@@ -18,28 +18,28 @@ export default function AccountSignupPage() {
   return (
     <main className="flex min-h-screen flex-col bg-background px-5 py-8">
       <div className="mx-auto flex w-full max-w-sm flex-1 flex-col">
-        <Link href={CUSTOMER_HOME_PATH} className="inline-flex min-h-11 items-center self-start" aria-label="Solo Café, inicio">
+        <Link href={CUSTOMER_HOME_PATH} className="inline-flex min-h-11 items-center self-start" aria-label="Solo Café, home">
           <SoloCafeWordmark height={24} />
         </Link>
 
-        <h1 className="mt-10 text-[2rem] font-medium leading-tight tracking-tight text-heading">Crea tu cuenta</h1>
-        <p className="mt-2 text-base leading-6 text-muted-foreground">Guarda tu historial y repite tus favoritos en segundos.</p>
+        <h1 className="mt-10 text-[2rem] font-medium leading-tight tracking-tight text-heading">Create your account</h1>
+        <p className="mt-2 text-base leading-6 text-muted-foreground">Save your history and reorder your favorites in seconds.</p>
 
         <form action={formAction} className="mt-8 space-y-4">
           <div>
-            <Label htmlFor="name">Nombre</Label>
-            <Input id="name" name="name" type="text" required autoComplete="name" placeholder="María González" className="mt-1.5" />
+            <Label htmlFor="name">Name</Label>
+            <Input id="name" name="name" type="text" required autoComplete="name" placeholder="Alex Smith" className="mt-1.5" />
           </div>
           <div>
-            <Label htmlFor="email">Correo electrónico</Label>
-            <Input id="email" name="email" type="email" required autoComplete="email" placeholder="tu@email.com" className="mt-1.5" />
+            <Label htmlFor="email">Email</Label>
+            <Input id="email" name="email" type="email" required autoComplete="email" placeholder="you@email.com" className="mt-1.5" />
           </div>
           <div>
-            <Label htmlFor="phone">Teléfono</Label>
-            <Input id="phone" name="phone" type="tel" autoComplete="tel" placeholder="Para avisarte cuando esté listo (+34)" className="mt-1.5" />
+            <Label htmlFor="phone">Phone</Label>
+            <Input id="phone" name="phone" type="tel" autoComplete="tel" placeholder="So we can tell you when it is ready (+34)" className="mt-1.5" />
           </div>
           <div>
-            <Label htmlFor="password">Contraseña</Label>
+            <Label htmlFor="password">Password</Label>
             <div className="relative mt-1.5">
               <Input
                 id="password"
@@ -48,14 +48,14 @@ export default function AccountSignupPage() {
                 required
                 minLength={8}
                 autoComplete="new-password"
-                placeholder="Mínimo 8 caracteres"
+                placeholder="Minimum 8 characters"
                 className="pr-12"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword((prev) => !prev)}
                 className="absolute right-1 top-1/2 inline-flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full text-muted-foreground hover:text-foreground"
-                aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
               >
                 <Icon name={showPassword ? 'eye-off' : 'eye'} className="h-4 w-4" />
               </button>
@@ -65,14 +65,14 @@ export default function AccountSignupPage() {
           {state?.error && <SignupError state={state} loginHref="/account/login" recoverHref="/auth/forgot-password" />}
 
           <Button type="submit" disabled={pending} size="lg" className="w-full">
-            {pending ? 'Creando cuenta...' : 'Crear cuenta gratis'}
+            {pending ? 'Creating account...' : 'Sign up free'}
           </Button>
         </form>
 
         <p className="mt-6 text-center text-sm text-muted-foreground">
-          ¿Ya tienes cuenta?{' '}
+          Already have an account?{' '}
           <Link href="/account/login" className="font-medium text-accent underline underline-offset-2">
-            Entrar
+            Log in
           </Link>
         </p>
       </div>

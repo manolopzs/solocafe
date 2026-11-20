@@ -21,18 +21,18 @@ class PasswordResetsController < ApplicationController
       PasswordResetMailer.with(user: user, token: token, url: url).reset_email.deliver_later
     end
 
-    render json: { message: "Si el correo existe, recibirás instrucciones para restablecer tu contraseña." }, status: :ok
+    render json: { message: "If that email exists, you will receive password reset instructions." }, status: :ok
   end
 
   def update
     user = User.find_by_token_for(:password_reset, params[:token].to_s)
 
     unless user
-      return render json: { error: "El enlace de restablecimiento no es válido o ha caducado." }, status: :unprocessable_entity
+      return render json: { error: "The reset link is invalid or has expired." }, status: :unprocessable_entity
     end
 
     if user.update(password: params[:password])
-      render json: { message: "Tu contraseña se ha actualizado correctamente.", account: user.owner? ? "owner" : "customer" }, status: :ok
+      render json: { message: "Your password has been updated.", account: user.owner? ? "owner" : "customer" }, status: :ok
     else
       render json: { errors: user.errors.full_messages }, status: :unprocessable_entity
     end

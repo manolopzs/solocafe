@@ -6,14 +6,14 @@ const id = '0b6f1c2a-1111-4222-8333-4f2a9c1b7e3d'
 
 test('md: tracker chip with the pickup eyebrow and no hint', () => {
   render(<PickupCode orderId={id} size="md" />)
-  expect(screen.getByText('Código de recogida')).toBeInTheDocument()
+  expect(screen.getByText('Pickup code')).toBeInTheDocument()
   expect(screen.getByTestId('pickup-code')).toHaveTextContent(/^7E3D$/)
-  expect(screen.queryByText('Dilo o enséñalo en la barra')).not.toBeInTheDocument()
+  expect(screen.queryByText('Say it or show this at the counter')).not.toBeInTheDocument()
 })
 
-test('lg: Listo card with the same code, its eyebrow and the hint', () => {
+test('lg: Ready card with the same code, its eyebrow and the hint', () => {
   render(<PickupCode orderId={id} size="lg" />)
-  expect(screen.getByText('Tu código')).toBeInTheDocument()
+  expect(screen.getByText('Your code')).toBeInTheDocument()
   expect(screen.getByTestId('ready-pickup-code')).toHaveTextContent(/^7E3D$/)
-  expect(screen.getByText('Dilo o enséñalo en la barra')).toBeInTheDocument()
+  expect(screen.getByText('Say it or show this at the counter')).toBeInTheDocument()
 })

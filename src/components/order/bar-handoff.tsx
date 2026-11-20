@@ -11,8 +11,8 @@ export interface BarHandoffItem {
 }
 
 /**
- * "Enséñalo en la barra" (mock b3): the pickup code at 108px with the customer's
- * name and items, readable from a metre away. Keeps the screen on with the Screen
+ * "Show this at the counter" (mock b3): the pickup code at 108px with the customer's
+ * name and items, readable from a meter away. Keeps the screen on with the Screen
  * Wake Lock when the browser allows it (a web page cannot raise the brightness).
  */
 export function BarHandoff({
@@ -43,14 +43,14 @@ export function BarHandoff({
   const summary = items.map((item) => `${item.quantity} × ${item.name}`).join(', ')
   const hint =
     wakeLock === 'active'
-      ? 'La pantalla no se apaga mientras esté abierta. Se lee a un metro.'
-      : 'Se lee a un metro. Si se apaga la pantalla, tócala para volver.'
+      ? 'The screen stays on while this is open. It is readable from a meter away.'
+      : 'It is readable from a meter away. If the screen goes off, tap it to wake.'
 
   return (
     <div
       role="dialog"
       aria-modal="true"
-      aria-label="Enséñalo en la barra"
+      aria-label="Show this at the counter"
       className="fixed inset-0 z-[60] overflow-y-auto bg-sky text-foreground motion-safe:animate-[fade-in_160ms_ease-out]"
       data-testid="bar-handoff"
       data-wake-lock={wakeLock}
@@ -60,10 +60,10 @@ export function BarHandoff({
           <span className="truncate">{shopName}</span>
         </div>
 
-        {/* Between the header and Volver, at the optical centre: one third of the free space above, two below. */}
+        {/* Between the header and Back, at the optical centre: one third of the free space above, two below. */}
         <div className="flex flex-1 flex-col" data-testid="bar-handoff-group">
           <span className="min-h-6 flex-1" aria-hidden="true" />
-          <p className="text-center text-eyebrow uppercase text-listo-muted">Enséñalo en la barra</p>
+          <p className="text-center text-eyebrow uppercase text-listo-muted">Show this at the counter</p>
           <div className="mt-3 rounded-code bg-sky-tint/70 px-6 pb-9 pt-8 text-center">
             <p
               className="text-[108px] font-semibold leading-none tracking-[-0.02em] tabular-nums text-foreground"
@@ -86,7 +86,7 @@ export function BarHandoff({
           onClick={onClose}
           className="mx-auto flex h-12 w-full max-w-xl items-center justify-center rounded-full border-[1.5px] border-foreground/28 bg-sky-tint/55 text-button text-foreground active:scale-[0.98]"
         >
-          Volver
+          Back
         </button>
       </div>
     </div>

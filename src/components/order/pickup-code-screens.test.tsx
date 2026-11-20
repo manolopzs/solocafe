@@ -34,7 +34,7 @@ const order = {
 describe('pickup code on the customer order screen', () => {
   it('shows the 4-character pickup code', () => {
     render(<OrderStatusClient initialOrder={order} />)
-    expect(screen.getByText('Código de recogida')).toBeInTheDocument()
+    expect(screen.getByText('Pickup code')).toBeInTheDocument()
     expect(screen.getByTestId('pickup-code')).toHaveTextContent(/^7E3D$/)
   })
 
@@ -44,7 +44,7 @@ describe('pickup code on the customer order screen', () => {
   })
 })
 
-describe('"Avísame" on the tracker', () => {
+describe('"Notify me" on the tracker', () => {
   const original = (globalThis as { Notification?: unknown }).Notification
   beforeEach(() => {
     ;(globalThis as { Notification?: unknown }).Notification = { permission: 'default' }
@@ -55,7 +55,7 @@ describe('"Avísame" on the tracker', () => {
 
   it('keeps the bell inline, left of the label', () => {
     render(<OrderStatusClient initialOrder={{ ...order, status: 'preparing' }} />)
-    const label = screen.getByText('Avísame cuando esté listo')
+    const label = screen.getByText("Notify me when it's ready")
     expect(label).toHaveClass('inline-flex', 'items-center', 'gap-2')
     expect(label.firstElementChild?.tagName.toLowerCase()).toBe('svg')
   })

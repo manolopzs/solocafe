@@ -8,10 +8,10 @@ describe('app identity', () => {
     expect(storefrontTitle(null)).toBe(SITE_NAME)
   })
 
-  it('ships a Spanish web manifest that opens the customer app with real icons', () => {
+  it('ships an English web manifest that opens the customer app with real icons', () => {
     const m = manifest()
     expect(m.name).toBe('Solo Café')
-    expect(m.lang).toBe('es-ES')
+    expect(m.lang).toBe('en-US')
     expect(m.start_url).toBe('/inicio')
     expect(m.display).toBe('standalone')
     expect(m.theme_color).toMatch(/^#[0-9a-f]{6}$/i)

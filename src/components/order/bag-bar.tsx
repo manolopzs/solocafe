@@ -1,7 +1,7 @@
 'use client'
 
 /**
- * "Ver pedido": 56 high, full pill, blue, 12 above the tab bar and 20 from the
+ * "View order": 56 high, full pill, blue, 12 above the tab bar and 20 from the
  * sides (foundation/SPEC.md section 2). It slides up in 240ms the first time and
  * the count badge pops (260ms) on every add.
  */
@@ -40,12 +40,12 @@ export function BagBar({
           >
             {count}
           </span>
-          Ver pedido
+          View order
         </span>
         <span className="flex flex-col items-end">
           <span className="text-base font-semibold leading-5 tabular-nums">{total}</span>
           {etaMinutes !== undefined && (
-            <span className="text-tab font-medium opacity-85">Listo en unos {etaMinutes} min</span>
+            <span className="text-tab font-medium opacity-85">Ready in about {etaMinutes} min</span>
           )}
         </span>
       </button>

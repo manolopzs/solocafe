@@ -12,7 +12,7 @@ describe('RememberGuestOrder', () => {
       currency: 'EUR',
       item_count: 1,
       created_at: '2026-11-16T12:00:00Z',
-      shop: { id: 's', name: 'Solo cafe', slug: 'main' },
+      shop: { id: 's', name: 'Solo cafe', slug: 'main', locale: 'es' },
     } as unknown as Order
     render(<RememberGuestOrder order={order} token="guest-token" />)
     const saved = JSON.parse(window.localStorage.getItem('solo-cafe.guest-orders') ?? '[]')

@@ -81,7 +81,7 @@ export function useCartPreview(
 
         const message = err instanceof Error ? err.message : ''
         setQuote(null)
-        setError(orderErrorCopy(message) || 'No pudimos revisar tu pedido. Toca para reintentar.')
+        setError(orderErrorCopy(message) || "We couldn't check your order. Tap to retry.")
       } finally {
         if (timeoutId) clearTimeout(timeoutId)
         if (!cancelled) setLoading(false)

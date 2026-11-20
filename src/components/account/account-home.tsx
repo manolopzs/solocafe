@@ -27,43 +27,43 @@ export function AccountHome({
       <div className="mx-auto max-w-xl px-5 pb-24 pt-5">
         <Link href={CUSTOMER_HOME_PATH} className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground">
           <Icon name="arrow-left" className="h-4 w-4" />
-          Inicio
+          Home
         </Link>
 
         <h1 className="mt-8 text-[2rem] font-medium leading-tight tracking-tight text-heading">
-          {firstName ? `Hola, ${firstName}` : 'Tu cuenta'}
+          {firstName ? `Hi, ${firstName}` : 'Your account'}
         </h1>
-        <p className="mt-2 text-base text-muted-foreground">{customer.email || 'Gestiona tu perfil y revisa tus pedidos.'}</p>
+        <p className="mt-2 text-base text-muted-foreground">{customer.email || 'Manage your profile and review your orders.'}</p>
 
         <section className="mt-8">
-          <h2 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">Perfil</h2>
+          <h2 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">Profile</h2>
           <form action={updateCustomerProfile} className="mt-4 space-y-4">
             <div>
-              <Label htmlFor="name">Nombre</Label>
-              <Input id="name" name="name" type="text" defaultValue={customer.name ?? ''} placeholder="¿Cómo te llamas?" className="mt-1.5" />
+              <Label htmlFor="name">Name</Label>
+              <Input id="name" name="name" type="text" defaultValue={customer.name ?? ''} placeholder="What is your name?" className="mt-1.5" />
             </div>
             <div>
-              <Label htmlFor="phone">Teléfono</Label>
+              <Label htmlFor="phone">Phone</Label>
               <Input
                 id="phone"
                 name="phone"
                 type="tel"
                 defaultValue={customer.phone ?? ''}
-                placeholder="Para avisarte cuando esté listo (+34)"
+                placeholder="So we can tell you when it is ready (+34)"
                 className="mt-1.5"
               />
             </div>
             <Button type="submit" className="w-full">
-              Guardar cambios
+              Save changes
             </Button>
           </form>
         </section>
 
         <section className="mt-10 space-y-3">
-          <h2 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">Tus sellos</h2>
+          <h2 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">Your stamps</h2>
           {loyaltyCards.length === 0 ? (
             <p className="text-sm leading-6 text-muted-foreground">
-              Cada pedido pagado suma un sello en esa cafetería. Cuando completes la tarjeta, puedes canjear un artículo gratis.
+              Every paid order earns a stamp at that coffee shop. When you fill the card, you can redeem a free item.
             </p>
           ) : (
             loyaltyCards.map((card) => <StampCard key={card.shop_id} loyalty={card} compact />)
@@ -71,10 +71,10 @@ export function AccountHome({
         </section>
 
         <section className="mt-10">
-          <h2 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">Tarjetas guardadas</h2>
+          <h2 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">Saved cards</h2>
           {savedCards.length === 0 ? (
             <p className="mt-3 text-sm leading-6 text-muted-foreground">
-              No tienes tarjetas guardadas. Puedes guardar una al pagar tu próximo pedido.
+              You have no saved cards. You can save one when you pay your next order.
             </p>
           ) : (
             <ul className="mt-3 divide-y divide-border border-y border-border">
@@ -89,7 +89,7 @@ export function AccountHome({
                     <form action={deleteSavedCard}>
                       <input type="hidden" name="id" value={card.id} />
                       <Button type="submit" variant="ghost" size="sm">
-                        Eliminar
+                        Remove
                       </Button>
                     </form>
                   </li>
@@ -105,8 +105,8 @@ export function AccountHome({
               <Icon name="receipt" className="h-5 w-5" />
             </span>
             <span className="min-w-0 flex-1">
-              <span className="block font-medium text-foreground">Historial</span>
-              <span className="block text-sm text-muted-foreground">Ver pedidos pasados</span>
+              <span className="block font-medium text-foreground">History</span>
+              <span className="block text-sm text-muted-foreground">View past orders</span>
             </span>
             <Icon name="chevron-right" className="h-5 w-5 text-muted-foreground" />
           </Link>
@@ -116,8 +116,8 @@ export function AccountHome({
                 <Icon name="x" className="h-5 w-5" />
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block font-medium text-foreground">Cerrar sesión</span>
-                <span className="block text-sm text-muted-foreground">Salir de tu cuenta</span>
+                <span className="block font-medium text-foreground">Log out</span>
+                <span className="block text-sm text-muted-foreground">Leave your account</span>
               </span>
             </button>
           </form>

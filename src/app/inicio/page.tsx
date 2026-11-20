@@ -12,7 +12,7 @@ import { getPublicShops, withMenuCutouts } from '@/server/queries/explore'
 export const instant = false
 
 export const metadata: Metadata = {
-  title: 'Inicio',
+  title: 'Home',
 }
 
 function firstName(name: string | null | undefined) {

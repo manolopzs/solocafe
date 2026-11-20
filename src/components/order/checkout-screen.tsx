@@ -43,12 +43,12 @@ export function CheckoutScreen({
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-success/15 text-success">
             <Icon name="check" className="h-8 w-8" />
           </div>
-          <h1 className="mt-5 text-3xl font-medium tracking-tight text-heading">Pedido pagado</h1>
+          <h1 className="mt-5 text-3xl font-medium tracking-tight text-heading">Order paid</h1>
           <p className="mt-2 text-base leading-6 text-muted-foreground">
-            Tu pedido ya fue pagado. Ve a la cafetería a recogerlo.
+            Your order is already paid. Head to the coffee shop to pick it up.
           </p>
           <Button asChild size="lg" className="mt-8 w-full">
-            <Link href={paidHref}>Ver tu pedido</Link>
+            <Link href={paidHref}>View your order</Link>
           </Button>
         </div>
       </main>
@@ -60,10 +60,10 @@ export function CheckoutScreen({
       <div className="mx-auto max-w-xl px-5 pb-24 pt-5 sm:pt-8">
         <Link href={backHref} className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground">
           <Icon name="arrow-left" className="h-4 w-4" />
-          Volver al menú
+          Back to menu
         </Link>
 
-        <p className="mt-8 text-sm text-muted-foreground">Pedido {orderCode}</p>
+        <p className="mt-8 text-sm text-muted-foreground">Order {orderCode}</p>
         <h1 className="mt-1 text-[2rem] font-medium leading-tight tracking-tight text-heading">{title}</h1>
         <p className="mt-2 flex items-center gap-1.5 text-sm text-muted-foreground">
           <Icon name="clock" className="h-4 w-4" />
@@ -91,13 +91,13 @@ export function CheckoutScreen({
           </div>
           {discount && (
             <div className="flex justify-between text-foreground">
-              <dt>Recompensa</dt>
+              <dt>Reward</dt>
               <dd className="tabular-nums">-{discount}</dd>
             </div>
           )}
           {tax && (
             <div className="flex justify-between text-muted-foreground">
-              <dt>Impuestos</dt>
+              <dt>Tax</dt>
               <dd className="tabular-nums">{tax}</dd>
             </div>
           )}
@@ -108,7 +108,7 @@ export function CheckoutScreen({
         </dl>
 
         <section className="mt-10">
-          <h2 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">Pago</h2>
+          <h2 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">Payment</h2>
           <div className="mt-4">{children}</div>
         </section>
       </div>

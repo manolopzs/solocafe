@@ -9,7 +9,7 @@ import type { Order, OrderItem, OrderItemModifier, OrderStatus } from '@/types'
 
 type ReadyOrder = Order & { items: (OrderItem & { modifiers: OrderItemModifier[] })[] }
 
-/** The order status page switches to the Listo takeover while the order is ready. */
+/** The order status page switches to the Ready takeover while the order is ready. */
 export function showsReadyScreen(status: OrderStatus): boolean {
   return status === 'ready'
 }
@@ -21,16 +21,8 @@ export function readyFirstName(customerName: string | null | undefined): string 
 }
 
 /**
- * DM Sans draws "¡" hanging below the baseline. Lift it so both marks sit on
- * the baseline like the letters. Measured at 3x: the glyph drops ~0.19em.
- */
-function OpeningMark() {
-  return <span className="relative -top-[0.19em]">¡</span>
-}
-
-/**
- * Full-screen "Listo" takeover for the order status page (mocks 06 and 07).
- * It sits above the customer tab bar (z-40), so the tab bar and "Avísame"
+ * Full-screen "Ready" takeover for the order status page (mocks 06 and 07).
+ * It sits above the customer tab bar (z-40), so the tab bar and "Notify me"
  * are out of the way once the order is ready.
  *
  * Stamps: the API awards one stamp when an order with a customer account is
@@ -57,37 +49,36 @@ export function OrderReadyScreen({ order, menuHref }: { order: ReadyOrder; menuH
         <div className="flex h-12 items-center justify-between text-body-sm font-semibold">
           <span className="truncate">{shopName}</span>
           <Link href={menuHref} className="-mr-1 inline-flex min-h-11 items-center px-1">
-            Cerrar
+            Close
           </Link>
         </div>
 
         <h1
           className="mt-10 break-words text-display text-foreground motion-safe:animate-[title-in_320ms_ease-out_80ms_both]"
         >
-          <OpeningMark />
-          {name ? `Listo, ${name}!` : 'Listo!'}
+          {name ? `Ready, ${name}!` : 'Ready!'}
         </h1>
-        <p className="mt-2 text-body-lg text-listo-muted">Tu pedido está listo. Pasa a recogerlo.</p>
+        <p className="mt-2 text-body-lg text-listo-muted">Your order is ready. Come pick it up.</p>
 
         <div className="mt-8 motion-safe:animate-[code-in_360ms_ease-out_160ms_both]">
           <button
             type="button"
             onClick={() => setShowAtBar(true)}
             className="block w-full rounded-code text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground active:scale-[0.99]"
-            aria-label="Enséñalo en la barra: ver el código a pantalla completa"
+            aria-label="Show this at the counter: view the code full screen"
             data-testid="open-bar-handoff"
           >
-            <PickupCode orderId={order.id} size="lg" hint="Dilo, o tócalo para enseñarlo en la barra" />
+            <PickupCode orderId={order.id} size="lg" hint="Say it, or tap to show this at the counter" />
           </button>
         </div>
 
         {signedIn ? (
           <section className="mt-3 rounded-code bg-listo-card px-5 pb-5 pt-5" data-testid="ready-stamp">
             <div className="flex items-baseline justify-between gap-3">
-              <p className="text-[22px] font-semibold leading-7 tracking-[-0.015em]">+1 sello</p>
+              <p className="text-[22px] font-semibold leading-7 tracking-[-0.015em]">+1 stamp</p>
               {loyalty && (
                 <p className="text-body-sm text-listo-muted">
-                  {filled} de {required}
+                  {filled} of {required}
                 </p>
               )}
             </div>
@@ -108,7 +99,7 @@ export function OrderReadyScreen({ order, menuHref }: { order: ReadyOrder; menuH
                 ))}
               </div>
             )}
-            {loyalty && shopName && <p className="mt-4 text-body-sm text-listo-muted">Tu tarjeta de {shopName}</p>}
+            {loyalty && shopName && <p className="mt-4 text-body-sm text-listo-muted">Your {shopName} stamp card</p>}
           </section>
         ) : (
           <section
@@ -116,16 +107,16 @@ export function OrderReadyScreen({ order, menuHref }: { order: ReadyOrder; menuH
             data-testid="ready-guest-invite"
           >
             <div className="min-w-0">
-              <p className="text-h3">Guarda tus sellos</p>
+              <p className="text-h3">Save your stamps</p>
               <p className="mt-1 max-w-[30ch] text-body-sm text-listo-muted [text-wrap:balance]">
-                Con una cuenta, cada pedido suma un sello.
+                With an account, every order earns a stamp.
               </p>
             </div>
             <Link
               href="/account/signup"
               className="inline-flex h-11 shrink-0 items-center justify-center rounded-full bg-foreground px-4 text-[15px] font-semibold text-background"
             >
-              Crear cuenta
+              Sign up
             </Link>
           </section>
         )}
@@ -148,7 +139,7 @@ export function OrderReadyScreen({ order, menuHref }: { order: ReadyOrder; menuH
             </ul>
             <div className="mt-2 flex items-baseline justify-between border-t border-foreground/10 pt-3">
               <span className="text-listo-muted">Total</span>
-              <span className="font-semibold tabular-nums">{formatMoney(order.total_cents, order.currency)}</span>
+              <span className="font-semibold tabular-nums">{formatMoney(order.total_cents, order.currency, order.shop?.locale)}</span>
             </div>
           </div>
         )}
@@ -162,7 +153,7 @@ export function OrderReadyScreen({ order, menuHref }: { order: ReadyOrder; menuH
           aria-expanded={showDetails}
           onClick={() => setShowDetails((open) => !open)}
         >
-          {showDetails ? 'Ocultar detalle del pedido' : 'Ver detalle del pedido'}
+          {showDetails ? 'Hide order details' : 'View order details'}
         </button>
       </div>
       {showAtBar && (

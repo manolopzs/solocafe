@@ -40,31 +40,31 @@ describe('BottomNav', () => {
     expect(nav).toBeInTheDocument()
   })
 
-  it('has three tabs, Inicio, Pedidos and Cuenta, and none links to /explore', () => {
+  it('has three tabs, Home, Orders and Account, and none links to /explore', () => {
     usePathname.mockReturnValue('/account')
     const { container } = render(<BottomNav />)
     const links = Array.from(container.querySelectorAll('a'))
-    expect(links.map((a) => a.textContent)).toEqual(['Inicio', 'Pedidos', 'Cuenta'])
-    expect(container).not.toHaveTextContent('Explorar')
+    expect(links.map((a) => a.textContent)).toEqual(['Home', 'Orders', 'Account'])
+    expect(container).not.toHaveTextContent('Explore')
     expect(links.map((a) => a.getAttribute('href'))).not.toContain('/explore')
   })
 })
 
 const inicioHref = (container: HTMLElement) =>
-  Array.from(container.querySelectorAll('a')).find((a) => a.textContent === 'Inicio')?.getAttribute('href')
+  Array.from(container.querySelectorAll('a')).find((a) => a.textContent === 'Home')?.getAttribute('href')
 
-describe('BottomNav Inicio', () => {
+describe('BottomNav Home', () => {
   it('opens /inicio when no shop has been visited, never the owner landing', () => {
     usePathname.mockReturnValue('/account')
     const { container } = render(<BottomNav />)
     expect(inicioHref(container)).toBe('/inicio')
   })
 
-  it('marks only Inicio active on /inicio', () => {
+  it('marks only Home active on /inicio', () => {
     usePathname.mockReturnValue('/inicio')
     const { container } = render(<BottomNav />)
     const active = Array.from(container.querySelectorAll('a[aria-current="page"]')).map((a) => a.textContent)
-    expect(active).toEqual(['Inicio'])
+    expect(active).toEqual(['Home'])
   })
 
   it('always opens /inicio, even after visiting a shop', () => {
@@ -73,11 +73,11 @@ describe('BottomNav Inicio', () => {
     expect(inicioHref(container)).toBe('/inicio')
   })
 
-  it('marks Inicio active on a storefront', () => {
+  it('marks Home active on a storefront', () => {
     usePathname.mockReturnValue('/main')
     const { container } = render(<BottomNav />)
     const active = Array.from(container.querySelectorAll('a[aria-current="page"]')).map((a) => a.textContent)
-    expect(active).toEqual(['Inicio'])
+    expect(active).toEqual(['Home'])
   })
 
   it('marks no tab active on /explore, which nothing links to', () => {
@@ -86,32 +86,32 @@ describe('BottomNav Inicio', () => {
     expect(container.querySelectorAll('a[aria-current="page"]')).toHaveLength(0)
   })
 
-  it('marks only Pedidos active on /account/orders', () => {
+  it('marks only Orders active on /account/orders', () => {
     usePathname.mockReturnValue('/account/orders')
     const { container } = render(<BottomNav />)
     const active = Array.from(container.querySelectorAll('a[aria-current="page"]')).map((a) => a.textContent)
-    expect(active).toEqual(['Pedidos'])
+    expect(active).toEqual(['Orders'])
   })
 })
 
 describe('BottomNav look', () => {
-  it('uses the euro receipt for Pedidos and a heavier stroke on the active tab', () => {
+  it('uses the euro receipt for Orders and a heavier stroke on the active tab', () => {
     usePathname.mockReturnValue('/account/orders')
     const { container } = render(<BottomNav />)
-    const pedidos = Array.from(container.querySelectorAll('a')).find((a) => a.textContent === 'Pedidos')!
-    expect(pedidos.querySelector('svg')?.getAttribute('class')).toMatch(/lucide-receipt-euro/)
-    expect(pedidos.querySelector('svg')?.getAttribute('stroke-width')).toBe('2.25')
-    const cuenta = Array.from(container.querySelectorAll('a')).find((a) => a.textContent === 'Cuenta')!
-    expect(cuenta.querySelector('svg')?.getAttribute('stroke-width')).toBe('1.75')
+    const orders = Array.from(container.querySelectorAll('a')).find((a) => a.textContent === 'Orders')!
+    expect(orders.querySelector('svg')?.getAttribute('class')).toMatch(/lucide-receipt-euro/)
+    expect(orders.querySelector('svg')?.getAttribute('stroke-width')).toBe('2.25')
+    const account = Array.from(container.querySelectorAll('a')).find((a) => a.textContent === 'Account')!
+    expect(account.querySelector('svg')?.getAttribute('stroke-width')).toBe('1.75')
   })
 })
 
-describe('BottomNav Pedidos', () => {
-  it('lights Pedidos on an order tracker', () => {
+describe('BottomNav Orders', () => {
+  it('lights Orders on an order tracker', () => {
     usePathname.mockReturnValue('/order/abc')
     const { container } = render(<BottomNav />)
     const active = Array.from(container.querySelectorAll('a[aria-current="page"]')).map((a) => a.textContent)
-    expect(active).toEqual(['Pedidos'])
+    expect(active).toEqual(['Orders'])
   })
 })
 

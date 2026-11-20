@@ -39,7 +39,7 @@ module Api
     config.api_only = true
 
     config.time_zone = "Europe/Madrid"
-    config.i18n.default_locale = :es
+    config.i18n.default_locale = :en
     config.i18n.available_locales = %i[es en]
 
     config.active_job.queue_adapter = :solid_queue

@@ -10,12 +10,12 @@ import type { Order } from '@/types'
 import { customerReorderHref } from '@/lib/guest-orders'
 
 const statusLabels: Record<string, string> = {
-  pending_payment: 'Pendiente de pago',
-  received: 'Recibido',
-  preparing: 'Preparando',
-  ready: 'Listo',
-  picked_up: 'Entregado',
-  cancelled: 'Cancelado',
+  pending_payment: 'Payment pending',
+  received: 'Received',
+  preparing: 'Preparing',
+  ready: 'Ready',
+  picked_up: 'Picked up',
+  cancelled: 'Cancelled',
 }
 
 const statusVariant: Record<string, 'default' | 'secondary' | 'success' | 'danger' | 'warning'> = {
@@ -28,7 +28,7 @@ const statusVariant: Record<string, 'default' | 'secondary' | 'success' | 'dange
 }
 
 function orderDate(date: string) {
-  return new Date(date).toLocaleDateString('es-ES', {
+  return new Date(date).toLocaleDateString('en-GB', {
     day: 'numeric',
     month: 'short',
     year: 'numeric',
@@ -42,21 +42,21 @@ export function OrdersList({ orders }: { orders: Order[] }) {
       <div className="mx-auto max-w-xl px-5 pb-24 pt-5">
         <Link href="/account" className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground">
           <Icon name="arrow-left" className="h-4 w-4" />
-          Tu cuenta
+          Your account
         </Link>
 
-        <h1 className="mt-8 text-[2rem] font-medium leading-tight tracking-tight text-heading">Tus pedidos</h1>
-        <p className="mt-2 text-base text-muted-foreground">Historial de pedidos en cafeterías que usan Solo Café.</p>
+        <h1 className="mt-8 text-[2rem] font-medium leading-tight tracking-tight text-heading">Your orders</h1>
+        <p className="mt-2 text-base text-muted-foreground">Order history at coffee shops that use Solo Café.</p>
 
         <div className="mt-8 space-y-3">
           {orders.length === 0 ? (
             <EmptyState
               icon={<Icon name="receipt" className="h-6 w-6" />}
-              title="Aún no tienes pedidos"
-              description="Cuando hagas tu primer pedido, aparecerá aquí."
+              title="You don't have any orders yet"
+              description="When you place your first order, it will appear here."
               action={
                 <Button asChild>
-                  <Link href={CUSTOMER_HOME_PATH}>Hacer un pedido</Link>
+                  <Link href={CUSTOMER_HOME_PATH}>Place an order</Link>
                 </Button>
               }
             />
@@ -78,7 +78,7 @@ function OrderCard({ order }: { order: Order }) {
         <div className="flex items-start justify-between gap-3">
           <div>
             <p className="text-xs text-muted-foreground">{orderDate(order.created_at)}</p>
-            <p className="mt-0.5 font-medium text-foreground">Pedido #{order.id.slice(-6).toUpperCase()}</p>
+            <p className="mt-0.5 font-medium text-foreground">Order #{order.id.slice(-6).toUpperCase()}</p>
           </div>
           <Badge variant={statusVariant[order.status] ?? 'secondary'}>{statusLabels[order.status] ?? order.status}</Badge>
         </div>
@@ -92,10 +92,10 @@ function OrderCard({ order }: { order: Order }) {
         </ul>
 
         <div className="mt-4 flex items-center justify-between border-t border-border pt-3">
-          <span className="font-medium tabular-nums text-foreground">{formatMoney(order.total_cents, order.currency)}</span>
+          <span className="font-medium tabular-nums text-foreground">{formatMoney(order.total_cents, order.currency, order.shop?.locale)}</span>
           {reorderHref && (
             <Button asChild variant="outline" size="sm">
-              <Link href={reorderHref}>Repetir pedido</Link>
+              <Link href={reorderHref}>Reorder</Link>
             </Button>
           )}
         </div>

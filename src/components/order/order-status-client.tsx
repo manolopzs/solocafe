@@ -13,9 +13,9 @@ import { Icon } from '@/components/ui/icon'
 import type { Order, OrderItem, OrderItemModifier, OrderStatus } from '@/types'
 
 const statusLabels: Record<'received' | 'preparing' | 'ready', string> = {
-  received: 'Recibido',
-  preparing: 'Preparando',
-  ready: 'Listo',
+  received: 'Received',
+  preparing: 'Preparing',
+  ready: 'Ready',
 }
 
 const statusSteps: Array<'received' | 'preparing' | 'ready'> = ['received', 'preparing', 'ready']
@@ -96,8 +96,8 @@ export function OrderStatusClient({
       previousStatusRef.current !== 'ready' &&
       order.status === 'ready'
     ) {
-      new Notification('Tu pedido está listo', {
-        body: 'Pasa a recogerlo.',
+      new Notification('Your order is ready', {
+        body: 'Come pick it up.',
       })
     }
     previousStatusRef.current = order.status
@@ -156,7 +156,7 @@ export function OrderStatusClient({
       <div className="pb-tabs mx-auto max-w-xl px-5 pt-1">
         <Link href={menuHref} className="-ml-1 inline-flex min-h-12 items-center gap-2 px-1 text-body-sm font-medium text-foreground">
           <Icon name="arrow-left" className="h-[18px] w-[18px]" />
-          Volver al menú
+          Back to menu
         </Link>
 
         {shopName && (
@@ -167,8 +167,8 @@ export function OrderStatusClient({
             {shopName}
           </p>
         )}
-        <h1 className="mt-3 text-h1s text-heading">{confirmingPayment ? 'Confirmando tu pago' : headline(order.status)}</h1>
-        <p className="mt-2 text-body text-muted-foreground">{confirmingPayment ? 'Tarda unos segundos. Esta página se actualiza sola.' : subhead(order.status)}</p>
+        <h1 className="mt-3 text-h1s text-heading">{confirmingPayment ? 'Confirming your payment' : headline(order.status)}</h1>
+        <p className="mt-2 text-body text-muted-foreground">{confirmingPayment ? 'It takes a few seconds. This page updates on its own.' : subhead(order.status)}</p>
 
         <PickupCode orderId={order.id} size="md" className="mt-6" />
 
@@ -177,7 +177,7 @@ export function OrderStatusClient({
             {showSteps && (
               <>
                 <div className="flex items-baseline justify-between gap-3">
-                  <p className="text-eyebrow uppercase text-on-pill">Estado</p>
+                  <p className="text-eyebrow uppercase text-on-pill">Status</p>
                   {etaMinutes != null && <p className="text-caption text-muted-foreground">~{etaMinutes} min</p>}
                 </div>
                 <p className="mt-2 text-h3 text-foreground">{statusLabels[statusSteps[Math.max(0, progressIndex)]]}</p>
@@ -205,22 +205,22 @@ export function OrderStatusClient({
                 <div className="mb-4 mt-5 h-px bg-border" />
               </>
             )}
-            <p className="text-eyebrow uppercase text-on-pill">Recoger en</p>
+            <p className="text-eyebrow uppercase text-on-pill">Pick up at</p>
             {shopName && <p className="mt-2 text-h3 text-foreground">{shopName}</p>}
             {order.shop?.address && <p className="mt-0.5 text-body-sm text-muted-foreground">{order.shop.address}</p>}
             {windowLabel && <p className="mt-2 text-body-sm font-semibold text-foreground">{windowLabel}</p>}
             <p className="mt-3 flex items-center gap-2 text-body-sm text-foreground">
               <Icon name="store" className="h-4 w-4 shrink-0" />
-              Pasa a la barra y di tu código.
+              Come to the counter and say your code.
             </p>
             <p className="sr-only">
-              {itemCount} {itemCount === 1 ? 'producto' : 'productos'}
+              {itemCount} {itemCount === 1 ? 'item' : 'items'}
             </p>
             {order.shop?.directions_url && (
               <Button asChild variant="outline" className="mt-4 w-full">
                 <a href={order.shop.directions_url} target="_blank" rel="noreferrer">
                   <Icon name="map-pin" className="mr-2 h-4 w-4" />
-                  Cómo llegar
+                  Directions
                 </a>
               </Button>
             )}
@@ -231,14 +231,14 @@ export function OrderStatusClient({
           <div className="mt-4">
             <StampCard loyalty={order.loyalty} />
             {order.loyalty_redeemed && (
-              <p className="mt-2 text-sm text-muted-foreground">Has canjeado tu recompensa en este pedido.</p>
+              <p className="mt-2 text-sm text-muted-foreground">You redeemed your reward on this order.</p>
             )}
           </div>
         )}
 
         {order.status === 'pending_payment' && !confirmingPayment && accessToken && (
           <Button asChild size="lg" className="mt-6 w-full">
-            <Link href={`/checkout/${order.id}?token=${encodeURIComponent(accessToken)}`}>Completar pago</Link>
+            <Link href={`/checkout/${order.id}?token=${encodeURIComponent(accessToken)}`}>Complete payment</Link>
           </Button>
         )}
 
@@ -246,13 +246,13 @@ export function OrderStatusClient({
           <Button variant="outline" className="mt-3 w-full border-[1.5px]" onClick={() => void requestNotification()}>
             <span className="inline-flex items-center gap-2">
               <Icon name="bell" className="h-[18px] w-[18px]" />
-              Avísame cuando esté listo
+              Notify me when it&apos;s ready
             </span>
           </Button>
         )}
 
         <section className="mt-8">
-          <h2 className="text-eyebrow uppercase text-on-pill">Tu pedido</h2>
+          <h2 className="text-eyebrow uppercase text-on-pill">Your order</h2>
           <ul className="mt-3 divide-y divide-border border-y border-border">
             {order.items.map((item) => (
               <li key={item.id} className="py-3.5">
@@ -270,13 +270,13 @@ export function OrderStatusClient({
           <div className="mt-4 space-y-2 text-sm">
             {(order.discount_cents ?? 0) > 0 && (
               <div className="flex justify-between text-foreground">
-                <span>Recompensa</span>
-                <span className="tabular-nums">-{formatMoney(order.discount_cents ?? 0, order.currency)}</span>
+                <span>Reward</span>
+                <span className="tabular-nums">-{formatMoney(order.discount_cents ?? 0, order.currency, order.shop?.locale)}</span>
               </div>
             )}
             <div className="flex items-baseline justify-between">
               <span className="text-muted-foreground">Total</span>
-              <span className="text-xl font-medium tabular-nums text-foreground">{formatMoney(order.total_cents, order.currency)}</span>
+              <span className="text-xl font-medium tabular-nums text-foreground">{formatMoney(order.total_cents, order.currency, order.shop?.locale)}</span>
             </div>
           </div>
         </section>
@@ -288,32 +288,32 @@ export function OrderStatusClient({
 function headline(status: OrderStatus) {
   switch (status) {
     case 'pending_payment':
-      return 'Pago pendiente'
+      return 'Payment pending'
     case 'ready':
-      return 'Tu pedido está listo'
+      return 'Your order is ready'
     case 'picked_up':
-      return 'Pedido entregado'
+      return 'Order picked up'
     case 'cancelled':
-      return 'Pedido cancelado'
+      return 'Order cancelled'
     case 'received':
-      return 'Hemos recibido tu pedido'
+      return 'We have received your order'
     default:
-      return 'Estamos preparando tu pedido'
+      return 'We are preparing your order'
   }
 }
 
 function subhead(status: OrderStatus) {
   switch (status) {
     case 'pending_payment':
-      return 'Completa el pago para que la cocina reciba tu pedido.'
+      return 'Complete the payment so the kitchen receives your order.'
     case 'ready':
-      return 'Pasa a recogerlo.'
+      return 'Come pick it up.'
     case 'picked_up':
-      return 'Gracias por tu visita.'
+      return 'Thanks for visiting.'
     case 'cancelled':
-      return 'Este pedido fue cancelado.'
+      return 'This order was cancelled.'
     default:
-      return 'Te avisamos en esta página cuando esté listo.'
+      return 'We will update this page when it is ready.'
   }
 }
 

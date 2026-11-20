@@ -10,13 +10,13 @@ import { lastGuestOrder, type LastOrder } from '@/lib/last-order'
 import { formatMoney } from '@/lib/ordering'
 
 /**
- * "Lo de siempre" on Inicio (mock b4): the last real order with one espresso button
- * that refills the bag through the existing "Repetir" link. Renders nothing without one.
+ * "Your usual" on Inicio (mock b4): the last real order with one espresso button
+ * that refills the bag through the existing "Reorder" link. Renders nothing without one.
  */
 export function LoDeSiempre({ order }: { order: LastOrder | null }) {
   if (!order) return null
-  const price = formatMoney(order.totalCents, order.currency)
-  const meta = order.etaMinutes ? `${price} · listo en ~${order.etaMinutes} min` : price
+  const price = formatMoney(order.totalCents, order.currency, order.locale)
+  const meta = order.etaMinutes ? `${price} · ready in ~${order.etaMinutes} min` : price
 
   return (
     <section className="mt-6" aria-labelledby="lo-de-siempre" data-testid="lo-de-siempre">
@@ -30,7 +30,7 @@ export function LoDeSiempre({ order }: { order: LastOrder | null }) {
         </div>
         <div className="min-w-0">
           <p id="lo-de-siempre" className="truncate text-caption text-muted-foreground">
-            Lo de siempre{order.shopName ? ` · ${order.shopName}` : ''}
+            Your usual{order.shopName ? ` · ${order.shopName}` : ''}
           </p>
           <p className="mt-0.5 truncate text-product text-foreground">{order.itemsSummary}</p>
           <p className="mt-0.5 text-body-sm text-muted-foreground tabular-nums">{meta}</p>
@@ -39,14 +39,14 @@ export function LoDeSiempre({ order }: { order: LastOrder | null }) {
       <Button asChild variant="espresso" size="lg" className="mt-3 w-full text-button">
         <Link href={order.reorderHref}>
           <Icon name="repeat" className="h-5 w-5" />
-          Pedir otra vez · {price}
+          Order again · {price}
         </Link>
       </Button>
     </section>
   )
 }
 
-/** Guest version: reads the orders this phone placed (localStorage), same list as Pedidos. */
+/** Guest version: reads the orders this phone placed (localStorage), same list as Orders. */
 export function GuestLoDeSiempre() {
   const orders = useSyncExternalStore(subscribeGuestOrders, getGuestOrdersSnapshot, () => EMPTY_GUEST_ORDERS)
   return <LoDeSiempre order={lastGuestOrder(orders)} />

@@ -21,27 +21,27 @@ describe('SignupError', () => {
   ])('shows login and recovery links for a duplicate email (%s)', (_flow, loginHref) => {
     render(
       <SignupError
-        state={{ error: 'Ya existe una cuenta con este email.', code: 'email_taken' }}
+        state={{ error: 'An account with this email already exists.', code: 'email_taken' }}
         loginHref={loginHref}
         recoverHref="/auth/forgot-password"
       />,
     )
 
-    expect(screen.getByRole('alert')).toHaveTextContent('Ya existe una cuenta con este email.')
-    expect(screen.getByRole('link', { name: 'Entrar' })).toHaveAttribute('href', loginHref)
-    expect(screen.getByRole('link', { name: 'Recuperar contraseña' })).toHaveAttribute('href', '/auth/forgot-password')
+    expect(screen.getByRole('alert')).toHaveTextContent('An account with this email already exists.')
+    expect(screen.getByRole('link', { name: 'Log in' })).toHaveAttribute('href', loginHref)
+    expect(screen.getByRole('link', { name: 'Recover password' })).toHaveAttribute('href', '/auth/forgot-password')
   })
 
   it('shows only the message for other errors', () => {
     render(
       <SignupError
-        state={{ error: 'No hemos podido completar el registro. Inténtalo de nuevo.' }}
+        state={{ error: "We couldn't complete your sign up. Please try again." }}
         loginHref="/auth/login"
         recoverHref="/auth/forgot-password"
       />,
     )
 
-    expect(screen.getByRole('alert')).toHaveTextContent('No hemos podido completar el registro. Inténtalo de nuevo.')
+    expect(screen.getByRole('alert')).toHaveTextContent("We couldn't complete your sign up. Please try again.")
     expect(screen.queryByRole('link')).toBeNull()
   })
 })

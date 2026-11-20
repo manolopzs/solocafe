@@ -34,6 +34,7 @@ const saved = (
   status,
   totalCents: 400,
   currency: 'EUR',
+  locale: 'es',
   itemCount: 2,
   createdAt,
   ...extra,
@@ -48,17 +49,17 @@ describe('GuestOrders', () => {
     refreshGuestOrderStatuses.mockResolvedValue([])
   })
 
-  it('shows an empty state that leads to Inicio, not a login wall', () => {
+  it('shows an empty state that leads to Home, not a login wall', () => {
     renderGuestOrders()
-    expect(screen.getByText('Aún no tienes pedidos')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Hacer un pedido' })).toHaveAttribute('href', '/inicio')
-    expect(screen.queryByText('Tu pedido en curso')).not.toBeInTheDocument()
+    expect(screen.getByText("You don't have any orders yet")).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Place an order' })).toHaveAttribute('href', '/inicio')
+    expect(screen.queryByText('Your order in progress')).not.toBeInTheDocument()
     expect(refreshGuestOrderStatuses).not.toHaveBeenCalled()
   })
 
   it('shows the order in progress with its pickup code and tracker link, plus past orders to repeat', async () => {
     rememberGuestOrder(
-      saved('22222222-2222-4222-8222-2222222222aa', '2026-11-15T09:00:00Z', 'picked_up', 'Otra cafetería', {
+      saved('22222222-2222-4222-8222-2222222222aa', '2026-11-15T09:00:00Z', 'picked_up', 'Another coffee shop', {
         shopSlug: 'otra',
         itemsSummary: '2 × Cortado',
       }),
@@ -67,23 +68,23 @@ describe('GuestOrders', () => {
     renderGuestOrders()
     await act(async () => {})
 
-    expect(screen.getByRole('heading', { level: 1, name: 'Pedidos' })).toBeInTheDocument()
-    expect(screen.getByText('Tu pedido en curso')).toBeInTheDocument()
-    expect(screen.getByText('Preparando')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 1, name: 'Orders' })).toBeInTheDocument()
+    expect(screen.getByText('Your order in progress')).toBeInTheDocument()
+    expect(screen.getByText('Preparing')).toBeInTheDocument()
     expect(screen.getByText('11BC')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Ver seguimiento' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'View tracking' })).toHaveAttribute(
       'href',
       '/order/11111111-1111-4111-8111-1111111111bc?token=tok-11111111-1111-4111-8111-1111111111bc',
     )
-    expect(screen.getByText('Anteriores')).toBeInTheDocument()
+    expect(screen.getByText('Past')).toBeInTheDocument()
     expect(screen.getByText(/2 × Cortado/)).toBeInTheDocument()
-    expect(screen.getByText(/Otra cafetería · .* · Recogido/)).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /^Repetir/ })).toHaveAttribute(
+    expect(screen.getByText(/Another coffee shop · .* · Picked up/)).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /^Reorder/ })).toHaveAttribute(
       'href',
       '/otra?reorder=22222222-2222-4222-8222-2222222222aa&token=tok-22222222-2222-4222-8222-2222222222aa',
     )
     expect(screen.getAllByText('4,00 €').length).toBeGreaterThan(0)
-    expect(screen.getByRole('link', { name: 'Crea una cuenta' })).toHaveAttribute('href', '/account/signup')
+    expect(screen.getByRole('link', { name: 'Sign up' })).toHaveAttribute('href', '/account/signup')
     expect(refreshGuestOrderStatuses).toHaveBeenCalledWith([
       { id: '11111111-1111-4111-8111-1111111111bc', token: 'tok-11111111-1111-4111-8111-1111111111bc' },
     ])
@@ -94,9 +95,9 @@ describe('GuestOrders', () => {
     renderGuestOrders()
     await act(async () => {})
 
-    expect(screen.queryByText('Tu pedido en curso')).not.toBeInTheDocument()
-    expect(screen.getAllByText(/Recogido/)).toHaveLength(2)
-    expect(screen.getAllByRole('link', { name: /^Repetir/ })).toHaveLength(2)
+    expect(screen.queryByText('Your order in progress')).not.toBeInTheDocument()
+    expect(screen.getAllByText(/Picked up/)).toHaveLength(2)
+    expect(screen.getAllByRole('link', { name: /^Reorder/ })).toHaveLength(2)
     expect(window.localStorage.getItem('solo-cafe.guest-orders')).not.toContain('"preparing"')
   })
 })

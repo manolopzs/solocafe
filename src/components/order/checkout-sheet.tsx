@@ -75,7 +75,7 @@ export function CheckoutSheet({
   const [localError, setLocalError] = useState<string | null>(null)
   const [savingPhone, setSavingPhone] = useState(false)
 
-  const displayName = customer?.name?.trim() || customer?.email || 'tu cuenta'
+  const displayName = customer?.name?.trim() || customer?.email || 'your account'
   const needsPhone = isSignedIn && !customer?.phone && !customerPhone.trim()
   const asapBlocked = shop.ordering?.asap_available === false
   const testMode = isTestStripeKey()
@@ -95,25 +95,25 @@ export function CheckoutSheet({
 
     if (!isSignedIn || editingIdentity) {
       if (!name) {
-        setLocalError('Introduce tu nombre para continuar')
+        setLocalError('Enter your name to continue')
         return
       }
     }
 
     if (!isSignedIn) {
       if (!phone && !email) {
-        setLocalError('Introduce un teléfono o un correo de contacto')
+        setLocalError('Enter a phone number or contact email')
         return
       }
     } else if (needsPhone) {
       if (!phone) {
-        setLocalError('Añade tu teléfono para avisarte cuando esté listo')
+        setLocalError('Add your phone so we can tell you when it is ready')
         return
       }
     }
 
     if (!validateEmail(email)) {
-      setLocalError('El correo no es válido')
+      setLocalError('The email is not valid')
       return
     }
 
@@ -126,7 +126,7 @@ export function CheckoutSheet({
         await updateCustomerProfile(formData)
       } catch (err) {
         setSavingPhone(false)
-        setLocalError(err instanceof Error ? err.message : 'No pudimos guardar tu teléfono')
+        setLocalError(err instanceof Error ? err.message : "We couldn't save your phone")
         return
       }
       setSavingPhone(false)
@@ -156,14 +156,14 @@ export function CheckoutSheet({
     <Sheet
       open={open}
       onClose={onClose}
-      title="Tu pedido"
+      title="Your order"
       position="bottom"
       className="!bg-background sm:left-1/2 sm:right-auto sm:top-auto sm:w-full sm:max-w-[480px] sm:-translate-x-1/2"
       footer={
         <div className="space-y-3">
           {testMode && (
             <p className="rounded-2xl bg-surface px-4 py-3 text-sm leading-5 text-foreground">
-              Pago de prueba con tarjeta. No se hace ningún cargo real.
+              Test card payment. No real charge is made.
             </p>
           )}
           {(localError || error || previewError) && (
@@ -179,7 +179,7 @@ export function CheckoutSheet({
               onClick={onRefreshPreview}
               className="w-full"
             >
-              Reintentar
+              Retry
             </Button>
           )}
           {lines.length > 0 && (
@@ -196,7 +196,7 @@ export function CheckoutSheet({
             size="lg"
             className="w-full touch-manipulation"
           >
-            Pagar {total}
+            Pay {total}
           </Button>
         </div>
       }
@@ -204,16 +204,16 @@ export function CheckoutSheet({
       <div className="space-y-3">
         {!isSignedIn && (
           <div className="rounded-[16px] bg-sky-tint px-4 py-3 text-body-sm text-foreground">
-            ¿Quieres pedir más rápido la próxima vez?{' '}
+            Want to order faster next time?{' '}
             <Link href="/account/signup" className="font-semibold text-foreground underline underline-offset-2">
-              Crea una cuenta
+              Sign up
             </Link>
           </div>
         )}
 
         {lines.length === 0 ? (
           <p className="py-8 text-center text-sm text-muted-foreground">
-            Tu pedido está vacío. Añade algo del menú.
+            Your order is empty. Add something from the menu.
           </p>
         ) : (
           <ul className="space-y-3">
@@ -227,7 +227,7 @@ export function CheckoutSheet({
                   {line.detail && <p className="truncate text-body-sm text-muted-foreground">{line.detail}</p>}
                   {line.unavailable && (
                     <span className="mt-1 inline-flex rounded-full bg-danger/10 px-2.5 py-1 text-xs font-medium text-danger">
-                      Ya no disponible
+                      No longer available
                     </span>
                   )}
                   <p className="mt-0.5 text-price tabular-nums text-muted-foreground">{line.lineTotal}</p>
@@ -236,7 +236,7 @@ export function CheckoutSheet({
                   value={line.quantity}
                   onDecrease={() => onQuantity(index, line.quantity - 1)}
                   onIncrease={() => onQuantity(index, line.quantity + 1)}
-                  removeAtOne={{ label: `Eliminar ${line.name}`, onRemove: () => onRemove(index) }}
+                  removeAtOne={{ label: `Remove ${line.name}`, onRemove: () => onRemove(index) }}
                 />
               </li>
             ))}
@@ -248,9 +248,9 @@ export function CheckoutSheet({
             <Icon name="clock" className="h-[18px] w-[18px]" />
           </span>
           <div>
-            <p className="text-caption text-muted-foreground">Recogida</p>
+            <p className="text-caption text-muted-foreground">Pickup</p>
             <p className="text-body-sm font-semibold text-foreground">
-              Lo antes posible
+              As soon as possible
               {etaMinutes !== undefined && etaMinutes > 0 && ` · ~${etaMinutes} min`}
             </p>
           </div>
@@ -260,27 +260,27 @@ export function CheckoutSheet({
           {isSignedIn && !editingIdentity ? (
             <>
               <p className="rounded-2xl bg-surface px-4 py-3.5 text-sm text-foreground">
-                Pedido para <span className="font-medium">{displayName}</span>
+                Order for <span className="font-medium">{displayName}</span>
                 {' · '}
                 <button
                   type="button"
                   onClick={() => setEditingIdentity(true)}
                   className="font-medium text-accent underline underline-offset-2"
                 >
-                  cambiar
+                  change
                 </button>
               </p>
               {needsPhone && (
                 <div>
                   <label htmlFor="customerPhone" className="block text-body-sm font-semibold text-foreground">
-                    Teléfono <span className="text-muted-foreground">*</span>
+                    Phone <span className="text-muted-foreground">*</span>
                   </label>
                   <Input
                     id="customerPhone"
                     type="tel"
                     value={customerPhone}
                     onChange={(event) => setCustomerPhone(event.target.value)}
-                    placeholder="Para avisarte cuando esté listo (+34)"
+                    placeholder="So we can tell you when it is ready (+34)"
                     className="mt-1.5"
                   />
                 </div>
@@ -290,27 +290,27 @@ export function CheckoutSheet({
             <>
               <div>
                 <label htmlFor="customerName" className="block text-body-sm font-semibold text-foreground">
-                  Nombre
+                  Name
                 </label>
                 <Input
                   id="customerName"
                   type="text"
                   value={customerName}
                   onChange={(event) => setCustomerName(event.target.value)}
-                  placeholder="¿Cómo te llamas?"
+                  placeholder="What is your name?"
                   className="mt-1.5"
                 />
               </div>
               <div>
                 <label htmlFor="customerPhone" className="block text-body-sm font-semibold text-foreground">
-                  Teléfono
+                  Phone
                 </label>
                 <Input
                   id="customerPhone"
                   type="tel"
                   value={customerPhone}
                   onChange={(event) => setCustomerPhone(event.target.value)}
-                  placeholder="Para avisarte cuando esté listo (+34)"
+                  placeholder="So we can tell you when it is ready (+34)"
                   className="mt-1.5"
                 />
               </div>
@@ -320,7 +320,7 @@ export function CheckoutSheet({
           {(!isSignedIn || editingIdentity) && (
             <div>
               <label htmlFor="customerEmail" className="block text-body-sm font-semibold text-foreground">
-                Correo para el recibo
+                Receipt email
               </label>
               <Input
                 id="customerEmail"
@@ -329,7 +329,7 @@ export function CheckoutSheet({
                 autoComplete="email"
                 value={customerEmail}
                 onChange={(event) => setCustomerEmail(event.target.value)}
-                placeholder="Opcional"
+                placeholder="Optional"
                 className="mt-1.5"
               />
             </div>
@@ -346,7 +346,7 @@ export function CheckoutSheet({
               }}
               className="text-sm font-medium text-accent underline underline-offset-2"
             >
-              Usar datos guardados
+              Use saved details
             </button>
           )}
         </div>
@@ -360,8 +360,8 @@ export function CheckoutSheet({
               className="mt-0.5 h-5 w-5 rounded border-border accent-[var(--primary)]"
             />
             <span>
-              <span className="block font-semibold text-foreground">Canjear recompensa</span>
-              <span className="block text-muted-foreground">{rewardText}. El descuento se calcula al crear el pedido.</span>
+              <span className="block font-semibold text-foreground">Redeem reward</span>
+              <span className="block text-muted-foreground">{rewardText}. The discount is calculated when the order is created.</span>
             </span>
           </label>
         )}

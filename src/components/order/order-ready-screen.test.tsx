@@ -43,36 +43,36 @@ function readyOrder(overrides: Partial<Order> = {}) {
   } as unknown as Order & { items: [] }
 }
 
-describe('Listo screen on the order status page', () => {
+describe('Ready screen on the order status page', () => {
   it('greets the customer by first name and shows the big pickup code', () => {
     render(<OrderStatusClient initialOrder={readyOrder()} />)
     expect(screen.getByTestId('order-ready-screen')).toHaveClass('bg-listo-bg')
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(/^¡Listo, Ana!$/)
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(/^Ready, Ana!$/)
     expect(screen.getByTestId('ready-pickup-code')).toHaveTextContent(/^C0DE$/)
-    expect(screen.getByText('Dilo, o tócalo para enseñarlo en la barra')).toBeInTheDocument()
+    expect(screen.getByText('Say it, or tap to show this at the counter')).toBeInTheDocument()
   })
 
   it('sets the heading in sentence case, without the all-caps transform', () => {
     render(<OrderStatusClient initialOrder={readyOrder({ customer_name: 'Lucía Pérez' })} />)
     const heading = screen.getByRole('heading', { level: 1 })
-    expect(heading).toHaveTextContent(/^¡Listo, Lucía!$/)
+    expect(heading).toHaveTextContent(/^Ready, Lucía!$/)
     expect(heading).not.toHaveClass('uppercase')
     expect(heading).toHaveClass('text-display')
   })
 
-  it('falls back to "¡Listo!" without a name', () => {
+  it('falls back to "Ready!" without a name', () => {
     render(<OrderStatusClient initialOrder={readyOrder({ customer_name: '  ' })} />)
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(/^¡Listo!$/)
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(/^Ready!$/)
   })
 
-  it('hides "Avísame" and sits above the tab bar once ready', () => {
+  it('hides "Notify me" and sits above the tab bar once ready', () => {
     render(<OrderStatusClient initialOrder={readyOrder()} />)
-    expect(screen.queryByText('Avísame cuando esté listo')).not.toBeInTheDocument()
+    expect(screen.queryByText('Notify me when it is ready')).not.toBeInTheDocument()
     // The customer tab bar is fixed at z-40; the takeover covers it.
     expect(screen.getByTestId('order-ready-screen')).toHaveClass('fixed', 'inset-0', 'z-50')
   })
 
-  it('shows a single "+1 sello" with the real card count for signed-in customers', () => {
+  it('shows a single "+1 stamp" with the real card count for signed-in customers', () => {
     render(
       <OrderStatusClient
         initialOrder={readyOrder({
@@ -81,8 +81,8 @@ describe('Listo screen on the order status page', () => {
         })}
       />
     )
-    expect(screen.getAllByText('+1 sello')).toHaveLength(1)
-    expect(screen.getByText('6 de 8')).toBeInTheDocument()
+    expect(screen.getAllByText('+1 stamp')).toHaveLength(1)
+    expect(screen.getByText('6 of 8')).toBeInTheDocument()
     expect(screen.getByTestId('ready-stamp').querySelectorAll('[data-new="true"]')).toHaveLength(1)
     expect(screen.getByTestId('ready-stamp').innerHTML).not.toMatch(/scale-125/)
     expect(screen.queryByTestId('ready-guest-invite')).not.toBeInTheDocument()
@@ -90,25 +90,25 @@ describe('Listo screen on the order status page', () => {
 
   it('invites guests to create an account instead of promising a stamp', () => {
     render(<OrderStatusClient initialOrder={readyOrder()} />)
-    expect(screen.queryByText('+1 sello')).not.toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Crear cuenta' })).toHaveAttribute('href', '/account/signup')
+    expect(screen.queryByText('+1 stamp')).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Sign up' })).toHaveAttribute('href', '/account/signup')
   })
 
   it('shows the order detail on demand', () => {
     render(<OrderStatusClient initialOrder={readyOrder()} />)
     expect(screen.queryByText('1 × Cortado')).not.toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: 'Ver detalle del pedido' }))
+    fireEvent.click(screen.getByRole('button', { name: 'View order details' }))
     expect(screen.getByText('1 × Cortado')).toBeInTheDocument()
     expect(screen.getByText('Leche de avena')).toBeInTheDocument()
   })
 
-  it('opens the full-screen code for the bar when the code is tapped, and Volver closes it', () => {
+  it('opens the full-screen code for the bar when the code is tapped, and Back closes it', () => {
     render(<OrderStatusClient initialOrder={readyOrder()} />)
     expect(screen.queryByTestId('bar-handoff')).not.toBeInTheDocument()
     fireEvent.click(screen.getByTestId('open-bar-handoff'))
     expect(screen.getByTestId('bar-handoff')).toBeInTheDocument()
     expect(screen.getByTestId('bar-pickup-code')).toHaveTextContent(screen.getByTestId('ready-pickup-code').textContent ?? '')
-    fireEvent.click(screen.getByRole('button', { name: 'Volver' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Back' }))
     expect(screen.queryByTestId('bar-handoff')).not.toBeInTheDocument()
   })
 

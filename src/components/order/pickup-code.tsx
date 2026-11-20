@@ -4,13 +4,13 @@ import { pickupCode } from '@/lib/pickup-code'
  * The one pickup-code component (foundation/SPEC.md section 9). Same digits,
  * tracking and eyebrow in both sizes:
  * - md (tracker): left-aligned sky chip, 64 high, code at 48/48.
- * - lg (Listo): centred in a sky-tint card (radius 28), code at 88/88 with a hint.
+ * - lg (Ready): centred in a sky-tint card (radius 28), code at 88/88 with a hint.
  */
 export function PickupCode({
   orderId,
   size,
-  eyebrow = size === 'lg' ? 'Tu código' : 'Código de recogida',
-  hint = size === 'lg' ? 'Dilo o enséñalo en la barra' : undefined,
+  eyebrow = size === 'lg' ? 'Your code' : 'Pickup code',
+  hint = size === 'lg' ? 'Say it or show this at the counter' : undefined,
   className = '',
 }: {
   orderId: string
