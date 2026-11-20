@@ -45,7 +45,7 @@ export function FAQ() {
         <div className="landing-faq mt-12 space-y-4">
           {faqs.map((faq, index) => (
             <Reveal key={faq.question} delay={(index % 3) + 1 as 1 | 2 | 3}>
-              <details className="group rounded-2xl border border-border bg-surface-elevated">
+              <details className="landing-faq-item group rounded-2xl border border-border bg-surface-elevated">
                 <summary className="flex cursor-pointer items-center justify-between p-5">
                   <span className="pr-4 text-base font-semibold text-foreground">{faq.question}</span>
                   <Icon

@@ -13,15 +13,15 @@ export function ProductCards() {
   return (
     <section className="relative z-10 -mt-20 px-6 sm:-mt-28">
       <div className="mx-auto max-w-5xl">
-        <div className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-4 pt-2 no-scrollbar sm:grid sm:grid-cols-3 sm:overflow-visible">
+        <div className="flex flex-col gap-3 sm:grid sm:grid-cols-3 sm:gap-4">
           {products.map((product) => (
             <Link
               key={product.name}
               href="/inicio"
-              className="w-[72%] shrink-0 snap-center sm:w-auto"
+              className="w-full"
             >
-              <Card className="landing-card-lift flex h-full items-center gap-4 overflow-hidden bg-surface-elevated p-4">
-                <div className="relative h-20 w-20 shrink-0">
+              <Card className="landing-card-lift flex h-full items-center gap-4 overflow-hidden bg-surface-elevated p-3 sm:p-4">
+                <div className="relative h-14 w-14 shrink-0 sm:h-20 sm:w-20">
                   <Image
                     src={product.image}
                     alt={product.name}

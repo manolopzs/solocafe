@@ -1,8 +1,8 @@
 import Link from 'next/link'
-import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Icon } from '@/components/ui/icon'
 import { Reveal } from './reveal'
+import { KdsTablet } from './kds-tablet'
 
 const benefits = [
   'Orders arrive on the bar screen in real time',
@@ -17,15 +17,7 @@ export function ForCafes() {
       <div className="mx-auto max-w-6xl">
         <div className="grid items-center gap-12 lg:grid-cols-2">
           <Reveal className="order-2">
-            <div className="relative mx-auto aspect-[4/5] max-h-[560px] w-full max-w-md overflow-hidden rounded-card lg:max-w-none">
-              <Image
-                src="/landing/barista.jpg"
-                alt="Barista holding a takeaway cup"
-                fill
-                sizes="(max-width: 1024px) 448px, 50vw"
-                className="object-cover object-top"
-              />
-            </div>
+            <KdsTablet />
           </Reveal>
           <div className="order-1">
             <Reveal>

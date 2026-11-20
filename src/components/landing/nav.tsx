@@ -2,10 +2,10 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { SoloCafeWordmark } from '@/components/brand/solo-cafe-logo'
 import { MobileNav } from './mobile-nav'
+import { Magnetic } from './magnetic'
 
 const links = [
   { href: '#how-it-works', label: 'How it works' },
-  { href: '#for-cafes', label: 'For cafes' },
   { href: '#pricing', label: 'Pricing' },
   { href: '#faq', label: 'FAQ' },
 ]
@@ -34,19 +34,13 @@ export function FloatingNav() {
             size="sm"
             className="whitespace-nowrap text-muted-foreground hover:text-foreground max-lg:hidden"
           >
-            <Link href="/auth/login">I run a cafe</Link>
-          </Button>
-          <Button
-            asChild
-            variant="ghost"
-            size="sm"
-            className="whitespace-nowrap text-muted-foreground hover:text-foreground max-lg:hidden"
-          >
             <Link href="/account/login">Customer sign in</Link>
           </Button>
-          <Button asChild variant="espresso" size="sm" className="whitespace-nowrap">
-            <Link href="/auth/signup">Start free</Link>
-          </Button>
+          <Magnetic>
+            <Button asChild variant="espresso" size="sm" className="whitespace-nowrap">
+              <Link href="#for-cafes">For cafes</Link>
+            </Button>
+          </Magnetic>
           <MobileNav />
         </div>
       </div>

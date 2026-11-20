@@ -8,7 +8,6 @@ import { Icon } from '@/components/ui/icon'
 
 const links = [
   { href: '#how-it-works', label: 'How it works' },
-  { href: '#for-cafes', label: 'For cafes' },
   { href: '#pricing', label: 'Pricing' },
   { href: '#faq', label: 'FAQ' },
 ]
@@ -40,19 +39,14 @@ export function MobileNav() {
             </Link>
           ))}
           <hr className="my-2 border-border" />
-          <Button asChild variant="ghost" className="justify-start">
-            <Link href="/auth/login" onClick={() => setOpen(false)}>
-              I run a cafe
-            </Link>
-          </Button>
           <Button asChild variant="outline" className="justify-start">
             <Link href="/account/login" onClick={() => setOpen(false)}>
               Customer sign in
             </Link>
           </Button>
-          <Button asChild className="justify-start">
-            <Link href="/auth/signup" onClick={() => setOpen(false)}>
-              Start free
+          <Button asChild variant="espresso" className="justify-start">
+            <Link href="#for-cafes" onClick={() => setOpen(false)}>
+              For cafes
             </Link>
           </Button>
         </nav>

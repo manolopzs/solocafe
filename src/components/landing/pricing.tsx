@@ -1,5 +1,3 @@
-import Link from 'next/link'
-import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { env } from '@/lib/env'
 import { formatMoney } from '@/lib/ordering'
@@ -59,7 +57,7 @@ export async function Pricing() {
   const pricing = await loadPublicPricing()
 
   return (
-    <section id="pricing" className="scroll-mt-24 bg-foreground px-6 py-20 text-background sm:py-28">
+    <section id="pricing" className="landing-grain relative scroll-mt-24 bg-foreground px-6 py-20 text-background sm:py-28">
       <div className="mx-auto max-w-5xl">
         <div className="text-center">
           <h2 className="landing-font-display text-3xl font-normal tracking-tight text-background sm:text-4xl">Pricing</h2>
@@ -77,18 +75,10 @@ function PricingSection({ pricing }: { pricing: PublicPricing | null }) {
   if (!hasCommercialPrice(pricing)) {
     return (
       <Card className="mx-auto mt-14 max-w-xl p-8 text-center">
-        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Pricing in euros</p>
-        <h3 className="mt-3 text-3xl font-semibold text-foreground">Free during the pilot</h3>
-        <ul className="mt-6 space-y-2 text-sm text-foreground">
-          <li>Monthly fee: {formatMoney(0)}</li>
-          <li>Commission per order: {formatMoney(0)}</li>
-        </ul>
+        <h3 className="text-3xl font-semibold text-foreground">Free during the pilot</h3>
         <p className="mt-4 text-sm text-muted-foreground">
           The pilot on the IE campus is free. When we set a price, you will see it here in euros before it applies.
         </p>
-        <Button asChild variant="espresso" className="mt-6">
-          <Link href="/auth/signup">Start free</Link>
-        </Button>
       </Card>
     )
   }
@@ -109,9 +99,6 @@ function PricingSection({ pricing }: { pricing: PublicPricing | null }) {
               <li>{tier.included_orders} orders included</li>
               <li>{formatMoney(tier.overage_per_order_cents)} per extra order</li>
             </ul>
-            <Button asChild variant="espresso" className="mt-6 w-full">
-              <Link href="/auth/signup">Start free</Link>
-            </Button>
           </Card>
         ))}
       </div>

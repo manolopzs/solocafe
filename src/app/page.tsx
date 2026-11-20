@@ -1,4 +1,4 @@
-import { outfit } from '@/components/landing/fonts'
+import { outfit, fraunces } from '@/components/landing/fonts'
 import { FloatingNav } from '@/components/landing/nav'
 import { Hero } from '@/components/landing/hero'
 import { ProductCards } from '@/components/landing/product-cards'
@@ -14,7 +14,7 @@ export default function Home() {
   return (
     <main
       lang="en"
-      className={`${outfit.variable} flex flex-1 flex-col`}
+      className={`${outfit.variable} ${fraunces.variable} flex flex-1 flex-col`}
       data-hide-bottom-nav
     >
       <FloatingNav />

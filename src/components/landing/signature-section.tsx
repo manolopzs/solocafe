@@ -1,69 +1,218 @@
 'use client'
 
-import { useState } from 'react'
-import { Reveal } from './reveal'
-import { PhoneMock, type PhoneState } from './phone-mock'
+import { useEffect, useRef, useState } from 'react'
+import { PhoneFrame } from './device-frame'
+import { ReceivedScreen, PreparingScreen, ReadyScreen, PickedUpScreen } from './phone-screens'
+import { useReducedMotion } from './use-reduced-motion'
 
-const states: { key: PhoneState; label: string }[] = [
-  { key: 'order', label: 'Ordered' },
-  { key: 'preparing', label: 'Preparing' },
-  { key: 'ready', label: 'Ready' },
-  { key: 'picked-up', label: 'Picked up' },
-]
+const steps = [
+  {
+    key: 'received',
+    label: 'Ordered',
+    title: 'Order sent',
+    description: 'The cafe has your order and a pickup time is reserved for you.',
+  },
+  {
+    key: 'preparing',
+    label: 'Preparing',
+    title: 'Preparing',
+    description: 'The barista starts making it and the progress bar keeps you updated.',
+  },
+  {
+    key: 'ready',
+    label: 'Ready',
+    title: 'Ready',
+    description: 'Your pickup code appears. Show it at the counter and pay there.',
+  },
+  {
+    key: 'picked-up',
+    label: 'Picked up',
+    title: 'Picked up',
+    description: 'Grab your coffee and skip the queue. Ordering again is one tap away.',
+  },
+] as const
+
+type StepKey = (typeof steps)[number]['key']
 
 export function SignatureSection() {
-  const [current, setCurrent] = useState<PhoneState>('order')
+  const reduced = useReducedMotion()
+  const [active, setActive] = useState<StepKey>('received')
+  const sectionRef = useRef<HTMLElement>(null)
+  const stepRefs = useRef<Record<StepKey, HTMLButtonElement | null>>({
+    received: null,
+    preparing: null,
+    ready: null,
+    'picked-up': null,
+  })
+
+  // Picks the step crossing a thin line: the viewport centre on desktop, the area below the sticky phone on mobile.
+  // Runs under reduced motion too; only the transitions are dropped there.
+  useEffect(() => {
+    const section = sectionRef.current
+    if (!section) return
+
+    const observers: IntersectionObserver[] = []
+
+    steps.forEach((step) => {
+      const el = stepRefs.current[step.key]
+      if (!el) return
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting) {
+            setActive(step.key)
+          }
+        },
+        {
+          threshold: 0,
+          rootMargin: window.matchMedia('(min-width: 1024px)').matches
+            ? '-49% 0px -49% 0px'
+            : '-70% 0px -28% 0px',
+        }
+      )
+      observer.observe(el)
+      observers.push(observer)
+    })
+
+    return () => observers.forEach((o) => o.disconnect())
+  }, [])
+
+  const scrollToStep = (key: StepKey) => {
+    const el = stepRefs.current[key]
+    if (el) {
+      el.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'center' })
+      setActive(key)
+    }
+  }
+
+  const activeIndex = steps.findIndex((s) => s.key === active)
 
   return (
-    <section className="bg-foreground px-6 py-20 text-background sm:py-28">
+    <section
+      ref={sectionRef}
+      className="landing-grain relative bg-foreground px-6 py-20 text-background sm:py-28"
+    >
       <div className="mx-auto max-w-6xl">
-        <div className="grid items-center gap-12 lg:grid-cols-2">
-          <div>
-            <Reveal>
-              <p className="text-sm font-semibold uppercase tracking-wider text-background/60">Tap through an order</p>
-              <h2 className="mt-3 landing-font-display text-3xl font-normal tracking-tight text-background sm:text-4xl">
-                From ordered to picked up
-              </h2>
-              <p className="mt-4 max-w-md text-lg text-background/70">
-                A simplified preview of what a customer sees after ordering. Tap a step to see the screen.
-              </p>
-            </Reveal>
-            <Reveal delay={1}>
-              <div
-                role="tablist"
-                aria-label="Order states"
-                className="mt-8 flex flex-wrap gap-2"
-              >
-                {states.map((state) => (
-                  <button
-                    key={state.key}
-                    role="tab"
-                    type="button"
-                    aria-selected={current === state.key}
-                    aria-controls="phone-panel"
-                    onClick={() => setCurrent(state.key)}
-                    className={[
-                      'rounded-full px-4 py-2 text-sm font-medium transition-colors',
-                      current === state.key
-                        ? 'bg-background text-foreground'
-                        : 'bg-background/10 text-background/80 hover:bg-background/20 hover:text-background',
-                    ].join(' ')}
-                  >
-                    {state.label}
-                  </button>
-                ))}
-              </div>
-            </Reveal>
-          </div>
-          <Reveal delay={1}>
-            <div className="flex justify-center lg:justify-end">
-              <div id="phone-panel" role="tabpanel" aria-live="polite">
-                <PhoneMock mode="controlled" state={current} />
+        <div className="grid gap-12 lg:grid-cols-2 lg:gap-16">
+          <div className="lg:order-1 lg:py-8">
+            <p className="text-sm font-semibold uppercase tracking-wider text-background/60">
+              Follow an order
+            </p>
+            <h2 className="mt-3 landing-font-display text-3xl font-normal tracking-tight text-background sm:text-4xl">
+              From ordered to picked up
+            </h2>
+            <p className="mt-4 max-w-md text-lg text-background/70">
+              A preview of what a customer sees after ordering. Scroll to walk through each step.
+            </p>
+            <div className="sticky top-20 z-10 -mx-6 mt-8 flex h-[350px] justify-center overflow-hidden bg-foreground pt-4 lg:hidden">
+              <div className="origin-top scale-[0.7]">
+                <PhoneStage active={active} activeIndex={activeIndex} reduced={reduced} />
               </div>
             </div>
-          </Reveal>
+            <div className="mt-4 space-y-0 lg:mt-14">
+              {steps.map((step, index) => {
+                const isActive = step.key === active
+                return (
+                  <button
+                    key={step.key}
+                    ref={(el) => {
+                      stepRefs.current[step.key] = el
+                    }}
+                    type="button"
+                    onClick={() => scrollToStep(step.key)}
+                    className={`group flex min-h-[50vh] w-full items-center gap-5 py-8 text-left transition-opacity duration-300 lg:h-[70vh] lg:min-h-0 lg:py-0 ${
+                      isActive ? 'opacity-100' : 'opacity-40'
+                    }`}
+                  >
+                    <span
+                      className={`landing-font-display text-2xl font-light transition-colors duration-300 ${
+                        isActive ? 'text-background' : 'text-background/40'
+                      }`}
+                    >
+                      0{index + 1}
+                    </span>
+                    <div>
+                      <h3
+                        className={`text-xl font-semibold transition-colors duration-300 ${
+                          isActive ? 'text-background' : 'text-background/60'
+                        }`}
+                      >
+                        {step.title}
+                      </h3>
+                      <p className="mt-1 max-w-sm text-base text-background/70">
+                        {step.description}
+                      </p>
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
+          <div className="hidden lg:order-2 lg:block">
+            <div className="sticky top-28 flex h-[calc(100vh-14rem)] min-h-[640px] items-center justify-center">
+              <PhoneStage active={active} activeIndex={activeIndex} reduced={reduced} />
+            </div>
+          </div>
         </div>
       </div>
+
     </section>
   )
+}
+
+function PhoneStage({
+  active,
+  activeIndex,
+  reduced,
+}: {
+  active: StepKey
+  activeIndex: number
+  reduced: boolean
+}) {
+  return (
+    <div className="relative rotate-[-8deg]">
+      {steps.map((step, index) => {
+        const isActive = step.key === active
+        const isPrev = index < activeIndex
+        return (
+          <div
+            key={step.key}
+            className={`${index === 0 ? 'relative' : 'absolute inset-0'} ${
+              reduced ? '' : 'transition-[opacity,transform] duration-500 ease-out'
+            } ${
+              isActive
+                ? 'opacity-100 translate-x-0'
+                : isPrev
+                  ? 'pointer-events-none opacity-0 -translate-x-4'
+                  : 'pointer-events-none opacity-0 translate-x-4'
+            }`}
+            aria-hidden={!isActive}
+          >
+            <PhoneFrame>
+              <StepScreen step={step.key} />
+            </PhoneFrame>
+          </div>
+        )
+      })}
+      {!reduced && (
+        <div
+          className="pointer-events-none absolute -inset-8 -z-10 hidden rounded-full bg-[radial-gradient(circle_at_center,var(--surface-elevated)_0%,transparent_70%)] opacity-30 blur-2xl lg:block"
+          aria-hidden="true"
+        />
+      )}
+    </div>
+  )
+}
+
+function StepScreen({ step }: { step: StepKey }) {
+  switch (step) {
+    case 'received':
+      return <ReceivedScreen />
+    case 'preparing':
+      return <PreparingScreen />
+    case 'ready':
+      return <ReadyScreen animateCode />
+    case 'picked-up':
+      return <PickedUpScreen />
+  }
 }
