@@ -37,19 +37,19 @@ beforeEach(() => window.localStorage.clear())
 
 test('shows the + disc until the item is in the bag', () => {
   card({ onQuickAdd: () => {}, onDecrement: () => {} })
-  expect(screen.getByRole('button', { name: 'Añadir Café con leche' })).toBeInTheDocument()
-  expect(screen.queryByRole('group', { name: 'Cantidad de Café con leche' })).not.toBeInTheDocument()
+  expect(screen.getByRole('button', { name: 'Add Café con leche' })).toBeInTheDocument()
+  expect(screen.queryByRole('group', { name: 'Quantity of Café con leche' })).not.toBeInTheDocument()
 })
 
 test('shows a stepper with the bag quantity and keeps the full price visible', () => {
   const onQuickAdd = jest.fn()
   const onDecrement = jest.fn()
   card({ quantity: 2, onQuickAdd, onDecrement })
-  const group = screen.getByRole('group', { name: 'Cantidad de Café con leche' })
+  const group = screen.getByRole('group', { name: 'Quantity of Café con leche' })
   expect(group).toHaveTextContent('2')
   expect(screen.getByText('3,00 €').textContent).toBe('3,00 €')
-  fireEvent.click(screen.getByRole('button', { name: 'Añadir Café con leche' }))
-  fireEvent.click(screen.getByRole('button', { name: 'Quitar Café con leche' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Add Café con leche' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Remove Café con leche' }))
   expect(onQuickAdd).toHaveBeenCalledTimes(1)
   expect(onDecrement).toHaveBeenCalledTimes(1)
 })
@@ -57,31 +57,31 @@ test('shows a stepper with the bag quantity and keeps the full price visible', (
 test('items with options have no quick-add and keep opening the item sheet', () => {
   const onClick = jest.fn()
   card({ customizable: true, quantity: 1, onQuickAdd: () => {}, onDecrement: () => {}, onClick })
-  expect(screen.queryByRole('button', { name: /^Añadir/ })).not.toBeInTheDocument()
+  expect(screen.queryByRole('button', { name: /^Add/ })).not.toBeInTheDocument()
   fireEvent.click(screen.getByRole('button', { name: 'Café con leche' }))
   expect(onClick).toHaveBeenCalledTimes(1)
 })
 
 test('add, increment and decrement to zero follow the real bag', () => {
   render(<CardWithBag shopId="stepper-shop" />)
-  act(() => fireEvent.click(screen.getByRole('button', { name: 'Añadir Café con leche' })))
+  act(() => fireEvent.click(screen.getByRole('button', { name: 'Add Café con leche' })))
   expect(screen.getByTestId('quick-add-quantity')).toHaveTextContent('1')
 
-  act(() => fireEvent.click(screen.getByRole('button', { name: 'Añadir Café con leche' })))
+  act(() => fireEvent.click(screen.getByRole('button', { name: 'Add Café con leche' })))
   expect(screen.getByTestId('quick-add-quantity')).toHaveTextContent('2')
 
-  act(() => fireEvent.click(screen.getByRole('button', { name: 'Quitar Café con leche' })))
+  act(() => fireEvent.click(screen.getByRole('button', { name: 'Remove Café con leche' })))
   expect(screen.getByTestId('quick-add-quantity')).toHaveTextContent('1')
 
-  act(() => fireEvent.click(screen.getByRole('button', { name: 'Quitar Café con leche' })))
+  act(() => fireEvent.click(screen.getByRole('button', { name: 'Remove Café con leche' })))
   expect(screen.queryByTestId('quick-add-quantity')).not.toBeInTheDocument()
-  expect(screen.getByRole('button', { name: 'Añadir Café con leche' })).toBeInTheDocument()
+  expect(screen.getByRole('button', { name: 'Add Café con leche' })).toBeInTheDocument()
   expect(JSON.parse(window.localStorage.getItem('solocafe.cart.stepper-shop') ?? '{}').lines).toEqual([])
 })
 
 test('the bag bar slides up once and its badge pops on every add', () => {
   const { rerender } = render(<BagBar count={1} total="3,00 €" onOpen={() => {}} />)
-  const bar = () => screen.getByRole('button', { name: /Ver pedido/ })
+  const bar = () => screen.getByRole('button', { name: /View order/ })
   const badge = () => screen.getByText('1', { selector: 'span' })
   expect(bar().className).toMatch(/animate-bar-in/)
   expect(badge().className).not.toMatch(/animate-badge-pop/)

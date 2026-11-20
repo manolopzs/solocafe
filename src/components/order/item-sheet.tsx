@@ -86,7 +86,7 @@ export function ItemSheet({
             type="button"
             onClick={onClose}
             className="absolute right-4 top-4 z-20 flex h-11 w-11 items-center justify-center touch-manipulation"
-            aria-label="Cerrar"
+            aria-label="Close"
           >
             <span className="flex h-10 w-10 items-center justify-center rounded-full bg-surface-elevated text-foreground shadow-card">
               <Icon name="x" className="h-5 w-5" />
@@ -103,7 +103,7 @@ export function ItemSheet({
             {item.description && <p className="mt-2 text-body-sm text-muted-foreground">{item.description}</p>}
             <div className="my-5 h-px bg-border" />
             <div className="flex items-center justify-between gap-4">
-              <span className="text-base font-medium text-foreground">Cantidad</span>
+              <span className="text-base font-medium text-foreground">Quantity</span>
               <QuantityStepper
                 value={quantity}
                 onDecrease={() => setQuantity((value) => Math.max(1, value - 1))}
@@ -123,7 +123,7 @@ export function ItemSheet({
               <legend className="flex w-full items-baseline justify-between gap-3">
                 <span className="text-base font-medium text-foreground">{group.name}</span>
                 <span className="text-xs text-muted-foreground">
-                  {group.min_select > 0 ? `Elige ${group.min_select}` : group.max_select > 1 ? `Hasta ${group.max_select}` : 'Opcional'}
+                  {group.min_select > 0 ? `Choose ${group.min_select}` : group.max_select > 1 ? `Up to ${group.max_select}` : 'Optional'}
                 </span>
               </legend>
               {useSegmented ? (
@@ -197,7 +197,7 @@ export function ItemSheet({
 
         <div className="sticky bottom-0 mt-auto bg-gradient-to-t from-background via-background to-background/0 px-5 pb-[calc(env(safe-area-inset-bottom)+12px)] pt-6">
           {missingRequired && (
-            <p className="mb-3 text-center text-body-sm text-muted-foreground">Elige las opciones obligatorias para continuar.</p>
+            <p className="mb-3 text-center text-body-sm text-muted-foreground">Choose the required options to continue.</p>
           )}
           <Button
             variant="espresso"
@@ -206,7 +206,7 @@ export function ItemSheet({
             disabled={missingRequired}
             className="w-full"
           >
-            Añadir · {formatPrice(itemTotal * quantity)}
+            Add · {formatPrice(itemTotal * quantity)}
           </Button>
         </div>
       </div>

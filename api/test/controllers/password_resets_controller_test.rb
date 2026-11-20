@@ -7,7 +7,7 @@ class PasswordResetsControllerTest < ActionDispatch::IntegrationTest
     end
 
     assert_response :ok
-    assert_equal "Si el correo existe, recibirás instrucciones para restablecer tu contraseña.", response.parsed_body["message"]
+    assert_equal "If that email exists, you will receive password reset instructions.", response.parsed_body["message"]
   end
 
   test "create enqueues reset email for known user" do
@@ -82,14 +82,14 @@ class PasswordResetsControllerTest < ActionDispatch::IntegrationTest
     post "/auth/password_resets", params: { email: "reset@example.com" }, as: :json
 
     assert_response :too_many_requests
-    assert_equal "Demasiados intentos. Espera unos minutos y vuelve a intentarlo.", response.parsed_body["error"]
+    assert_equal "Too many attempts. Please wait a few minutes and try again.", response.parsed_body["error"]
   end
 
   test "update rejects invalid token" do
     patch "/auth/password_resets/not-a-token", params: { password: "newpassword456" }, as: :json
 
     assert_response :unprocessable_entity
-    assert_equal "El enlace de restablecimiento no es válido o ha caducado.", response.parsed_body["error"]
+    assert_equal "The reset link is invalid or has expired.", response.parsed_body["error"]
   end
 
   test "update rejects short password" do
@@ -99,7 +99,7 @@ class PasswordResetsControllerTest < ActionDispatch::IntegrationTest
     patch "/auth/password_resets/#{token}", params: { password: "short" }, as: :json
 
     assert_response :unprocessable_entity
-    assert_equal [ "Contraseña es demasiado corta (mínimo 8 caracteres)" ], response.parsed_body["errors"]
+    assert_equal [ "Password is too short (minimum 8 characters)" ], response.parsed_body["errors"]
   end
 
   test "update revokes existing jwt sessions" do
@@ -123,6 +123,6 @@ class PasswordResetsControllerTest < ActionDispatch::IntegrationTest
 
     patch "/auth/password_resets/#{token}", params: { password: "anotherpassword789" }, as: :json
     assert_response :unprocessable_entity
-    assert_equal "El enlace de restablecimiento no es válido o ha caducado.", response.parsed_body["error"]
+    assert_equal "The reset link is invalid or has expired.", response.parsed_body["error"]
   end
 end

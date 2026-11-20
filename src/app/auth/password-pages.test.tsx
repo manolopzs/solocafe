@@ -18,7 +18,7 @@ jest.mock('next/link', () => ({
 }))
 jest.mock('@/server/actions/auth', () => ({ forgotPasswordAction: jest.fn(), resetPasswordAction: jest.fn() }))
 
-const back = () => screen.getByRole('link', { name: 'Volver al inicio de sesión' })
+const back = () => screen.getByRole('link', { name: 'Back to log in' })
 const fromField = (container: HTMLElement) => container.querySelector('input[name="from"]')
 
 describe.each([

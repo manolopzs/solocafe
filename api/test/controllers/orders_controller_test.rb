@@ -293,7 +293,7 @@ class OrdersControllerTest < ActionDispatch::IntegrationTest
     end
 
     assert_response :too_many_requests
-    assert_equal "Demasiados intentos. Espera unos minutos y vuelve a intentarlo.", response.parsed_body["error"]
+    assert_equal "Too many attempts. Please wait a few minutes and try again.", response.parsed_body["error"]
   end
 
   test "guest checkout stores an optional receipt email" do
@@ -348,6 +348,7 @@ class OrdersControllerTest < ActionDispatch::IntegrationTest
     assert_not body.key?("customer_phone")
     assert body["access_token"].present?
     assert body["shop"]["name"].present?
+    assert body["shop"]["locale"].present?
   end
 
   test "public order show accepts the access token header" do

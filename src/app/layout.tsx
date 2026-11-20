@@ -40,7 +40,7 @@ export const metadata: Metadata = {
   metadataBase: siteUrl(),
   applicationName: SITE_NAME,
   title: {
-    default: `${SITE_NAME} · Pide para recoger`,
+    default: `${SITE_NAME} · Order for pickup`,
     template: `%s · ${SITE_NAME}`,
   },
   description: SITE_DESCRIPTION,
@@ -51,12 +51,12 @@ export const metadata: Metadata = {
   },
   openGraph: {
     ...BASE_OPEN_GRAPH,
-    title: `${SITE_NAME} · Pide para recoger`,
+    title: `${SITE_NAME} · Order for pickup`,
     description: SITE_DESCRIPTION,
   },
   twitter: {
     card: "summary_large_image",
-    title: `${SITE_NAME} · Pide para recoger`,
+    title: `${SITE_NAME} · Order for pickup`,
     description: SITE_DESCRIPTION,
     images: [OG_IMAGE.url],
   },
@@ -73,7 +73,7 @@ export default function RootLayout({
 }) {
   return (
     <html
-      lang="es"
+      lang="en"
       className={`${dmSans.variable} ${inter.variable} ${fraunces.variable} ${literata.variable} ${newsreader.variable} ${libreBaskerville.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-background text-foreground font-sans">

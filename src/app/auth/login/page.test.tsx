@@ -21,13 +21,13 @@ describe('owner login page', () => {
   it('confirms the password change after a reset', () => {
     search = 'reset=success'
     render(<LoginPage />)
-    expect(screen.getByRole('status')).toHaveTextContent('Contraseña cambiada. Entra con la nueva.')
+    expect(screen.getByRole('status')).toHaveTextContent('Password changed. Log in with the new one.')
   })
 
   it('shows no notice otherwise', () => {
     search = ''
     render(<LoginPage />)
-    expect(screen.queryByText('Contraseña cambiada. Entra con la nueva.')).toBeNull()
-    expect(screen.getByRole('link', { name: '¿Olvidaste tu contraseña?' })).toHaveAttribute('href', '/auth/forgot-password')
+    expect(screen.queryByText('Password changed. Log in with the new one.')).toBeNull()
+    expect(screen.getByRole('link', { name: 'Forgot your password?' })).toHaveAttribute('href', '/auth/forgot-password')
   })
 })

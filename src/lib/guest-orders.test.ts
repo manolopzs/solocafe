@@ -20,6 +20,7 @@ const entry = (id: string, createdAt: string, status: Order['status'] = 'receive
   status,
   totalCents: 200,
   currency: 'EUR',
+  locale: 'es',
   itemCount: 1,
   createdAt,
 })
@@ -80,7 +81,7 @@ describe('guest orders store', () => {
       currency: 'EUR',
       item_count: 2,
       created_at: '2026-11-16T09:00:00Z',
-      shop: { id: 's', name: 'Solo cafe', slug: 'main' },
+      shop: { id: 's', name: 'Solo cafe', slug: 'main', locale: 'es' },
     } as unknown as Order
     expect(store.guestOrderFromOrder(order, 'tok')).toEqual({
       id: 'abc',
@@ -90,6 +91,7 @@ describe('guest orders store', () => {
       status: 'received',
       totalCents: 400,
       currency: 'EUR',
+      locale: 'es',
       itemCount: 2,
       createdAt: '2026-11-16T09:00:00Z',
     })
@@ -121,7 +123,7 @@ describe('guest orders store', () => {
     expect(saved.itemCount).toBe(3)
   })
 
-  it('links Repetir to the shop with the order id and its token', () => {
+  it('links Reorder to the shop with the order id and its token', () => {
     const store = freshModule()
     expect(store.guestReorderHref({ id: 'abc', token: 't/1', shopSlug: 'main' })).toBe('/main?reorder=abc&token=t%2F1')
     expect(store.guestReorderHref({ id: 'abc', token: 't', shopSlug: null })).toBeNull()

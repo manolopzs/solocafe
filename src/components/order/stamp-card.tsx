@@ -20,12 +20,12 @@ export function StampCard({
       <CardContent className="space-y-3 p-5">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <p className="text-xs font-medium text-muted-foreground">Tarjeta de sellos</p>
+            <p className="text-xs font-medium text-muted-foreground">Stamp card</p>
             {compact ? (
               <p className="mt-1 font-semibold text-foreground">{loyalty.shop_name}</p>
             ) : (
               <p className="mt-1 text-lg font-semibold text-foreground">
-                {filled} de {required} sellos
+                {filled} of {required} stamps
               </p>
             )}
           </div>
@@ -36,7 +36,7 @@ export function StampCard({
 
         {compact && (
           <p className="text-sm font-medium text-foreground">
-            {filled} de {required} sellos
+            {filled} of {required} stamps
           </p>
         )}
 
@@ -59,18 +59,18 @@ export function StampCard({
         )}
 
         <p className="text-sm text-foreground">
-          Recompensa: <span className="font-medium">{loyalty.reward_text}</span>
+          Reward: <span className="font-medium">{loyalty.reward_text}</span>
         </p>
         <p className="text-sm text-muted-foreground">
           {loyalty.can_redeem
-            ? 'Ya puedes canjearla en tu próximo pedido.'
+            ? 'You can redeem it on your next order.'
             : remaining === 1
-              ? 'Te falta 1 sello.'
-              : `Te faltan ${remaining} sellos.`}
+              ? '1 stamp to go.'
+              : `${remaining} stamps to go.`}
         </p>
         {compact && loyalty.shop_slug && (
           <Link href={`/${loyalty.shop_slug}`} className="inline-block text-sm font-medium text-foreground hover:underline">
-            Pedir en {loyalty.shop_name}
+            Order at {loyalty.shop_name}
           </Link>
         )}
       </CardContent>

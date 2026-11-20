@@ -3,7 +3,7 @@ import type { ShopOrdering } from '@/types'
 /**
  * False only when the API says the owner has not saved hours yet. In that
  * case the API still orders on default hours, but screens should not show
- * those defaults (or "Abierto") as if they were the shop's real hours.
+ * those defaults (or "Open") as if they were the shop's real hours.
  * Older payloads without the flag count as configured.
  */
 export function hoursConfigured(source?: object | null) {
@@ -12,65 +12,103 @@ export function hoursConfigured(source?: object | null) {
 
 export function todayHoursLabel(ordering?: ShopOrdering) {
   const today = ordering?.today
-  if (!today?.is_open || !today.open || !today.close) return 'Hoy cerrado'
-  return `Hoy de ${today.open} a ${today.close}`
+  if (!today?.is_open || !today.open || !today.close) return 'Closed today'
+  return `Today ${today.open} to ${today.close}`
 }
 
 export function checkoutBlockedCopy(reason: string | null | undefined) {
   switch (reason) {
     case 'shop_closed':
-      return 'La cafetería está cerrada ahora.'
+      return 'The coffee shop is closed right now.'
     case 'not_accepting':
-      return 'Ahora no tomamos pedidos para recoger.'
+      return "We're not taking pickup orders right now."
     case 'item_unavailable':
-      return 'Hay algo en tu pedido que ya no está disponible.'
+      return 'Something in your order is no longer available.'
     case 'modifier_unavailable':
-      return 'Una opción de tu pedido ya no está disponible.'
+      return 'One option in your order is no longer available.'
     case 'empty':
-      return 'Tu pedido está vacío.'
+      return 'Your order is empty.'
     case 'checking':
-      return 'Revisando tu pedido.'
+      return 'Checking your order.'
     case 'error':
-      return 'No pudimos revisar tu pedido.'
+      return "We couldn't check your order."
     default:
       return null
   }
 }
 
 export function orderErrorCopy(message: string) {
-  if (message.includes('shop_closed')) return 'La cafetería está cerrada ahora.'
-  if (message.includes('not_accepting')) return 'Ahora no tomamos pedidos para recoger.'
+  if (message.includes('shop_closed')) return 'The coffee shop is closed right now.'
+  if (message.includes('not_accepting')) return "We're not taking pickup orders right now."
   if (message.includes('item_unavailable') || message.includes('sold_out')) {
-    return 'Un producto ya no está disponible.'
+    return 'A product is no longer available.'
   }
-  if (message.includes('modifier_unavailable')) return 'Una opción ya no está disponible.'
-  if (message.includes('loyalty_unavailable')) return 'Aún no puedes canjear esa recompensa.'
-  if (message.includes('full')) return 'Ese horario ya está lleno.'
-  if (message.includes('outside operating hours')) return 'Ese horario está fuera del horario de la cafetería.'
-  return 'No pudimos crear el pedido. Inténtalo de nuevo.'
+  if (message.includes('modifier_unavailable')) return 'An option is no longer available.'
+  if (message.includes('loyalty_unavailable')) return "You can't redeem that reward yet."
+  if (message.includes('full')) return 'That time slot is already full.'
+  if (message.includes('outside operating hours')) return 'That time is outside the coffee shop hours.'
+  return "We couldn't create the order. Please try again."
 }
 
 export const CUSTOMER_TIME_ZONE = 'Europe/Madrid'
 
 export function formatPickupWindow(start: string, end: string, timeZone: string) {
-  const fmt = new Intl.DateTimeFormat('es-ES', {
+  const fmt = new Intl.DateTimeFormat('en-GB', {
     hour: '2-digit',
     minute: '2-digit',
     hour12: false,
     timeZone,
   })
-  return `Recoge entre ${fmt.format(new Date(start))} y ${fmt.format(new Date(end))}`
+  return `Pick up between ${fmt.format(new Date(start))} and ${fmt.format(new Date(end))}`
 }
 
-export function formatMoney(cents: number, currency = 'EUR') {
+const DEFAULT_NUMBER_LOCALE = 'es-ES'
+
+const LOCALE_DEFAULT_REGION: Record<string, string> = {
+  es: 'es-ES',
+  en: 'en-GB',
+  fr: 'fr-FR',
+  de: 'de-DE',
+  it: 'it-IT',
+  pt: 'pt-PT',
+  ca: 'ca-ES',
+}
+
+/**
+ * Resolve a shop locale into a BCP 47 tag that Intl can use.
+ * Full tags are kept when supported; bare languages get a default region.
+ * Unknown or invalid tags fall back to es-ES.
+ */
+export function shopNumberLocale(locale?: string | null): string {
+  if (!locale) return DEFAULT_NUMBER_LOCALE
+  const trimmed = locale.trim()
+  if (!trimmed) return DEFAULT_NUMBER_LOCALE
+
+  if (trimmed.includes('-')) {
+    try {
+      const supported = Intl.NumberFormat.supportedLocalesOf([trimmed])
+      if (supported.length > 0 && supported[0].toLowerCase() === trimmed.toLowerCase()) {
+        return supported[0]
+      }
+    } catch {
+      // Invalid tag: fall through to default.
+    }
+    return DEFAULT_NUMBER_LOCALE
+  }
+
+  return LOCALE_DEFAULT_REGION[trimmed] ?? DEFAULT_NUMBER_LOCALE
+}
+
+export function formatMoney(cents: number, currency = 'EUR', locale?: string) {
   const amount = (Number.isFinite(cents) ? cents : 0) / 100
   const code = (currency || 'EUR').toUpperCase()
+  const numberLocale = shopNumberLocale(locale)
   try {
-    return new Intl.NumberFormat('es-ES', { style: 'currency', currency: code })
+    return new Intl.NumberFormat(numberLocale, { style: 'currency', currency: code })
       .format(amount)
       .replace(/[\u00a0\u202f]/g, ' ')
   } catch {
-    return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' })
+    return new Intl.NumberFormat(DEFAULT_NUMBER_LOCALE, { style: 'currency', currency: 'EUR' })
       .format(amount)
       .replace(/[\u00a0\u202f]/g, ' ')
   }

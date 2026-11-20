@@ -33,6 +33,7 @@ class Public::StorefrontsControllerTest < ActionDispatch::IntegrationTest
     body = response.parsed_body
     assert_equal @shop.id, body.dig("shop", "id")
     assert_equal "EUR", body.dig("shop", "currency")
+    assert_equal "es", body.dig("shop", "locale")
     assert_equal "Café", body.dig("items", 0, "name")
     assert_equal "Café espresso", body.dig("items", 0, "description")
     assert_equal "Bebidas calientes", body.dig("categories", 0, "name")

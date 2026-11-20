@@ -2,7 +2,7 @@ import type { CSSProperties } from 'react'
 import { displayFontFamily } from '@/lib/display-fonts'
 
 // Solo Cafe owns the neutrals, the sky fields and the CTA. A shop's brand_color is only an
-// identity touch (cover stripe, Explore tile) and only when it is readable on the canvas.
+// identity touch (cover stripe, shop directory tile) and only when it is readable on the canvas.
 export const CANVAS = '#fdf7f2'
 export const ESPRESSO = '#241d1a'
 export const NEUTRAL_TILE = { background: '#efdfd2', foreground: ESPRESSO } as const

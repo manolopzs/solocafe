@@ -1,9 +1,9 @@
 import { ApiError } from '@/lib/api/client'
 
-export const SIGNUP_FALLBACK_MESSAGE = 'No hemos podido completar el registro. Inténtalo de nuevo.'
-export const EMAIL_TAKEN_MESSAGE = 'Ya existe una cuenta con este email.'
-export const LOGIN_INVALID_MESSAGE = 'El email o la contraseña no son correctos.'
-export const RATE_LIMITED_MESSAGE = 'Demasiados intentos. Espera unos minutos y vuelve a intentarlo.'
+export const SIGNUP_FALLBACK_MESSAGE = "We couldn't complete your sign up. Please try again."
+export const EMAIL_TAKEN_MESSAGE = 'An account with this email already exists.'
+export const LOGIN_INVALID_MESSAGE = 'The email or password is incorrect.'
+export const RATE_LIMITED_MESSAGE = 'Too many attempts. Please wait a few minutes and try again.'
 
 export type SignupErrorState = { error: string; code?: 'email_taken' }
 
@@ -27,12 +27,12 @@ export function isEmailTakenError(err: unknown) {
   if (codes && typeof codes === 'object' && stringList((codes as Record<string, unknown>).email).includes('taken')) {
     return true
   }
-  // Older API builds only send messages, some with a missing es translation.
+  // Older API builds only send messages, in either Spanish or English.
   const message = err instanceof Error ? err.message : ''
-  return /email\.taken|email ya está en uso/i.test(message)
+  return /email\.taken|email ya está en uso|email is already in use|email has already been taken/i.test(message)
 }
 
-/** Spanish message from the API when it is safe to show, else the fallback. */
+/** English message from the API when it is safe to show, else the fallback. */
 export function userFacingApiError(err: unknown, fallback: string) {
   if (err instanceof ApiError && err.status === 429) return RATE_LIMITED_MESSAGE
   const body = bodyOf(err)
@@ -51,5 +51,5 @@ export function signupErrorState(err: unknown): SignupErrorState {
 export function loginErrorMessage(err: unknown) {
   if (err instanceof ApiError && err.status === 401) return LOGIN_INVALID_MESSAGE
   if (err instanceof ApiError && err.status === 429) return RATE_LIMITED_MESSAGE
-  return 'No hemos podido iniciar sesión. Inténtalo de nuevo.'
+  return "We couldn't log you in. Please try again."
 }

@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { Icon } from '@/components/ui/icon'
 
 export const metadata: Metadata = {
-  title: 'Página no encontrada',
+  title: 'Page not found',
 }
 
 export default function NotFound() {
@@ -14,22 +14,22 @@ export default function NotFound() {
           <Icon name="coffee" className="h-7 w-7" />
         </div>
         <p className="mt-6 text-sm font-semibold uppercase tracking-wider text-terracotta-700">404</p>
-        <h1 className="mt-2 font-sans text-3xl font-semibold tracking-tight text-heading">Esta página no existe</h1>
+        <h1 className="mt-2 font-sans text-3xl font-semibold tracking-tight text-heading">This page doesn&apos;t exist</h1>
         <p className="mt-3 text-base leading-7 text-muted-foreground">
-          El enlace no corresponde a ninguna sección de Solo Café. Vuelve al inicio o entra como cafetería.
+          That link doesn&apos;t match any part of Solo Café. Go back home or enter as a coffee shop.
         </p>
         <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
           <Link
             href="/"
             className="inline-flex h-12 items-center justify-center rounded-full bg-terracotta-700 px-6 text-sm font-medium text-white"
           >
-            Volver al inicio
+            Back to home
           </Link>
           <Link
             href="/auth/login"
             className="inline-flex h-12 items-center justify-center rounded-full border border-terracotta-300 bg-background px-6 text-sm font-medium text-terracotta-800"
           >
-            Soy cafetería
+            I&apos;m a coffee shop
           </Link>
         </div>
       </div>

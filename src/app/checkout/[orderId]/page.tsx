@@ -33,7 +33,7 @@ export default async function CheckoutPage({ params, searchParams }: CheckoutPag
     return (
       <CheckoutScreen
         backHref={order.shop?.slug ? `/${order.shop.slug}` : '/'}
-        title={order.shop?.name || 'Tu pedido'}
+        title={order.shop?.name || 'Your order'}
         orderCode={`#${orderNumber(order.id)}`}
         eta=""
         lines={[]}
@@ -85,12 +85,12 @@ export default async function CheckoutPage({ params, searchParams }: CheckoutPag
           order.pickup_window_ends_at,
           order.shop?.timezone || CUSTOMER_TIME_ZONE
         )
-      : 'Lo antes posible'
+      : 'As soon as possible'
 
   return (
     <CheckoutScreen
       backHref={order.shop?.slug ? `/${order.shop.slug}` : '/'}
-      title={order.shop?.name || order.customer_name || 'Tu pedido'}
+      title={order.shop?.name || order.customer_name || 'Your order'}
       orderCode={`#${orderNumber(order.id)}`}
       eta={eta}
       lines={order.items.map((item) => ({
@@ -98,24 +98,24 @@ export default async function CheckoutPage({ params, searchParams }: CheckoutPag
         quantity: item.quantity,
         name: item.item_name_snapshot,
         detail: item.modifiers?.map((modifier) => modifier.option_name_snapshot).join(', ') || undefined,
-        amount: formatMoney(item.subtotal_cents, order.currency),
+        amount: formatMoney(item.subtotal_cents, order.currency, order.shop?.locale),
       }))}
-      subtotal={formatMoney(order.subtotal_cents, order.currency)}
-      discount={(order.discount_cents ?? 0) > 0 ? formatMoney(order.discount_cents ?? 0, order.currency) : null}
-      tax={order.tax_cents > 0 ? formatMoney(order.tax_cents, order.currency) : null}
-      total={formatMoney(order.total_cents, order.currency)}
+      subtotal={formatMoney(order.subtotal_cents, order.currency, order.shop?.locale)}
+      discount={(order.discount_cents ?? 0) > 0 ? formatMoney(order.discount_cents ?? 0, order.currency, order.shop?.locale) : null}
+      tax={order.tax_cents > 0 ? formatMoney(order.tax_cents, order.currency, order.shop?.locale) : null}
+      total={formatMoney(order.total_cents, order.currency, order.shop?.locale)}
     >
       {complimentary ? (
         <form action={completeFreeOrder.bind(null, orderId, token)} className="space-y-4">
           <p className="text-sm leading-6 text-muted-foreground">
-            Este pedido queda cubierto por tu recompensa. No hace falta pagar.
+            This order is covered by your reward. No payment needed.
           </p>
           <Button type="submit" size="lg" className="w-full">
-            Confirmar pedido
+            Confirm order
           </Button>
         </form>
       ) : paymentSetupError || !clientSecret ? (
-        <Notice tone="danger">{paymentSetupError ?? 'No pudimos preparar el pago. Inténtalo de nuevo.'}</Notice>
+        <Notice tone="danger">{paymentSetupError ?? "We couldn't prepare the payment. Please try again."}</Notice>
       ) : (
         <CheckoutForm
           orderId={orderId}

@@ -10,9 +10,10 @@ export interface LastOrder {
   itemsSummary: string
   totalCents: number
   currency: string
+  locale?: string
   /** Only when the order carried an estimate. */
   etaMinutes: number | null
-  /** The same "Repetir" link the Pedidos tab uses (#48). */
+  /** The same "Reorder" link the Orders tab uses (#48). */
   reorderHref: string
   /** A licensed cut-out matching the first item, if there is one. */
   cutout: string | null
@@ -47,6 +48,7 @@ export function lastGuestOrder(orders: readonly GuestOrder[]): LastOrder | null 
       itemsSummary: summary,
       totalCents: order.totalCents,
       currency: order.currency,
+      locale: order.locale,
       etaMinutes: eta(order.estimatedReadyMinutes),
       reorderHref,
       cutout: cutoutFor(firstItemName(summary)),
@@ -69,6 +71,7 @@ export function lastCustomerOrder(orders: readonly Order[]): LastOrder | null {
       itemsSummary: items.map((item) => `${item.quantity} × ${storefrontItemName(item.item_name_snapshot)}`).join(', '),
       totalCents: order.total_cents,
       currency: order.currency,
+      locale: order.shop?.locale ?? 'es',
       etaMinutes: eta(order.estimated_ready_minutes),
       reorderHref,
       cutout: cutoutFor(items[0].item_name_snapshot),

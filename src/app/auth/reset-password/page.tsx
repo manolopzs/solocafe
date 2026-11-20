@@ -22,8 +22,8 @@ function ResetPasswordForm() {
       <div className="w-full max-w-sm">
         <Card variant="outline">
           <CardHeader className="text-center">
-            <CardTitle>Nueva contraseña</CardTitle>
-            <CardDescription>Introduce tu nueva contraseña para continuar.</CardDescription>
+            <CardTitle>New password</CardTitle>
+            <CardDescription>Enter your new password to continue.</CardDescription>
           </CardHeader>
           <CardContent>
             <form action={formAction} className="space-y-4">
@@ -31,27 +31,27 @@ function ResetPasswordForm() {
               {flow === 'account' && <input type="hidden" name="from" value="account" />}
 
               <div>
-                <Label htmlFor="password">Nueva contraseña</Label>
+                <Label htmlFor="password">New password</Label>
                 <Input
                   id="password"
                   name="password"
                   type="password"
                   required
                   minLength={8}
-                  placeholder="Mínimo 8 caracteres"
+                  placeholder="Minimum 8 characters"
                   className="mt-1.5"
                 />
               </div>
 
               <div>
-                <Label htmlFor="passwordConfirmation">Repite la contraseña</Label>
+                <Label htmlFor="passwordConfirmation">Repeat password</Label>
                 <Input
                   id="passwordConfirmation"
                   name="passwordConfirmation"
                   type="password"
                   required
                   minLength={8}
-                  placeholder="Mínimo 8 caracteres"
+                  placeholder="Minimum 8 characters"
                   className="mt-1.5"
                 />
               </div>
@@ -68,13 +68,13 @@ function ResetPasswordForm() {
               )}
 
               <Button type="submit" disabled={pending || !token} className="w-full">
-                {pending ? 'Guardando...' : 'Guardar contraseña'}
+                {pending ? 'Saving...' : 'Save password'}
               </Button>
             </form>
 
             <p className="mt-5 text-center text-sm text-muted-foreground">
               <Link href={loginPathFor(flow)} className="font-medium text-accent underline underline-offset-2 hover:text-accent/80">
-                Volver al inicio de sesión
+                Back to log in
               </Link>
             </p>
           </CardContent>
@@ -86,7 +86,7 @@ function ResetPasswordForm() {
 
 export default function ResetPasswordPage() {
   return (
-    <Suspense fallback={<main className="flex min-h-screen items-center justify-center px-6 py-12 text-sm text-muted-foreground">Cargando...</main>}>
+    <Suspense fallback={<main className="flex min-h-screen items-center justify-center px-6 py-12 text-sm text-muted-foreground">Loading...</main>}>
       <ResetPasswordForm />
     </Suspense>
   )

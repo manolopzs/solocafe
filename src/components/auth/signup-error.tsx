@@ -19,11 +19,11 @@ export function SignupError({
       {state.code === 'email_taken' && (
         <p className="mt-1">
           <Link href={loginHref} className={linkClass}>
-            Entrar
+            Log in
           </Link>
           <span aria-hidden="true"> · </span>
           <Link href={recoverHref} className={linkClass}>
-            Recuperar contraseña
+            Recover password
           </Link>
         </p>
       )}

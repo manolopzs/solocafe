@@ -13,9 +13,9 @@ const prodRawMessage =
   '["Email Translation missing: es.activerecord.errors.models.user.attributes.email.taken"]'
 
 describe('signupErrorState', () => {
-  it('maps the email_taken code to the Spanish duplicate email message', () => {
-    const err = new ApiError('["Email ya está en uso"]', 422, {
-      errors: ['Email ya está en uso'],
+  it('maps the email_taken code to the duplicate email message', () => {
+    const err = new ApiError('["Email is already in use"]', 422, {
+      errors: ['Email is already in use'],
       error_codes: { email: ['taken'] },
       code: 'email_taken',
     })
@@ -33,12 +33,12 @@ describe('signupErrorState', () => {
   })
 
   it('shows translated validation messages from the API', () => {
-    const err = new ApiError('x', 422, { errors: ['Email no es válido'], error_codes: { email: ['invalid'] } })
-    expect(signupErrorState(err)).toEqual({ error: 'Email no es válido' })
+    const err = new ApiError('x', 422, { errors: ['Email is invalid'], error_codes: { email: ['invalid'] } })
+    expect(signupErrorState(err)).toEqual({ error: 'Email is invalid' })
   })
 
   it('falls back when the API sends a missing translation', () => {
-    const err = new ApiError('x', 422, { errors: ['Email Translation missing: es.errors.messages.invalid'] })
+    const err = new ApiError('x', 422, { errors: ['Email Translation missing: en.errors.messages.invalid'] })
     expect(signupErrorState(err)).toEqual({ error: SIGNUP_FALLBACK_MESSAGE })
   })
 
@@ -64,9 +64,9 @@ describe('signupErrorState', () => {
 })
 
 describe('userFacingApiError', () => {
-  it('uses a Spanish error string from the API', () => {
-    const err = new ApiError('x', 422, { error: 'El enlace de restablecimiento no es válido o ha caducado.' })
-    expect(userFacingApiError(err, 'fallback')).toBe('El enlace de restablecimiento no es válido o ha caducado.')
+  it('uses an English error string from the API', () => {
+    const err = new ApiError('x', 422, { error: 'The reset link is invalid or has expired.' })
+    expect(userFacingApiError(err, 'fallback')).toBe('The reset link is invalid or has expired.')
   })
 
   it('maps 429 to the rate-limited message', () => {

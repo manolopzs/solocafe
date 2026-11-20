@@ -477,6 +477,7 @@ class OrdersController < ApplicationController
       lat: shop.lat&.to_f,
       lng: shop.lng&.to_f,
       timezone: shop.timezone,
+      locale: shop.locale,
       directions_url: shop.directions_url
     }
   end
