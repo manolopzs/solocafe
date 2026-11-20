@@ -40,6 +40,37 @@ class AuthenticationControllerTest < ActionDispatch::IntegrationTest
     assert response.parsed_body["token"].present?
   end
 
+  test "login token includes the current token version" do
+    user = User.create!(email: "owner@example.com", password: "password123")
+
+    post "/auth/login", params: { email: user.email, password: "password123" }, as: :json
+
+    assert_response :success
+    payload = JsonWebToken.decode(response.parsed_body["token"])
+    assert_equal user.token_version, payload["tv"]
+  end
+
+  test "token without a version is accepted while token_version is zero" do
+    user = User.create!(email: "owner@example.com", password: "password123")
+    token = JsonWebToken.encode(user_id: user.id)
+
+    get "/auth/me", headers: { "Authorization" => "Bearer #{token}" }
+
+    assert_response :success
+    assert_equal user.id, response.parsed_body.dig("user", "id")
+  end
+
+  test "logout revokes previously issued tokens" do
+    user = User.create!(email: "owner@example.com", password: "password123")
+    token = JsonWebToken.encode(user_id: user.id, tv: user.token_version)
+
+    delete "/auth/logout", headers: { "Authorization" => "Bearer #{token}" }
+    assert_response :no_content
+
+    get "/auth/me", headers: { "Authorization" => "Bearer #{token}" }
+    assert_response :unauthorized
+  end
+
   test "login returns 429 after too many attempts for the same email" do
     User.create!(email: "locked@example.com", password: "password123")
 

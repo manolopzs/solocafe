@@ -15,7 +15,7 @@ class AuthenticationController < ApplicationController
   def signup
     user = User.new(user_params)
     if user.save
-      token = JsonWebToken.encode(user_id: user.id)
+      token = JsonWebToken.encode(user_id: user.id, tv: user.token_version)
       render json: { user: user_payload(user), token: token }, status: :created
     else
       render json: signup_error_payload(user), status: :unprocessable_entity
@@ -25,7 +25,7 @@ class AuthenticationController < ApplicationController
   def login
     user = User.find_by_email(params[:email])
     if user&.authenticate(params[:password])
-      token = JsonWebToken.encode(user_id: user.id)
+      token = JsonWebToken.encode(user_id: user.id, tv: user.token_version)
       render json: { user: user_payload(user), token: token }
     else
       render json: { error: "Invalid email or password" }, status: :unauthorized
@@ -37,6 +37,14 @@ class AuthenticationController < ApplicationController
     return if performed?
 
     render json: { user: user_payload(Current.user) }
+  end
+
+  def logout
+    authenticate_user!
+    return if performed?
+
+    Current.user.revoke_tokens!
+    head :no_content
   end
 
   private

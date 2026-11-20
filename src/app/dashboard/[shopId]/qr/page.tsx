@@ -64,12 +64,6 @@ export default async function QrPage({
                   Ver página
                 </Link>
               </Button>
-              <Button asChild variant="outline" className="w-full sm:w-auto">
-                <a href={`/api/qr?url=${encodeURIComponent(publicUrl)}&name=${encodeURIComponent(shop.name)}`} download={`qr-${shop.slug}.png`}>
-                  <Icon name="copy" className="mr-2 h-4 w-4" />
-                  Descargar QR
-                </a>
-              </Button>
             </div>
           </CardContent>
         </Card>

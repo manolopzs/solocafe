@@ -102,6 +102,18 @@ class PasswordResetsControllerTest < ActionDispatch::IntegrationTest
     assert_equal [ "Contraseña es demasiado corta (mínimo 8 caracteres)" ], response.parsed_body["errors"]
   end
 
+  test "update revokes existing jwt sessions" do
+    user = User.create!(email: "owner@example.com", password: "password123")
+    jwt_token = JsonWebToken.encode(user_id: user.id, tv: user.token_version)
+    reset_token = user.generate_token_for(:password_reset)
+
+    patch "/auth/password_resets/#{reset_token}", params: { password: "newpassword456" }, as: :json
+
+    assert_response :ok
+    get "/auth/me", headers: { "Authorization" => "Bearer #{jwt_token}" }
+    assert_response :unauthorized
+  end
+
   test "update rejects a token that has already been used" do
     user = User.create!(email: "owner@example.com", password: "password123")
     token = user.generate_token_for(:password_reset)
