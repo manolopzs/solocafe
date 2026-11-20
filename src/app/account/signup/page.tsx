@@ -1,6 +1,7 @@
 'use client'
 
 import { useActionState, useState } from 'react'
+import { phonePlaceholder } from '@/lib/phone'
 import Link from 'next/link'
 import { accountSignupAction } from '@/server/actions/account-auth'
 import { Button } from '@/components/ui/button'
@@ -36,7 +37,7 @@ export default function AccountSignupPage() {
           </div>
           <div>
             <Label htmlFor="phone">Phone</Label>
-            <Input id="phone" name="phone" type="tel" autoComplete="tel" placeholder="So we can tell you when it is ready (+34)" className="mt-1.5" />
+            <Input id="phone" name="phone" type="tel" autoComplete="tel" placeholder={phonePlaceholder()} className="mt-1.5" />
           </div>
           <div>
             <Label htmlFor="password">Password</Label>

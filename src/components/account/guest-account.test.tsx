@@ -19,6 +19,6 @@ describe('GuestAccount', () => {
   it('keeps the existing sign-up and sign-in routes', () => {
     render(<GuestAccount />)
     expect(screen.getByRole('link', { name: 'Sign up' })).toHaveAttribute('href', '/account/signup')
-    expect(screen.getByRole('link', { name: 'I already have an account · Log in' })).toHaveAttribute('href', '/account/login')
+    expect(screen.getByRole('link', { name: 'Log in' })).toHaveAttribute('href', '/account/login')
   })
 })

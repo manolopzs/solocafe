@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { phonePlaceholder } from '@/lib/phone'
 import { accountLogoutAction } from '@/server/actions/account-auth'
 import { deleteSavedCard } from '@/server/actions/payment-methods'
 import { updateCustomerProfile } from '@/server/actions/customers'
@@ -49,7 +50,7 @@ export function AccountHome({
                 name="phone"
                 type="tel"
                 defaultValue={customer.phone ?? ''}
-                placeholder="So we can tell you when it is ready (+34)"
+                placeholder={phonePlaceholder()}
                 className="mt-1.5"
               />
             </div>

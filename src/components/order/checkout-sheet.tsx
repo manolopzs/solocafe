@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Notice } from '@/components/ui/notice'
 import { Sheet } from '@/components/ui/sheet'
 import { checkoutBlockedCopy } from '@/lib/ordering'
+import { phonePlaceholder } from '@/lib/phone'
 import { QuantityStepper } from '@/components/order/quantity-stepper'
 import { MenuTileImage } from '@/components/order/menu-tile-image'
 import { updateCustomerProfile } from '@/server/actions/customers'
@@ -280,7 +281,7 @@ export function CheckoutSheet({
                     type="tel"
                     value={customerPhone}
                     onChange={(event) => setCustomerPhone(event.target.value)}
-                    placeholder="So we can tell you when it is ready (+34)"
+                    placeholder={phonePlaceholder(shop.locale)}
                     className="mt-1.5"
                   />
                 </div>
@@ -310,7 +311,7 @@ export function CheckoutSheet({
                   type="tel"
                   value={customerPhone}
                   onChange={(event) => setCustomerPhone(event.target.value)}
-                  placeholder="So we can tell you when it is ready (+34)"
+                  placeholder={phonePlaceholder(shop.locale)}
                   className="mt-1.5"
                 />
               </div>

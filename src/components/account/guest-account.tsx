@@ -60,9 +60,15 @@ export function GuestAccount() {
           <Button asChild variant="espresso" className="h-[52px] w-full text-base">
             <Link href="/account/signup">Sign up</Link>
           </Button>
-          <Link href="/account/login" className="inline-flex min-h-11 items-center px-3 text-body font-semibold text-foreground">
-            I already have an account · Log in
-          </Link>
+          <p className="inline-flex min-h-11 items-center gap-1 px-3 text-body text-foreground">
+            I already have an account ·
+            <Link
+              href="/account/login"
+              className="rounded-sm font-semibold text-accent underline underline-offset-2 hover:text-accent/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            >
+              Log in
+            </Link>
+          </p>
         </div>
       </div>
     </main>
