@@ -38,8 +38,6 @@ class PushDevicesController < ApplicationController
       id: device.id,
       shop_id: device.shop_id,
       platform: device.platform,
-      endpoint: device.endpoint,
-      token: device.token,
       created_at: device.created_at,
       updated_at: device.updated_at
     }

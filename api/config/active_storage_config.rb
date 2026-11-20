@@ -8,4 +8,8 @@ module ActiveStorageConfig
   def self.configured?(env = ENV)
     R2_KEYS.all? { |key| env[key].present? }
   end
+
+  def self.missing_keys(env = ENV)
+    R2_KEYS.reject { |key| env[key].present? }
+  end
 end

@@ -16,7 +16,7 @@ class PushDevicesControllerTest < ActionDispatch::IntegrationTest
     assert_response :created
     device_id = response.parsed_body.dig("push_device", "id")
     assert_equal "web", response.parsed_body.dig("push_device", "platform")
-    assert_equal "https://push.example/device", response.parsed_body.dig("push_device", "endpoint")
+    assert_nil response.parsed_body.dig("push_device", "endpoint")
     assert_nil response.parsed_body.dig("push_device", "p256dh")
 
     refreshed = web_params
@@ -34,7 +34,7 @@ class PushDevicesControllerTest < ActionDispatch::IntegrationTest
       headers: auth_headers,
       as: :json
     assert_response :created
-    assert_equal "ExponentPushToken[abc]", response.parsed_body.dig("push_device", "token")
+    assert_nil response.parsed_body.dig("push_device", "token")
     assert_nil response.parsed_body.dig("push_device", "endpoint")
   end
 

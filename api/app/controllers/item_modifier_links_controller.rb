@@ -13,7 +13,7 @@ class ItemModifierLinksController < ApplicationController
     group = Current.shop.modifier_groups.find(params[:group_id])
 
     link = ItemModifierLink.find_or_initialize_by(item: item, group: group)
-    link.is_required = params[:is_required] || false
+    link.is_required = item_modifier_link_params
 
     if link.save
       render json: { item_modifier_link: link_payload(link) }, status: :created
@@ -29,6 +29,11 @@ class ItemModifierLinksController < ApplicationController
   end
 
   private
+
+  def item_modifier_link_params
+    value = params.permit(:is_required)[:is_required]
+    ActiveModel::Type::Boolean.new.cast(value) || false
+  end
 
   def link_payload(link)
     {

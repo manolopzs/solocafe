@@ -62,7 +62,7 @@ Rails.application.configure do
   unless ActiveStorageConfig.configured?
     config.after_initialize do
       Rails.logger.warn(
-        "Active Storage is using local disk because R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, or R2_BUCKET is missing."
+        "Active Storage is using local disk because the following R2 keys are missing: #{ActiveStorageConfig.missing_keys.join(', ')}"
       )
     end
   end
@@ -89,11 +89,6 @@ Rails.application.configure do
   end
 
   # Enable DNS rebinding protection and other `Host` header attacks.
-  # config.hosts = [
-  #   "example.com",     # Allow requests from example.com
-  #   /.*\.example\.com/ # Allow requests from subdomains like `www.example.com`
-  # ]
-  #
-  # Skip DNS rebinding protection for the default health check endpoint.
-  # config.host_authorization = { exclude: ->(request) { request.path == "/up" } }
+  config.hosts = ENV.fetch("ALLOWED_HOSTS", "solocafe-api.onrender.com").split(",").map(&:strip).reject(&:blank?)
+  config.host_authorization = { exclude: ->(request) { request.path == "/up" } }
 end

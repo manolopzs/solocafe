@@ -23,7 +23,13 @@ class ApplicationController < ActionController::API
     return nil if token.blank?
 
     payload = JsonWebToken.decode(token)
-    @current_user = User.find_by(id: payload["user_id"]) if payload
+    return nil unless payload
+
+    user = User.find_by(id: payload["user_id"])
+    return nil unless user
+    return nil if payload.fetch("tv", 0).to_i != user.token_version
+
+    @current_user = user
   end
 
   def authenticate_user!
