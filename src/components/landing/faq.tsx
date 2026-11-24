@@ -9,8 +9,7 @@ const faqs = [
   },
   {
     question: 'Do I need to download an app?',
-    answer:
-      'No. It runs in your browser. Add it to your home screen and it opens like an app.',
+    answer: 'The iOS app is coming soon. Join the waitlist to hear when it is out.',
   },
   {
     question: 'How do I pay?',
