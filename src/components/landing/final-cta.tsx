@@ -13,9 +13,9 @@ export function FinalCTA() {
             Tomorrow, skip the queue.
           </h2>
           <p className="mt-4 text-lg text-background/70">
-            Order now. Pick it up when it says Ready.
+            Get it first. Pick it up when it says Ready.
           </p>
-          <p className="mt-10 text-sm font-semibold uppercase tracking-wider text-background/70">
+          <p className="mt-10 text-sm font-semibold text-background/70">
             iOS app coming soon
           </p>
           <WaitlistForm />
