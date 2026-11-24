@@ -36,9 +36,17 @@ export function FloatingNav() {
           >
             <Link href="/account/login">Customer sign in</Link>
           </Button>
+          <Button
+            asChild
+            variant="ghost"
+            size="sm"
+            className="whitespace-nowrap text-muted-foreground hover:text-foreground max-lg:hidden"
+          >
+            <Link href="#for-cafes">For cafes</Link>
+          </Button>
           <Magnetic>
-            <Button asChild variant="espresso" size="sm" className="whitespace-nowrap">
-              <Link href="#for-cafes">For cafes</Link>
+            <Button asChild variant="cta" size="sm" className="whitespace-nowrap">
+              <Link href="#app">Get the app</Link>
             </Button>
           </Magnetic>
           <MobileNav />

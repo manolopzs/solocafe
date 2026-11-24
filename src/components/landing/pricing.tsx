@@ -57,12 +57,12 @@ export async function Pricing() {
   const pricing = await loadPublicPricing()
 
   return (
-    <section id="pricing" className="landing-grain relative scroll-mt-24 bg-foreground px-6 py-20 text-background sm:py-28">
+    <section id="pricing" className="landing-grain relative scroll-mt-24 bg-foreground px-6 py-14 text-background sm:py-20">
       <div className="mx-auto max-w-5xl">
         <div className="text-center">
           <h2 className="landing-font-display text-3xl font-normal tracking-tight text-background sm:text-4xl">Pricing</h2>
           <p className="mt-4 text-background/70">
-            Priced in your local currency. No monthly fee and no commission during the pilot.
+            No monthly fee. No commission.
           </p>
         </div>
         <PricingSection pricing={pricing} />
@@ -77,7 +77,7 @@ function PricingSection({ pricing }: { pricing: PublicPricing | null }) {
       <Card className="mx-auto mt-14 max-w-xl p-8 text-center">
         <h3 className="text-3xl font-semibold text-foreground">Free during the pilot</h3>
         <p className="mt-4 text-sm text-muted-foreground">
-          The IE campus pilot is free. If that changes, you&apos;ll see it here first.
+          If that changes, you&apos;ll see it here first.
         </p>
       </Card>
     )

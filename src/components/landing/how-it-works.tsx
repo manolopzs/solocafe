@@ -36,7 +36,7 @@ export function HowItWorks() {
                   </span>
                   <div className="min-w-0 pt-0.5">
                     <h3 className="text-lg font-semibold text-foreground">{step.title}</h3>
-                    <p className="mt-1 text-muted-foreground">{step.description}</p>
+                    <p className="mt-1 max-w-md text-base text-muted-foreground lg:text-lg">{step.description}</p>
                   </div>
                 </div>
               </Reveal>

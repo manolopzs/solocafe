@@ -34,10 +34,10 @@ export function Footer() {
               <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                 Solo Café
               </p>
-              <ul className="mt-4 space-y-3">
+              <ul className="mt-4 space-y-0">
                 {mainLinks.map((link) => (
                   <li key={link.href}>
-                    <Link href={link.href} className="text-sm text-muted-foreground hover:text-foreground">
+                    <Link href={link.href} className="inline-block py-3 text-sm text-muted-foreground hover:text-foreground">
                       {link.label}
                     </Link>
                   </li>
@@ -48,10 +48,10 @@ export function Footer() {
               <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                 Legal
               </p>
-              <ul className="mt-4 space-y-3">
+              <ul className="mt-4 space-y-0">
                 {legalLinks.map((link) => (
                   <li key={link.href}>
-                    <Link href={link.href} className="text-sm text-muted-foreground hover:text-foreground">
+                    <Link href={link.href} className="inline-block py-3 text-sm text-muted-foreground hover:text-foreground">
                       {link.label}
                     </Link>
                   </li>

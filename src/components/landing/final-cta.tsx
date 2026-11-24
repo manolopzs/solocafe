@@ -1,7 +1,5 @@
 import Link from 'next/link'
-import { Button } from '@/components/ui/button'
 import { Reveal } from './reveal'
-import { Magnetic } from './magnetic'
 import { WaitlistForm } from './waitlist-form'
 
 export function FinalCTA() {
@@ -15,20 +13,16 @@ export function FinalCTA() {
           <p className="mt-4 text-lg text-background/70">
             Get it first. Pick it up when it says Ready.
           </p>
-          <p className="mt-10 text-sm font-semibold text-background/70">
+          <p className="mt-10 inline-flex rounded-full bg-background/10 px-3 py-1 text-xs font-semibold text-background/70">
             iOS app coming soon
           </p>
           <WaitlistForm />
-          <Magnetic className="mt-6 flex w-full justify-center sm:inline-flex sm:w-auto">
-            <Button
-              asChild
-              variant="outline"
-              size="lg"
-              className="w-full border-background/30 bg-background/10 text-background hover:bg-background/20 hover:text-background sm:w-auto"
-            >
-              <Link href="/demo">See demo</Link>
-            </Button>
-          </Magnetic>
+          <Link
+            href="/demo"
+            className="mt-6 inline-flex min-h-11 items-center text-background/70 underline-offset-4 hover:text-background hover:underline"
+          >
+            Or try the demo →
+          </Link>
         </Reveal>
       </div>
     </section>

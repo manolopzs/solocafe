@@ -66,7 +66,7 @@ export function SignatureSection() {
           threshold: 0,
           rootMargin: window.matchMedia('(min-width: 1024px)').matches
             ? '-49% 0px -49% 0px'
-            : '-70% 0px -28% 0px',
+            : '-52% 0px -44% 0px',
         }
       )
       observer.observe(el)
@@ -101,9 +101,9 @@ export function SignatureSection() {
               From order to cup
             </h2>
             <p className="mt-4 max-w-md text-lg text-background/70">
-              What you see after you order. Scroll through it.
+              Four screens. No waiting.
             </p>
-            <div className="sticky top-20 z-10 -mx-6 mt-8 flex h-[370px] justify-center bg-gradient-to-b from-foreground from-[88%] to-transparent pt-4 lg:hidden">
+            <div className="sticky top-20 z-10 -mx-6 mt-8 flex h-[370px] justify-center bg-gradient-to-b from-foreground from-100% to-transparent pt-4 lg:hidden">
               <div className="origin-top scale-[0.7]">
                 <PhoneStage active={active} activeIndex={activeIndex} reduced={reduced} />
               </div>
@@ -119,7 +119,7 @@ export function SignatureSection() {
                     }}
                     type="button"
                     onClick={() => scrollToStep(step.key)}
-                    className={`group flex h-[45vh] w-full items-center gap-4 text-left transition-opacity duration-300 lg:h-[70vh] ${
+                    className={`group flex h-[34vh] w-full items-center gap-4 text-left transition-opacity duration-300 lg:h-[70vh] ${
                       isActive ? 'opacity-100' : 'opacity-75'
                     }`}
                   >
@@ -138,7 +138,7 @@ export function SignatureSection() {
                       >
                         {step.title}
                       </h3>
-                      <p className="mt-1 max-w-sm text-base text-background/75">
+                      <p className="mt-1 max-w-md text-base text-background/75 lg:text-lg">
                         {step.description}
                       </p>
                     </div>

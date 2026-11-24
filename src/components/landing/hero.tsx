@@ -30,7 +30,7 @@ export function Hero() {
                   asChild
                   variant="outline"
                   size="lg"
-                  className="w-full border-transparent bg-background/10 text-background hover:bg-background/20 hover:text-background sm:w-auto"
+                  className="w-full !bg-background/10 !text-background !border-background/25 hover:!bg-background/20 sm:w-auto"
                 >
                   <Link href="#for-cafes">I have a cafe</Link>
                 </Button>
