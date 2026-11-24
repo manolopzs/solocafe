@@ -49,6 +49,7 @@ Rails.application.routes.draw do
   get "/public/orders/:id", to: "orders#show_public"
   post "/public/orders/:id/push_devices", to: "public/order_pushes#create"
 
+  post "/waitlist", to: "waitlist_signups#create"
   post "/payments", to: "payments#create"
   post "/payments/sync", to: "payments#sync"
   post "/webhooks/stripe", to: "stripe_webhooks#create"
