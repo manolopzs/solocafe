@@ -7,10 +7,9 @@ import { Button } from '@/components/ui/button'
 import { Icon } from '@/components/ui/icon'
 
 const links = [
-  { href: '#plataforma', label: 'Plataforma' },
-  { href: '#clientes', label: 'Clientes' },
-  { href: '#cafeterias', label: 'Cafeterías' },
-  { href: '#precios', label: 'Precios' },
+  { href: '#how-it-works', label: 'How it works' },
+  { href: '#pricing', label: 'Pricing' },
+  { href: '#faq', label: 'FAQ' },
 ]
 
 export function MobileNav() {
@@ -22,12 +21,12 @@ export function MobileNav() {
         variant="ghost"
         size="icon"
         className="lg:hidden"
-        aria-label="Abrir menú"
+        aria-label="Open menu"
         onClick={() => setOpen(true)}
       >
         <Icon name="menu" className="h-5 w-5" />
       </Button>
-      <Sheet open={open} onClose={() => setOpen(false)} position="right" title="Menú">
+      <Sheet open={open} onClose={() => setOpen(false)} position="right" title="Menu">
         <nav className="flex flex-col gap-2 py-2">
           {links.map((link) => (
             <Link
@@ -40,19 +39,14 @@ export function MobileNav() {
             </Link>
           ))}
           <hr className="my-2 border-border" />
-          <Button asChild variant="ghost" className="justify-start">
-            <Link href="/auth/login" onClick={() => setOpen(false)}>
-              Soy cafetería
-            </Link>
-          </Button>
           <Button asChild variant="outline" className="justify-start">
             <Link href="/account/login" onClick={() => setOpen(false)}>
-              Soy cliente
+              Customer sign in
             </Link>
           </Button>
-          <Button asChild className="justify-start">
-            <Link href="/auth/signup" onClick={() => setOpen(false)}>
-              Empezar gratis
+          <Button asChild variant="espresso" className="justify-start">
+            <Link href="#for-cafes" onClick={() => setOpen(false)}>
+              For cafes
             </Link>
           </Button>
         </nav>

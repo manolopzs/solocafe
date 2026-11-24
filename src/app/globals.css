@@ -465,3 +465,470 @@ body:has([data-hide-bottom-nav]) .customer-bottom-nav {
 .bottom-safe-12 {
   bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
 }
+
+/* Landing page motion utilities */
+@media (prefers-reduced-motion: no-preference) {
+  [data-landing-animate] .landing-reveal {
+    opacity: 0;
+    transform: translateY(16px);
+    transition: opacity 0.6s var(--ease-out-soft), transform 0.6s var(--ease-out-soft);
+  }
+
+  [data-landing-animate] .landing-reveal.landing-reveal-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  [data-landing-animate] .landing-reveal-delay-1 {
+    transition-delay: 0.08s;
+  }
+
+  [data-landing-animate] .landing-reveal-delay-2 {
+    transition-delay: 0.16s;
+  }
+
+  [data-landing-animate] .landing-reveal-delay-3 {
+    transition-delay: 0.24s;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-reveal {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.landing-font-display {
+  font-family: var(--font-landing-display), var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Phone mock state transitions */
+.landing-phone-state {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transform: translateX(16px);
+  transition: opacity 0.5s var(--ease-out-soft), transform 0.5s var(--ease-out-soft);
+  pointer-events: none;
+}
+
+.landing-phone-state.is-active {
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: auto;
+}
+
+.landing-phone-state.is-prev {
+  transform: translateX(-16px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-phone-state,
+  .landing-phone-state.is-active,
+  .landing-phone-state.is-prev {
+    transition: none;
+    transform: none;
+  }
+}
+
+/* FAQ accordion chevron */
+.landing-faq details > summary {
+  list-style: none;
+}
+
+.landing-faq details > summary::-webkit-details-marker {
+  display: none;
+}
+
+.landing-faq details[open] summary .landing-faq-chevron {
+  transform: rotate(180deg);
+}
+
+/* Product card hover lift */
+.landing-card-lift {
+  transition: transform 0.2s var(--ease-out-soft), box-shadow 0.2s var(--ease-out-soft);
+}
+
+.landing-card-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-float);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-card-lift {
+    transition: none;
+  }
+
+  .landing-card-lift:hover {
+    transform: none;
+  }
+}
+
+/* Staggered nav link underline */
+.landing-nav-link {
+  position: relative;
+}
+
+.landing-nav-link::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -2px;
+  width: 100%;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.25s var(--ease-out-soft);
+}
+
+.landing-nav-link:hover::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-nav-link::after {
+    transition: none;
+  }
+}
+
+/* Premium landing styles */
+
+.landing-font-accent {
+  font-family: var(--font-landing-accent), 'Georgia', 'Times New Roman', serif;
+  font-style: italic;
+}
+
+/* Warm grain overlay on dark sections */
+.landing-grain::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 20; /* above the sticky phone too, so the texture stays continuous */
+  pointer-events: none;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-grain::before {
+    opacity: 0.06;
+  }
+}
+
+/* Device shadows (static, never animated) */
+.shadow-landing-phone {
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.06) inset,
+    0 24px 48px -12px rgba(0, 0, 0, 0.45),
+    0 48px 96px -24px rgba(0, 0, 0, 0.35);
+}
+
+.shadow-landing-tablet {
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.06) inset,
+    0 30px 60px -24px rgba(36, 29, 26, 0.4);
+}
+
+/* Hero phone float */
+@keyframes hero-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.landing-hero-float {
+  animation: hero-float 6s ease-in-out infinite;
+  animation-play-state: running;
+}
+
+[data-visible='false'] .landing-hero-float {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-hero-float {
+    animation: none;
+  }
+}
+
+/* Steam wisps */
+@keyframes steam-rise {
+  0% {
+    opacity: 0;
+    transform: translateY(0) scaleY(0.6);
+  }
+  20% {
+    opacity: 0.35;
+  }
+  80% {
+    opacity: 0.1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-80px) scaleY(1.2);
+  }
+}
+
+.landing-steam {
+  animation: steam-rise 7s ease-out infinite;
+  filter: blur(4px);
+}
+
+.landing-steam-1 {
+  animation-delay: 0s;
+}
+
+.landing-steam-2 {
+  animation-delay: 2.3s;
+}
+
+.landing-steam-3 {
+  animation-delay: 4.6s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-steam {
+    animation: none;
+    opacity: 0;
+  }
+}
+
+/* Pickup code tick animation */
+@keyframes code-tick {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.landing-code-tick {
+  animation: code-tick 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-code-tick {
+    animation: none;
+  }
+}
+
+/* Ready card pulse */
+@keyframes ready-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.03); }
+}
+
+@keyframes ready-glow {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 0.9; }
+}
+
+.landing-ready-card {
+  animation: ready-pulse 2.2s ease-in-out infinite;
+}
+
+.landing-ready-card::before {
+  content: '';
+  position: absolute;
+  inset: -8px;
+  z-index: -1;
+  border-radius: inherit;
+  background: radial-gradient(circle at center, var(--listo-card) 0%, transparent 70%);
+  opacity: 0.5;
+  animation: ready-glow 2.2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-ready-card {
+    animation: none;
+  }
+
+  .landing-ready-card::before {
+    animation: none;
+    opacity: 0.6;
+  }
+}
+
+/* Preparing progress bar */
+@keyframes preparing-bar {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+.landing-preparing-bar {
+  animation: preparing-bar 3.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-preparing-bar {
+    animation: none;
+    transform: scaleX(1);
+  }
+}
+
+/* KDS ticket entrance */
+@keyframes kds-ticket-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-kds-ticket-in {
+  animation: kds-ticket-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-kds-ticket-in {
+    animation: none;
+  }
+}
+
+/* Card hover lift with shadow layer (no box-shadow animation) */
+.landing-card-lift {
+  position: relative;
+  transition: transform 0.2s var(--ease-out-soft);
+}
+
+.landing-card-lift::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: var(--shadow-float);
+  opacity: 0;
+  transition: opacity 0.2s var(--ease-out-soft);
+  pointer-events: none;
+  z-index: -1;
+}
+
+.landing-card-lift:hover {
+  transform: translateY(-4px);
+}
+
+.landing-card-lift:hover::after {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-card-lift {
+    transition: none;
+  }
+
+  .landing-card-lift::after {
+    transition: none;
+  }
+
+  .landing-card-lift:hover {
+    transform: none;
+  }
+}
+
+/* FAQ item subtle lift */
+.landing-faq-item {
+  position: relative;
+  transition: transform 0.2s var(--ease-out-soft);
+}
+
+.landing-faq-item::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: var(--shadow-md);
+  opacity: 0;
+  transition: opacity 0.2s var(--ease-out-soft);
+  pointer-events: none;
+  z-index: -1;
+}
+
+.landing-faq-item:hover {
+  transform: translateY(-2px);
+}
+
+.landing-faq-item:hover::after {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-faq-item {
+    transition: none;
+  }
+
+  .landing-faq-item::after {
+    transition: none;
+  }
+
+  .landing-faq-item:hover {
+    transform: none;
+  }
+}
+
+/* KDS live dot */
+@keyframes live-dot-pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.6); opacity: 0.5; }
+}
+
+.landing-live-dot::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: currentColor;
+  animation: live-dot-pulse 1.8s ease-in-out infinite;
+  animation-play-state: paused;
+}
+
+[data-visible='true'] .landing-live-dot::before {
+  animation-play-state: running;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-live-dot::before {
+    animation: none;
+  }
+}
+
+/* Hero loop rewind: menu rows rise in one after another */
+@keyframes landing-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.landing-rise {
+  animation: landing-rise 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.landing-rise-1 {
+  animation-delay: 0.3s;
+}
+
+.landing-rise-2 {
+  animation-delay: 0.38s;
+}
+
+.landing-rise-3 {
+  animation-delay: 0.46s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-rise {
+    animation: none;
+  }
+}
