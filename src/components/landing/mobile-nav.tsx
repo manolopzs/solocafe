@@ -42,12 +42,15 @@ export function MobileNav() {
                 </Link>
               ))}
               <hr className="my-2 border-border" />
+              <Button asChild variant="cta" className="justify-start">
+                <Link href="#app" onClick={() => setOpen(false)}>Get the app</Link>
+              </Button>
               <Button asChild variant="outline" className="justify-start">
                 <Link href="/account/login" onClick={() => setOpen(false)}>
                   Customer sign in
                 </Link>
               </Button>
-              <Button asChild variant="espresso" className="justify-start">
+              <Button asChild variant="outline" className="justify-start">
                 <Link href="#for-cafes" onClick={() => setOpen(false)}>
                   For cafes
                 </Link>
