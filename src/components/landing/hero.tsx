@@ -22,7 +22,7 @@ export function Hero() {
             <div className="mt-10 flex flex-col gap-3 sm:flex-row">
               <Magnetic className="w-full sm:w-auto">
                 <Button asChild variant="cta" size="lg" className="w-full sm:w-auto">
-                  <Link href="/inicio">Order a coffee</Link>
+                  <Link href="#app">Download the app</Link>
                 </Button>
               </Magnetic>
               <Magnetic className="w-full sm:w-auto">
