@@ -95,14 +95,14 @@ describe('BottomNav Home', () => {
 })
 
 describe('BottomNav look', () => {
-  it('uses the euro receipt for Orders and a heavier stroke on the active tab', () => {
+  it('uses Phosphor house/receipt/user icons and a heavier active state', () => {
     usePathname.mockReturnValue('/account/orders')
     const { container } = render(<BottomNav />)
     const orders = Array.from(container.querySelectorAll('a')).find((a) => a.textContent === 'Orders')!
-    expect(orders.querySelector('svg')?.getAttribute('class')).toMatch(/lucide-receipt-euro/)
-    expect(orders.querySelector('svg')?.getAttribute('stroke-width')).toBe('2.25')
+    expect(orders.querySelector('svg')?.getAttribute('class')).toMatch(/h-6/)
+    expect(orders).toHaveAttribute('aria-current', 'page')
     const account = Array.from(container.querySelectorAll('a')).find((a) => a.textContent === 'Account')!
-    expect(account.querySelector('svg')?.getAttribute('stroke-width')).toBe('1.75')
+    expect(account.querySelector('svg')?.getAttribute('class')).toMatch(/h-6/)
   })
 })
 

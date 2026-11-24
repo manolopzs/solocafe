@@ -95,9 +95,9 @@ export function Sheet({ open, onClose, title, children, footer, position = 'bott
       <div
         ref={sheetRef}
         className={[
-          'absolute bg-surface-elevated shadow-2xl transition-all duration-[320ms] ease-out-soft motion-reduce:transition-opacity motion-reduce:duration-150',
+          'absolute bg-surface-elevated shadow-2xl transition-all duration-300 ease-out-soft motion-reduce:transition-opacity motion-reduce:duration-150',
           isBottom
-            ? 'bottom-0 left-0 right-0 top-auto flex max-h-[92vh] flex-col overflow-hidden rounded-t-sheet'
+            ? 'bottom-0 left-0 right-0 top-auto flex max-h-[92vh] flex-col overflow-hidden rounded-t-3xl'
             : isRight
               ? 'right-0 top-0 bottom-0 h-full w-full max-w-md rounded-l-2xl'
               : 'left-1/2 top-1/2 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-2xl',
@@ -121,7 +121,7 @@ export function Sheet({ open, onClose, title, children, footer, position = 'bott
               bare ? 'absolute left-1/2 top-0 z-10 w-24 -translate-x-1/2' : '',
             ].join(' ')}
           >
-            <div className="h-[5px] w-9 rounded-full bg-subtle" />
+            <div className="h-1 w-8 rounded-full bg-subtle" />
           </div>
         )}
         {title && (

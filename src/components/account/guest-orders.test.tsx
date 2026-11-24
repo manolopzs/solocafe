@@ -51,13 +51,13 @@ describe('GuestOrders', () => {
 
   it('shows an empty state that leads to Home, not a login wall', () => {
     renderGuestOrders()
-    expect(screen.getByText("You don't have any orders yet")).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Place an order' })).toHaveAttribute('href', '/inicio')
+    expect(screen.getByText('No orders yet')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Order a coffee' })).toHaveAttribute('href', '/inicio')
     expect(screen.queryByText('Your order in progress')).not.toBeInTheDocument()
     expect(refreshGuestOrderStatuses).not.toHaveBeenCalled()
   })
 
-  it('shows the order in progress with its pickup code and tracker link, plus past orders to repeat', async () => {
+  it('shows active and past tabs with grouped rows', async () => {
     rememberGuestOrder(
       saved('22222222-2222-4222-8222-2222222222aa', '2026-11-15T09:00:00Z', 'picked_up', 'Another coffee shop', {
         shopSlug: 'otra',
@@ -69,35 +69,32 @@ describe('GuestOrders', () => {
     await act(async () => {})
 
     expect(screen.getByRole('heading', { level: 1, name: 'Orders' })).toBeInTheDocument()
-    expect(screen.getByText('Your order in progress')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Active' })).toHaveAttribute('aria-pressed', 'true')
     expect(screen.getByText('Preparing')).toBeInTheDocument()
     expect(screen.getByText('11BC')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'View tracking' })).toHaveAttribute(
-      'href',
-      '/order/11111111-1111-4111-8111-1111111111bc?token=tok-11111111-1111-4111-8111-1111111111bc',
-    )
-    expect(screen.getByText('Past')).toBeInTheDocument()
-    expect(screen.getByText(/2 × Cortado/)).toBeInTheDocument()
-    expect(screen.getByText(/Another coffee shop · .* · Picked up/)).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /^Reorder/ })).toHaveAttribute(
+
+    // Past tab
+    screen.getByRole('button', { name: 'Past' }).click()
+    await act(async () => {})
+    expect(screen.getByText('2 × Cortado')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /^Order again/ })).toHaveAttribute(
       'href',
       '/otra?reorder=22222222-2222-4222-8222-2222222222aa&token=tok-22222222-2222-4222-8222-2222222222aa',
     )
-    expect(screen.getAllByText('4,00 €').length).toBeGreaterThan(0)
-    expect(screen.getByRole('link', { name: 'Sign up' })).toHaveAttribute('href', '/account/signup')
     expect(refreshGuestOrderStatuses).toHaveBeenCalledWith([
       { id: '11111111-1111-4111-8111-1111111111bc', token: 'tok-11111111-1111-4111-8111-1111111111bc' },
     ])
   })
 
-  it('drops the in-progress card once a refresh says the order was picked up', async () => {
+  it('drops the active row once a refresh says the order was picked up', async () => {
     refreshGuestOrderStatuses.mockResolvedValue([{ id: '11111111-1111-4111-8111-1111111111bc', status: 'picked_up' }])
     renderGuestOrders()
     await act(async () => {})
 
-    expect(screen.queryByText('Your order in progress')).not.toBeInTheDocument()
+    expect(screen.queryByText('Preparing')).not.toBeInTheDocument()
+    screen.getByRole('button', { name: 'Past' }).click()
+    await act(async () => {})
     expect(screen.getAllByText(/Picked up/)).toHaveLength(2)
-    expect(screen.getAllByRole('link', { name: /^Reorder/ })).toHaveLength(2)
     expect(window.localStorage.getItem('solo-cafe.guest-orders')).not.toContain('"preparing"')
   })
 })

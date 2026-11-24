@@ -1,5 +1,5 @@
 import Image from 'next/image'
-import { Icon } from '@/components/ui/icon'
+import { PhosphorIcon } from '@/components/icons/phosphor'
 import { getMenuItemCutout, getMenuItemImage } from '@/lib/storefront-menu'
 import type { MenuItem } from '@/types'
 
@@ -47,7 +47,7 @@ export function MenuTileImage({
   }
   return (
     <div className="pointer-events-none flex h-full w-full items-center justify-center text-muted-foreground">
-      <Icon name="coffee" className={iconClassName} />
+      <PhosphorIcon name="coffee" className={iconClassName} />
     </div>
   )
 }

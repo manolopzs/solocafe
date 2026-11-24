@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { StampCard } from '@/components/order/stamp-card'
-import { Icon } from '@/components/ui/icon'
+import { PhosphorIcon } from '@/components/icons/phosphor'
 import { CUSTOMER_HOME_PATH } from '@/lib/site'
 
 export function AccountHome({
@@ -22,12 +22,13 @@ export function AccountHome({
   savedCards: CustomerPaymentMethod[]
 }) {
   const firstName = customer.name?.trim().split(' ')[0]
+  const hasCards = loyaltyCards.length > 0
 
   return (
     <main className="min-h-screen bg-background">
-      <div className="mx-auto max-w-xl px-5 pb-24 pt-5">
+      <div className="phone-col px-5 pb-24 pt-5">
         <Link href={CUSTOMER_HOME_PATH} className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground">
-          <Icon name="arrow-left" className="h-4 w-4" />
+          <PhosphorIcon name="arrow-left" className="h-4 w-4" />
           Home
         </Link>
 
@@ -37,6 +38,27 @@ export function AccountHome({
         <p className="mt-2 text-base text-muted-foreground">{customer.email || 'Manage your profile and review your orders.'}</p>
 
         <section className="mt-8">
+          <h2 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">Your stamps</h2>
+          {!hasCards ? (
+            <p className="mt-3 text-sm leading-6 text-muted-foreground">
+              Every paid order earns a stamp at that coffee shop. When you fill the card, you can redeem a free item.
+            </p>
+          ) : loyaltyCards.length === 1 ? (
+            <div className="mt-4">
+              <StampCard loyalty={loyaltyCards[0]} compact />
+            </div>
+          ) : (
+            <div className="mt-4 flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2 no-scrollbar [-webkit-overflow-scrolling:touch]">
+              {loyaltyCards.map((card) => (
+                <div key={card.shop_id} className="w-[calc(100%-1rem)] shrink-0 snap-start">
+                  <StampCard loyalty={card} compact />
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
+        <section className="mt-10">
           <h2 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">Profile</h2>
           <form action={updateCustomerProfile} className="mt-4 space-y-4">
             <div>
@@ -58,17 +80,6 @@ export function AccountHome({
               Save changes
             </Button>
           </form>
-        </section>
-
-        <section className="mt-10 space-y-3">
-          <h2 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">Your stamps</h2>
-          {loyaltyCards.length === 0 ? (
-            <p className="text-sm leading-6 text-muted-foreground">
-              Every paid order earns a stamp at that coffee shop. When you fill the card, you can redeem a free item.
-            </p>
-          ) : (
-            loyaltyCards.map((card) => <StampCard key={card.shop_id} loyalty={card} compact />)
-          )}
         </section>
 
         <section className="mt-10">
@@ -103,18 +114,18 @@ export function AccountHome({
         <div className="mt-8 overflow-hidden rounded-3xl bg-surface">
           <Link href="/account/orders" className="flex min-h-16 items-center gap-3 px-4">
             <span className="flex h-10 w-10 items-center justify-center rounded-full bg-background text-foreground">
-              <Icon name="receipt" className="h-5 w-5" />
+              <PhosphorIcon name="receipt" className="h-5 w-5" />
             </span>
             <span className="min-w-0 flex-1">
               <span className="block font-medium text-foreground">History</span>
               <span className="block text-sm text-muted-foreground">View past orders</span>
             </span>
-            <Icon name="chevron-right" className="h-5 w-5 text-muted-foreground" />
+            <PhosphorIcon name="caret-right" className="h-5 w-5 text-muted-foreground" />
           </Link>
           <form action={accountLogoutAction} className="border-t border-border">
             <button type="submit" className="flex min-h-16 w-full items-center gap-3 px-4 text-left">
               <span className="flex h-10 w-10 items-center justify-center rounded-full bg-background text-foreground">
-                <Icon name="x" className="h-5 w-5" />
+                <PhosphorIcon name="x" className="h-5 w-5" />
               </span>
               <span className="min-w-0 flex-1">
                 <span className="block font-medium text-foreground">Log out</span>

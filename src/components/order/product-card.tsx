@@ -1,13 +1,14 @@
 'use client'
 
-import { Icon } from '@/components/ui/icon'
+import { PhosphorIcon } from '@/components/icons/phosphor'
+import { vibrate } from '@/lib/vibrate'
 import { MenuTileImage } from '@/components/order/menu-tile-image'
 import { storefrontItemName } from '@/lib/storefront-menu'
 import type { MenuItem } from '@/types'
 
 /**
- * Menu grid item (mock 02): a 1:1 surface tile (radius 20) with the cut-out, the
- * "+" disc 8 from the tile corner, then name (16/22) and price (15/20) below.
+ * Menu grid item: a 1:1 surface tile (radius 20) with the cut-out, the
+ * "+" disc 8 from the tile corner, then name (16/22) and price below.
  */
 export function ProductCard({
   item,
@@ -65,14 +66,18 @@ export function ProductCard({
             aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
           >
             <span className="flex h-8 w-8 items-center justify-center rounded-full bg-surface-elevated shadow-card">
-              <Icon name="heart" className={['h-3.5 w-3.5', isFavorite ? 'fill-danger text-danger' : 'text-muted-foreground'].join(' ')} />
+              <PhosphorIcon
+                name="heart"
+                weight={isFavorite ? 'fill' : 'regular'}
+                className={['h-3.5 w-3.5', isFavorite ? 'text-danger' : 'text-muted-foreground'].join(' ')}
+              />
             </span>
           </button>
         )}
       </div>
       <button type="button" onClick={onClick} tabIndex={-1} aria-hidden="true" className="mt-3 text-left touch-manipulation">
         <h3 className="line-clamp-2 break-words text-product text-foreground">{displayName}</h3>
-        <p className="mt-0.5 shrink-0 whitespace-nowrap text-price tabular-nums text-muted-foreground">
+        <p className="mt-0.5 shrink-0 whitespace-nowrap text-base font-semibold leading-[22px] tabular-nums text-foreground">
           {formatPrice(item.price_cents)}
         </p>
       </button>
@@ -82,7 +87,7 @@ export function ProductCard({
 
 /**
  * Elevated "+" disc (36px, 44px tap area, card shadow) that grows into a
- * 108px "− n +" counter in 200ms once the item is in the bag.
+ * 108px "- n +" counter in 200ms once the item is in the bag.
  */
 function QuickAddControl({
   name,
@@ -96,6 +101,17 @@ function QuickAddControl({
   onDecrement?: () => void
 }) {
   const expanded = quantity > 0 && Boolean(onDecrement)
+
+  const handleAdd = () => {
+    vibrate(10)
+    onAdd()
+  }
+
+  const handleDecrement = () => {
+    vibrate(10)
+    onDecrement?.()
+  }
+
   return (
     <div
       role={expanded ? 'group' : undefined}
@@ -109,11 +125,15 @@ function QuickAddControl({
         <>
           <button
             type="button"
-            onClick={onDecrement}
-            className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full touch-manipulation after:absolute after:-inset-1 active:scale-90"
+            onClick={handleDecrement}
+            className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full touch-manipulation after:absolute after:-inset-1 active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-surface-elevated"
             aria-label={`Remove ${name}`}
           >
-            <Icon name="minus" className="h-4 w-4" />
+            {quantity <= 1 ? (
+              <PhosphorIcon name="trash" className="h-4 w-4" />
+            ) : (
+              <PhosphorIcon name="minus" className="h-4 w-4" />
+            )}
           </button>
           <span className="min-w-6 flex-1 text-center text-base font-semibold tabular-nums" aria-live="polite" data-testid="quick-add-quantity">
             {quantity}
@@ -122,8 +142,8 @@ function QuickAddControl({
       )}
       <button
         type="button"
-        onClick={onAdd}
-        className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full touch-manipulation after:absolute after:-inset-1 active:scale-90"
+        onClick={handleAdd}
+        className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full touch-manipulation after:absolute after:-inset-1 active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-surface-elevated"
         aria-label={`Add ${name}`}
       >
         <span
@@ -132,7 +152,7 @@ function QuickAddControl({
             expanded ? 'bg-foreground text-background' : 'bg-surface-elevated text-foreground',
           ].join(' ')}
         >
-          <Icon name="plus" className="h-4 w-4" strokeWidth={2.25} />
+          <PhosphorIcon name="plus" className="h-4 w-4" />
         </span>
       </button>
     </div>

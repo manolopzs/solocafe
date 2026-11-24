@@ -45,7 +45,7 @@ export function OrderReadyScreen({ order, menuHref }: { order: ReadyOrder; menuH
       data-testid="order-ready-screen"
       aria-live="polite"
     >
-      <div className="mx-auto flex min-h-full max-w-xl flex-col px-5 pb-[calc(env(safe-area-inset-bottom)+72px)] pt-[env(safe-area-inset-top)]">
+      <div className="phone-col flex min-h-full flex-col px-5 pb-[calc(env(safe-area-inset-bottom)+72px)] pt-[env(safe-area-inset-top)]">
         <div className="flex h-12 items-center justify-between text-body-sm font-semibold">
           <span className="truncate">{shopName}</span>
           <Link href={menuHref} className="-mr-1 inline-flex min-h-11 items-center px-1">
@@ -61,15 +61,13 @@ export function OrderReadyScreen({ order, menuHref }: { order: ReadyOrder; menuH
         <p className="mt-2 text-body-lg text-listo-muted">Your order is ready. Come pick it up.</p>
 
         <div className="mt-8 motion-safe:animate-[code-in_360ms_ease-out_160ms_both]">
-          <button
-            type="button"
-            onClick={() => setShowAtBar(true)}
-            className="block w-full rounded-code text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground active:scale-[0.99]"
-            aria-label="Show this at the counter: view the code full screen"
+          <PickupCode
+            orderId={order.id}
+            size="lg"
+            hint="Say it, or tap to show this at the counter"
+            onTap={() => setShowAtBar(true)}
             data-testid="open-bar-handoff"
-          >
-            <PickupCode orderId={order.id} size="lg" hint="Say it, or tap to show this at the counter" />
-          </button>
+          />
         </div>
 
         {signedIn ? (

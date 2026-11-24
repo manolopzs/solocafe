@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { createOrder } from '@/server/actions/orders'
@@ -10,7 +10,8 @@ import type { FullMenu } from '@/server/queries/menu'
 import { formatMoney, orderErrorCopy } from '@/lib/ordering'
 import { storefrontCategoryName } from '@/lib/storefront-menu'
 import { EmptyState } from '@/components/ui/empty-state'
-import { Icon } from '@/components/ui/icon'
+import { PhosphorIcon } from '@/components/icons/phosphor'
+import { vibrate } from '@/lib/vibrate'
 import { Notice } from '@/components/ui/notice'
 import { BagBar } from '@/components/order/bag-bar'
 import type { CartViewLine } from '@/components/order/cart-sheet'
@@ -94,6 +95,8 @@ export function OrderPageClient({
   const [redeemLoyalty, setRedeemLoyalty] = useState(false)
   const [addedItemId, setAddedItemId] = useState<string | null>(null)
   const [bagPulse, setBagPulse] = useState(0)
+  const [scrolled, setScrolled] = useState(false)
+  const headerRef = useRef<HTMLDivElement>(null)
   const ordering = menuOrdering ?? shop.ordering
   const {
     preview,
@@ -122,6 +125,15 @@ export function OrderPageClient({
     const interval = setInterval(() => void refreshMenu(), 15000)
     return () => clearInterval(interval)
   }, [shop.id])
+
+  useEffect(() => {
+    const onScroll = () => {
+      const top = window.scrollY
+      setScrolled(top > 24)
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
 
   const groupsForItem = (itemId: string) => {
     const linkIds = itemModifierLinks.filter((link) => link.item_id === itemId).map((link) => link.group_id)
@@ -246,6 +258,7 @@ export function OrderPageClient({
   }
 
   const addToCart = (item: MenuItem, quantity: number, modifierIds: string[]) => {
+    vibrate(10)
     cart.add(item.id, quantity, modifierIds)
     setBagPulse((n) => n + 1)
     setActiveItem(null)
@@ -254,6 +267,7 @@ export function OrderPageClient({
   }
 
   const quickAdd = (item: MenuItem) => {
+    vibrate(10)
     cart.add(item.id, 1, [])
     setBagPulse((n) => n + 1)
     setAddedItemId(item.id)
@@ -327,43 +341,62 @@ export function OrderPageClient({
   }
 
   const sheetsOpen = sheetOpen
-  const hasHero = Boolean(shop.hero_photo_url)
   const menuIsEmpty = visibleCategories.length === 0 && uncategorizedItems.length === 0
 
   return (
     <div className="pb-bag min-h-screen bg-background">
-      <header className="mx-auto max-w-3xl px-5">
-        <div className="-mx-3 flex h-14 items-center justify-between">
-          <Link href="/inicio" className="flex h-11 w-11 items-center justify-center rounded-full text-foreground" aria-label="Back to Home">
-            <Icon name="arrow-left" className="h-[22px] w-[22px]" />
+      <div ref={headerRef} className="shop-top-bar sticky top-0 z-30" data-scrolled={scrolled}>
+        <div className="phone-col flex h-14 items-center justify-between px-5">
+          <Link href="/inicio" className="flex h-11 w-11 items-center justify-center rounded-full text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-background" aria-label="Back to Home">
+            <PhosphorIcon name="arrow-left" className="h-[22px] w-[22px]" />
           </Link>
-          <SoloCafeWordmark height={20} />
+          <div className="flex min-w-0 flex-col items-center justify-center">
+            <SoloCafeWordmark height={20} />
+            <span
+              className={[
+                'max-w-[160px] truncate text-[13px] font-semibold leading-4 text-heading transition-all duration-200 motion-reduce:transition-none',
+                scrolled ? 'translate-y-0 opacity-100' : '-translate-y-1 opacity-0',
+              ].join(' ')}
+              aria-hidden={!scrolled}
+            >
+              {shop.name}
+            </span>
+          </div>
           <Link
             href={customer ? '/account' : '/account/login'}
-            className="flex h-11 w-11 items-center justify-center rounded-full text-foreground"
+            className="flex h-11 w-11 items-center justify-center rounded-full text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             aria-label={customer ? 'Account' : 'Log in'}
           >
-            <Icon name="user" className="h-[22px] w-[22px]" />
+            <PhosphorIcon name="user" className="h-[22px] w-[22px]" />
           </Link>
         </div>
-        <div className="flex items-center gap-3 pt-2">
-          {shop.logo_url && (
-            <span className="relative h-11 w-11 shrink-0 overflow-hidden rounded-full bg-surface">
-              <Image src={shop.logo_url} alt="" fill sizes="44px" className="object-cover" />
-            </span>
-          )}
-          <h1 className="shop-display-font min-w-0 truncate text-h1 text-heading">{shop.name}</h1>
+      </div>
+      <header className="phone-col px-5">
+        <div
+          className={[
+            'bg-background pb-1 pt-2 transition-opacity duration-200 motion-reduce:transition-none',
+            scrolled ? 'pointer-events-none opacity-0' : 'opacity-100',
+          ].join(' ')}
+        >
+          <div className="flex items-center gap-3">
+            {shop.logo_url && (
+              <span className="relative h-11 w-11 shrink-0 overflow-hidden rounded-full bg-surface">
+                <Image src={shop.logo_url} alt="" fill sizes="44px" className="object-cover" />
+              </span>
+            )}
+            <h1 className="shop-display-font min-w-0 truncate text-h1 text-heading">{shop.name}</h1>
+          </div>
+          <p className="mt-1 flex min-w-0 items-center gap-1.5 text-body-sm text-muted-foreground">
+            {shop.address && (
+              <>
+                <PhosphorIcon name="map-pin" className="h-4 w-4 shrink-0" />
+                <span className="truncate">{shop.address}</span>
+                <span aria-hidden="true">·</span>
+              </>
+            )}
+            <span className="shrink-0">Pickup</span>
+          </p>
         </div>
-        <p className="mt-1 flex min-w-0 items-center gap-1.5 text-body-sm text-muted-foreground">
-          {shop.address && (
-            <>
-              <Icon name="map-pin" className="h-4 w-4 shrink-0" />
-              <span className="truncate">{shop.address}</span>
-              <span aria-hidden="true">·</span>
-            </>
-          )}
-          <span className="shrink-0">Pickup</span>
-        </p>
       </header>
 
       <div className="mt-3">
@@ -373,19 +406,19 @@ export function OrderPageClient({
       {usualOrder && <UsualOrderButton usual={usualOrder} onOrder={orderUsual} />}
 
       {notice && (
-        <div className="mx-auto max-w-3xl px-5 pt-3">
+        <div className="phone-col px-5 pt-3">
           <Notice>{notice}</Notice>
         </div>
       )}
 
       {reorderCount > 0 && (
-        <div className="mx-auto max-w-3xl px-5 pt-3">
+        <div className="phone-col px-5 pt-3">
           <Notice>We added {reorderCount} items from your previous order. Review your order.</Notice>
         </div>
       )}
 
       {recentOrders.length > 0 && (
-        <section className="mx-auto max-w-3xl px-5 pt-5">
+        <section className="phone-col px-5 pt-5">
           <h2 className="text-sm font-medium text-muted-foreground">Recent orders</h2>
           <div className="mt-3 flex snap-x snap-mandatory gap-3 overflow-x-auto pb-1 no-scrollbar">
             {recentOrders.map((order) => (
@@ -411,7 +444,7 @@ export function OrderPageClient({
       )}
 
       {favoriteItems.length > 0 && (
-        <section className="mx-auto max-w-3xl px-5 pt-5">
+        <section className="phone-col px-5 pt-5">
           <h2 className="text-sm font-medium text-muted-foreground">Your favorites</h2>
           <div className="mt-3 flex snap-x snap-mandatory gap-3 overflow-x-auto pb-1 no-scrollbar">
             {favoriteItems.map((item) => (
@@ -426,7 +459,7 @@ export function OrderPageClient({
                     <Image src={item.image_url} alt={item.name} fill sizes="144px" className="object-cover" />
                   ) : (
                     <div className="flex h-full w-full items-center justify-center text-muted-foreground">
-                      <Icon name="coffee" className="h-6 w-6 opacity-30" />
+                      <PhosphorIcon name="coffee" className="h-6 w-6 opacity-30" />
                     </div>
                   )}
                 </div>
@@ -439,7 +472,7 @@ export function OrderPageClient({
       )}
 
       {featuredItems.length > 0 && (
-        <section className="mx-auto max-w-3xl px-5 pt-5">
+        <section className="phone-col px-5 pt-5">
           <h2 className="text-sm font-medium text-muted-foreground">Featured</h2>
           <div className="mt-3 flex snap-x snap-mandatory gap-3 overflow-x-auto pb-1 no-scrollbar">
             {featuredItems.map((item) => (
@@ -462,10 +495,10 @@ export function OrderPageClient({
 
       <CategoryTabs categories={navItems} activeId={activeId} onSelect={scrollTo} />
 
-      <main className="mx-auto max-w-3xl animate-rise px-5 pt-5">
+      <main className="phone-col animate-rise px-5 pt-5">
         {menuIsEmpty && (
           <EmptyState
-            icon={<Icon name="coffee" className="h-6 w-6" />}
+            icon={<PhosphorIcon name="coffee" className="h-6 w-6" />}
             title="The menu is on its way"
             description="This coffee shop hasn't published pickup items yet."
           />

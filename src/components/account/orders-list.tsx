@@ -1,13 +1,15 @@
+'use client'
+
+import { useMemo, useState } from 'react'
 import Link from 'next/link'
-import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { EmptyState } from '@/components/ui/empty-state'
-import { Icon } from '@/components/ui/icon'
+import { PhosphorIcon } from '@/components/icons/phosphor'
 import { CUSTOMER_HOME_PATH } from '@/lib/site'
 import { CUSTOMER_TIME_ZONE, formatMoney } from '@/lib/ordering'
-import type { Order } from '@/types'
 import { customerReorderHref } from '@/lib/guest-orders'
+import { groupOrdersByDate, isActiveOrder, partitionOrders } from '@/lib/order-groups'
+import type { Order } from '@/types'
 
 const statusLabels: Record<string, string> = {
   pending_payment: 'Payment pending',
@@ -18,50 +20,84 @@ const statusLabels: Record<string, string> = {
   cancelled: 'Cancelled',
 }
 
-const statusVariant: Record<string, 'default' | 'secondary' | 'success' | 'danger' | 'warning'> = {
-  pending_payment: 'secondary',
-  received: 'secondary',
-  preparing: 'warning',
-  ready: 'success',
-  picked_up: 'default',
-  cancelled: 'danger',
+function orderHref(order: Order): string {
+  const token = order.access_token
+  const base = `/order/${order.id}`
+  return token ? `${base}?token=${encodeURIComponent(token)}` : base
 }
 
-function orderDate(date: string) {
+function orderDateLabel(date: string) {
   return new Date(date).toLocaleDateString('en-GB', {
     day: 'numeric',
     month: 'short',
-    year: 'numeric',
     timeZone: CUSTOMER_TIME_ZONE,
   })
 }
 
 export function OrdersList({ orders }: { orders: Order[] }) {
+  const [tab, setTab] = useState<'active' | 'past'>('active')
+  const { active, past } = useMemo(() => partitionOrders(orders), [orders])
+  const displayed = tab === 'active' ? active : past
+  const grouped = useMemo(() => groupOrdersByDate(displayed), [displayed])
+  const lastShopSlug = orders[0]?.shop?.slug
+  const emptyHref = lastShopSlug ? `/${lastShopSlug}` : CUSTOMER_HOME_PATH
+
   return (
     <main className="min-h-screen bg-background">
-      <div className="mx-auto max-w-xl px-5 pb-24 pt-5">
+      <div className="phone-col px-5 pb-24 pt-5">
         <Link href="/account" className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground">
-          <Icon name="arrow-left" className="h-4 w-4" />
+          <PhosphorIcon name="arrow-left" className="h-4 w-4" />
           Your account
         </Link>
 
         <h1 className="mt-8 text-[2rem] font-medium leading-tight tracking-tight text-heading">Your orders</h1>
         <p className="mt-2 text-base text-muted-foreground">Order history at coffee shops that use Solo Café.</p>
 
-        <div className="mt-8 space-y-3">
-          {orders.length === 0 ? (
+        <div className="mt-6 inline-flex rounded-full bg-pill p-1">
+          {[
+            { key: 'active', label: 'Active' },
+            { key: 'past', label: 'Past' },
+          ].map((item) => (
+            <button
+              key={item.key}
+              type="button"
+              onClick={() => setTab(item.key as 'active' | 'past')}
+              className={[
+                'flex min-h-11 items-center rounded-full px-5 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-pill',
+                tab === item.key ? 'bg-foreground text-background' : 'text-on-pill',
+              ].join(' ')}
+              aria-pressed={tab === item.key}
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="mt-6 space-y-6">
+          {displayed.length === 0 ? (
             <EmptyState
-              icon={<Icon name="receipt" className="h-6 w-6" />}
-              title="You don't have any orders yet"
-              description="When you place your first order, it will appear here."
+              icon={<PhosphorIcon name="receipt" className="h-6 w-6" />}
+              title={tab === 'active' ? 'No active orders' : 'No orders yet'}
+              description={tab === 'active' ? 'You have no orders in progress.' : 'When you place your first order, it will appear here.'}
               action={
                 <Button asChild>
-                  <Link href={CUSTOMER_HOME_PATH}>Place an order</Link>
+                  <Link href={emptyHref}>Order a coffee</Link>
                 </Button>
               }
             />
           ) : (
-            orders.map((order) => <OrderCard key={order.id} order={order} />)
+            grouped.map(({ label, items }) => (
+              <section key={`${tab}-${label}`}>
+                <h2 className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">{label}</h2>
+                <ul className="mt-3 space-y-3">
+                  {items.map((order) => (
+                    <li key={order.id}>
+                      <OrderRow order={order} />
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ))
           )}
         </div>
       </div>
@@ -69,37 +105,34 @@ export function OrdersList({ orders }: { orders: Order[] }) {
   )
 }
 
-function OrderCard({ order }: { order: Order }) {
+function OrderRow({ order }: { order: Order }) {
+  const active = isActiveOrder(order)
   const reorderHref = customerReorderHref(order)
+  const href = orderHref(order)
 
   return (
-    <Card variant="flat">
-      <CardContent className="p-4">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <p className="text-xs text-muted-foreground">{orderDate(order.created_at)}</p>
-            <p className="mt-0.5 font-medium text-foreground">Order #{order.id.slice(-6).toUpperCase()}</p>
-          </div>
-          <Badge variant={statusVariant[order.status] ?? 'secondary'}>{statusLabels[order.status] ?? order.status}</Badge>
-        </div>
-
-        <ul className="mt-3 space-y-1">
-          {(order.items ?? []).map((item) => (
-            <li key={item.id} className="text-sm text-muted-foreground">
-              {item.quantity} × {item.item_name_snapshot}
-            </li>
-          ))}
-        </ul>
-
-        <div className="mt-4 flex items-center justify-between border-t border-border pt-3">
-          <span className="font-medium tabular-nums text-foreground">{formatMoney(order.total_cents, order.currency, order.shop?.locale)}</span>
-          {reorderHref && (
-            <Button asChild variant="outline" size="sm">
-              <Link href={reorderHref}>Reorder</Link>
-            </Button>
-          )}
-        </div>
-      </CardContent>
-    </Card>
+    <div className="flex items-center gap-3 rounded-2xl border border-border bg-surface-elevated p-3 shadow-card">
+      <Link href={href} className="shrink-0">
+        <span className="flex h-10 w-10 items-center justify-center rounded-full bg-pill text-on-pill">
+          <PhosphorIcon name="storefront" className="h-5 w-5" />
+        </span>
+      </Link>
+      <Link href={href} className="min-w-0 flex-1 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-surface-elevated">
+        <p className="truncate text-base font-semibold leading-[22px] text-foreground">{order.shop?.name ?? 'Your order'}</p>
+        <p className={['text-body-sm text-muted-foreground', active ? 'truncate' : ''].join(' ')}>
+          {orderDateLabel(order.created_at)} · {statusLabels[order.status] ?? order.status}
+        </p>
+      </Link>
+      <div className="flex shrink-0 flex-col items-end gap-1">
+        <span className={['text-sm font-semibold tabular-nums', active ? 'text-foreground' : 'text-muted-foreground'].join(' ')}>
+          {formatMoney(order.total_cents, order.currency, order.shop?.locale)}
+        </span>
+        {!active && reorderHref && (
+          <Button asChild variant="outline" size="sm" className="min-h-11 focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-surface-elevated">
+            <Link href={reorderHref}>Order again</Link>
+          </Button>
+        )}
+      </div>
+    </div>
   )
 }

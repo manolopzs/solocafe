@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Icon } from '@/components/ui/icon'
+import { PhosphorIcon } from '@/components/icons/phosphor'
 import { QuantityStepper } from '@/components/order/quantity-stepper'
 import { Sheet } from '@/components/ui/sheet'
 import Image from 'next/image'
@@ -62,7 +62,7 @@ export function ItemSheet({
       onClose={onClose}
       position="bottom"
       bare
-      className="!max-h-none h-[calc(100dvh-56px)] !bg-background"
+      className="!max-h-none h-[calc(100dvh-56px)] !bg-background sm:left-1/2 sm:right-auto sm:top-auto sm:w-full sm:max-w-[var(--phone-col)] sm:-translate-x-1/2 sm:rounded-t-[24px]"
     >
       <div className="flex min-h-full flex-col">
         {/* Hero: surface strip with a 48px curve and the cut-out (mock 03) */}
@@ -89,7 +89,7 @@ export function ItemSheet({
             aria-label="Close"
           >
             <span className="flex h-10 w-10 items-center justify-center rounded-full bg-surface-elevated text-foreground shadow-card">
-              <Icon name="x" className="h-5 w-5" />
+              <PhosphorIcon name="x" className="h-5 w-5" />
             </span>
           </button>
         </div>
@@ -177,7 +177,7 @@ export function ItemSheet({
                             ].join(' ')}
                             aria-hidden
                           >
-                            {isSelected && <Icon name="check" className="h-3 w-3" />}
+                            {isSelected && <PhosphorIcon name="check" className="h-3 w-3" />}
                           </span>
                           <span className="font-medium">{option.name}</span>
                         </span>

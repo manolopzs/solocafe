@@ -7,7 +7,7 @@ import { accountSignupAction } from '@/server/actions/account-auth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Icon } from '@/components/ui/icon'
+import { PhosphorIcon } from '@/components/icons/phosphor'
 import { CUSTOMER_HOME_PATH } from '@/lib/site'
 import { SignupError } from '@/components/auth/signup-error'
 import { SoloCafeWordmark } from '@/components/brand/solo-cafe-logo'
@@ -18,7 +18,7 @@ export default function AccountSignupPage() {
 
   return (
     <main className="flex min-h-screen flex-col bg-background px-5 py-8">
-      <div className="mx-auto flex w-full max-w-sm flex-1 flex-col">
+      <div className="phone-col flex flex-1 flex-col">
         <Link href={CUSTOMER_HOME_PATH} className="inline-flex min-h-11 items-center self-start" aria-label="Solo Café, home">
           <SoloCafeWordmark height={24} />
         </Link>
@@ -58,7 +58,7 @@ export default function AccountSignupPage() {
                 className="absolute right-1 top-1/2 inline-flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full text-muted-foreground hover:text-foreground"
                 aria-label={showPassword ? 'Hide password' : 'Show password'}
               >
-                <Icon name={showPassword ? 'eye-off' : 'eye'} className="h-4 w-4" />
+                <PhosphorIcon name={showPassword ? 'eye-slash' : 'eye'} className="h-4 w-4" />
               </button>
             </div>
           </div>

@@ -9,16 +9,17 @@ import { env } from '@/lib/env'
 import { Button } from '@/components/ui/button'
 import { StampCard } from '@/components/order/stamp-card'
 import { OrderReadyScreen, showsReadyScreen } from '@/components/order/order-ready-screen'
-import { Icon } from '@/components/ui/icon'
+import { PhosphorIcon } from '@/components/icons/phosphor'
 import type { Order, OrderItem, OrderItemModifier, OrderStatus } from '@/types'
 
-const statusLabels: Record<'received' | 'preparing' | 'ready', string> = {
-  received: 'Received',
+const statusLabels: Record<'received' | 'preparing' | 'ready' | 'picked_up', string> = {
+  received: 'Ordered',
   preparing: 'Preparing',
   ready: 'Ready',
+  picked_up: 'Picked up',
 }
 
-const statusSteps: Array<'received' | 'preparing' | 'ready'> = ['received', 'preparing', 'ready']
+const statusSteps: Array<'received' | 'preparing' | 'ready' | 'picked_up'> = ['received', 'preparing', 'ready', 'picked_up']
 
 function subscribeNotificationPermission() {
   return () => {}
@@ -128,61 +129,53 @@ export function OrderStatusClient({
   }
 
   const progressIndex = order.status === 'picked_up' ? statusSteps.length - 1 : statusSteps.indexOf(order.status as 'received')
-  const itemCount = order.item_count ?? order.items.reduce((sum, item) => sum + item.quantity, 0)
   const shopName = order.shop?.name
   const timeZone = order.shop?.timezone || CUSTOMER_TIME_ZONE
   const windowLabel =
     order.pickup_window_starts_at && order.pickup_window_ends_at
       ? formatPickupWindow(order.pickup_window_starts_at, order.pickup_window_ends_at, timeZone)
       : null
-  const showSteps = order.status !== 'cancelled' && order.status !== 'pending_payment'
-  // Only the order's own estimate; nothing is approximated when it has none.
   const etaMinutes = order.estimated_ready_minutes && order.estimated_ready_minutes > 0 ? order.estimated_ready_minutes : null
   const menuHref = order.shop?.slug ? `/${order.shop.slug}` : '/'
-  // Just back from paying, but the payment webhook hasn't landed yet.
   const confirmingPayment = paymentReturn && order.status === 'pending_payment'
-
-  const tone =
-    order.status === 'ready' || order.status === 'picked_up'
-      ? 'bg-success/15 text-success'
-      : order.status === 'cancelled'
-        ? 'bg-danger/10 text-danger'
-        : 'bg-sky text-foreground'
 
   if (showsReadyScreen(order.status)) return <OrderReadyScreen order={order} menuHref={menuHref} />
 
   return (
     <main className="min-h-screen bg-background">
-      <div className="pb-tabs mx-auto max-w-xl px-5 pt-1">
+      <div className="pb-tabs phone-col px-5 pt-1">
         <Link href={menuHref} className="-ml-1 inline-flex min-h-12 items-center gap-2 px-1 text-body-sm font-medium text-foreground">
-          <Icon name="arrow-left" className="h-[18px] w-[18px]" />
+          <PhosphorIcon name="arrow-left" className="h-[18px] w-[18px]" />
           Back to menu
         </Link>
 
-        {shopName && (
-          <p className="mt-1 flex items-center gap-2 text-body-sm font-semibold text-foreground">
-            <span className={['flex h-8 w-8 shrink-0 items-center justify-center rounded-full', tone].join(' ')}>
-              <Icon name={order.status === 'picked_up' ? 'check' : 'clock'} className="h-4 w-4" />
-            </span>
-            {shopName}
+        <section className="mt-3 rounded-card border border-border bg-surface-elevated p-5 shadow-card">
+          {shopName && (
+            <p className="flex items-center gap-2 text-body-sm font-semibold text-foreground">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-pill text-on-pill">
+                <PhosphorIcon name="storefront" className="h-4 w-4" />
+              </span>
+              {shopName}
+            </p>
+          )}
+          <h1 className="mt-3 text-h1s text-heading">
+            {confirmingPayment ? 'Confirming your payment' : headline(order.status)}
+          </h1>
+          <p className="mt-2 text-body text-muted-foreground">
+            {confirmingPayment ? 'It takes a few seconds. This page updates on its own.' : subhead(order.status)}
           </p>
-        )}
-        <h1 className="mt-3 text-h1s text-heading">{confirmingPayment ? 'Confirming your payment' : headline(order.status)}</h1>
-        <p className="mt-2 text-body text-muted-foreground">{confirmingPayment ? 'It takes a few seconds. This page updates on its own.' : subhead(order.status)}</p>
 
-        <PickupCode orderId={order.id} size="md" className="mt-6" />
-
-        {order.status !== 'cancelled' && (
-          <section className="mt-6 rounded-card border border-border bg-surface-elevated p-5 shadow-card" data-testid="order-status-card">
-            {showSteps && (
-              <>
-                <div className="flex items-baseline justify-between gap-3">
-                  <p className="text-eyebrow uppercase text-on-pill">Status</p>
-                  {etaMinutes != null && <p className="text-caption text-muted-foreground">~{etaMinutes} min</p>}
-                </div>
-                <p className="mt-2 text-h3 text-foreground">{statusLabels[statusSteps[Math.max(0, progressIndex)]]}</p>
+          {order.status === 'cancelled' ? (
+            <div className="mt-4">
+              <Button asChild variant="espresso" size="lg" className="w-full">
+                <Link href={menuHref}>Order again</Link>
+              </Button>
+            </div>
+          ) : (
+            <>
+              <div className="mt-5">
                 <StatusProgress progressIndex={progressIndex} finished={order.status === 'picked_up'} />
-                <ol className="mt-3 grid grid-cols-3">
+                <ol className="mt-3 grid grid-cols-4">
                   {statusSteps.map((step, index) => {
                     const state = stepState(index, progressIndex, order.status === 'picked_up')
                     return (
@@ -202,29 +195,39 @@ export function OrderStatusClient({
                     )
                   })}
                 </ol>
-                <div className="mb-4 mt-5 h-px bg-border" />
-              </>
-            )}
-            <p className="text-eyebrow uppercase text-on-pill">Pick up at</p>
-            {shopName && <p className="mt-2 text-h3 text-foreground">{shopName}</p>}
-            {order.shop?.address && <p className="mt-0.5 text-body-sm text-muted-foreground">{order.shop.address}</p>}
-            {windowLabel && <p className="mt-2 text-body-sm font-semibold text-foreground">{windowLabel}</p>}
-            <p className="mt-3 flex items-center gap-2 text-body-sm text-foreground">
-              <Icon name="store" className="h-4 w-4 shrink-0" />
-              Come to the counter and say your code.
-            </p>
-            <p className="sr-only">
-              {itemCount} {itemCount === 1 ? 'item' : 'items'}
-            </p>
-            {order.shop?.directions_url && (
-              <Button asChild variant="outline" className="mt-4 w-full">
-                <a href={order.shop.directions_url} target="_blank" rel="noreferrer">
-                  <Icon name="map-pin" className="mr-2 h-4 w-4" />
-                  Directions
-                </a>
-              </Button>
-            )}
-          </section>
+              </div>
+              {etaMinutes != null && (
+                <p className="mt-4 text-body-sm text-muted-foreground">
+                  Ready in about {etaMinutes} min
+                </p>
+              )}
+            </>
+          )}
+        </section>
+
+        {order.status !== 'cancelled' && (
+          <>
+            <PickupCode orderId={order.id} size="md" className="mt-5" />
+
+            <section className="mt-5 rounded-card border border-border bg-surface-elevated p-5 shadow-card" data-testid="order-status-card">
+              <p className="text-eyebrow uppercase text-on-pill">Pick up at</p>
+              {shopName && <p className="mt-2 text-h3 text-foreground">{shopName}</p>}
+              {order.shop?.address && <p className="mt-0.5 text-body-sm text-muted-foreground">{order.shop.address}</p>}
+              {windowLabel && <p className="mt-2 text-body-sm font-semibold text-foreground">{windowLabel}</p>}
+              <p className="mt-3 flex items-center gap-2 text-body-sm text-foreground">
+                <PhosphorIcon name="storefront" className="h-4 w-4 shrink-0" />
+                Come to the counter and say your code.
+              </p>
+              {order.shop?.directions_url && (
+                <Button asChild variant="outline" className="mt-4 w-full">
+                  <a href={order.shop.directions_url} target="_blank" rel="noreferrer">
+                    <PhosphorIcon name="map-pin" className="mr-2 h-4 w-4" />
+                    Directions
+                  </a>
+                </Button>
+              )}
+            </section>
+          </>
         )}
 
         {order.loyalty && (
@@ -245,7 +248,7 @@ export function OrderStatusClient({
         {notificationPermission === 'default' && order.status !== 'cancelled' && order.status !== 'picked_up' && (
           <Button variant="outline" className="mt-3 w-full border-[1.5px]" onClick={() => void requestNotification()}>
             <span className="inline-flex items-center gap-2">
-              <Icon name="bell" className="h-[18px] w-[18px]" />
+              <PhosphorIcon name="bell" className="h-[18px] w-[18px]" />
               Notify me when it&apos;s ready
             </span>
           </Button>
@@ -330,7 +333,7 @@ function StepMark({ state, number }: { state: StepState; number: number }) {
   if (state === 'done') {
     return (
       <span className="flex h-6 w-6 items-center justify-center rounded-full bg-foreground text-background">
-        <Icon name="check" className="h-3.5 w-3.5" strokeWidth={2.5} />
+        <PhosphorIcon name="check" className="h-3.5 w-3.5" />
       </span>
     )
   }
@@ -351,10 +354,10 @@ function StepMark({ state, number }: { state: StepState; number: number }) {
   )
 }
 
-/** Three 6px segments, 4 apart, inside the card. Decorative: the steps carry the state. */
+/** Four 6px segments, 4 apart, inside the card. Decorative: the steps carry the state. */
 function StatusProgress({ progressIndex, finished }: { progressIndex: number; finished: boolean }) {
   return (
-    <div className="mt-4 grid grid-cols-3 gap-1" aria-hidden="true">
+    <div className="grid grid-cols-4 gap-1" aria-hidden="true">
       {statusSteps.map((step, index) => {
         const state = stepState(index, progressIndex, finished)
         return (

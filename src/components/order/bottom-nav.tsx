@@ -2,7 +2,8 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Icon } from '@/components/ui/icon'
+import { PhosphorIcon } from '@/components/icons/phosphor'
+import { vibrate } from '@/lib/vibrate'
 import { CUSTOMER_HOME_PATH } from '@/lib/site'
 
 const hiddenPrefixes = ['/dashboard', '/auth', '/account/login', '/account/signup', '/checkout']
@@ -24,9 +25,9 @@ export function BottomNav() {
   if (hiddenPrefixes.some((prefix) => pathname.startsWith(prefix))) return null
 
   const navItems = [
-    { key: 'inicio', href: CUSTOMER_HOME_PATH, label: 'Home', icon: 'store' },
-    { key: 'pedidos', href: '/account/orders', label: 'Orders', icon: 'receipt-euro' },
-    { key: 'cuenta', href: '/account', label: 'Account', icon: 'user' },
+    { key: 'inicio', href: CUSTOMER_HOME_PATH, label: 'Home', icon: 'house' as const },
+    { key: 'pedidos', href: '/account/orders', label: 'Orders', icon: 'receipt' as const },
+    { key: 'cuenta', href: '/account', label: 'Account', icon: 'user' as const },
   ] as const
 
   const isActive = (key: (typeof navItems)[number]['key'], href: string) => {
@@ -37,23 +38,23 @@ export function BottomNav() {
     return pathname === href || pathname.startsWith(`${href}/`)
   }
 
-  // 56 + safe area, bg at 94% with a 14px blur, hairline top border, no shadow (SPEC.md section 2).
   return (
-    <nav className="customer-bottom-nav fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-background/94 pb-[env(safe-area-inset-bottom)] backdrop-blur-[14px]">
-      <div className="mx-auto flex h-14 max-w-3xl items-stretch">
+    <nav className="customer-bottom-nav fixed bottom-0 left-0 right-0 z-30 border-t border-foreground/10 bg-background/80 pb-[env(safe-area-inset-bottom)] backdrop-blur-[16px] [-webkit-backdrop-filter:blur(16px)]">
+      <div className="phone-col flex h-14 items-stretch">
         {navItems.map((item) => {
           const active = isActive(item.key, item.href)
           return (
             <Link
               key={item.key}
               href={item.href}
+              onClick={() => vibrate(10)}
               className={[
-                'flex flex-1 flex-col items-center justify-center gap-[3px] text-tab transition-colors',
-                active ? 'font-semibold text-foreground' : 'font-medium text-muted-foreground hover:text-foreground',
+                'flex flex-1 flex-col items-center justify-center gap-1 text-tab transition-transform duration-100 ease-out active:scale-[0.92] motion-reduce:transform-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+                active ? 'font-semibold text-foreground' : 'font-medium text-muted-foreground',
               ].join(' ')}
               aria-current={active ? 'page' : undefined}
             >
-              <Icon name={item.icon} className="h-[22px] w-[22px]" strokeWidth={active ? 2.25 : 1.75} />
+              <PhosphorIcon name={item.icon} weight={active ? 'fill' : 'regular'} className="h-6 w-6" />
               <span>{item.label}</span>
             </Link>
           )

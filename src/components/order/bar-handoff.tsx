@@ -55,7 +55,7 @@ export function BarHandoff({
       data-testid="bar-handoff"
       data-wake-lock={wakeLock}
     >
-      <div className="mx-auto flex min-h-full max-w-xl flex-col px-5 pb-[calc(env(safe-area-inset-bottom)+84px)] pt-[env(safe-area-inset-top)]">
+      <div className="phone-col flex min-h-full flex-col px-5 pb-[calc(env(safe-area-inset-bottom)+84px)] pt-[env(safe-area-inset-top)]">
         <div className="flex h-12 items-center text-body-sm font-semibold">
           <span className="truncate">{shopName}</span>
         </div>
@@ -84,7 +84,7 @@ export function BarHandoff({
           ref={backRef}
           type="button"
           onClick={onClose}
-          className="mx-auto flex h-12 w-full max-w-xl items-center justify-center rounded-full border-[1.5px] border-foreground/28 bg-sky-tint/55 text-button text-foreground active:scale-[0.98]"
+          className="phone-col flex h-12 w-full items-center justify-center rounded-full border-[1.5px] border-foreground/28 bg-sky-tint/55 text-button text-foreground active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-sky"
         >
           Back
         </button>

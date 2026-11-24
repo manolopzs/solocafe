@@ -23,11 +23,11 @@ export function CategoryTabs({
     scroller.scrollTo({ left, behavior: 'smooth' })
   }, [activeId])
 
-  if (categories.length === 0) return null
+  if (categories.length <= 1) return null
 
   return (
-    <div className="sticky top-0 z-30 border-b border-border bg-background/95 backdrop-blur-md">
-      <div className="mx-auto max-w-3xl">
+    <div className="sticky top-14 z-30 border-b border-border/60 bg-background/95 backdrop-blur-md">
+      <div className="phone-col">
         <div className="flex snap-x snap-mandatory gap-2 overflow-x-auto scroll-smooth px-5 py-1 no-scrollbar touch-pan-y">
           {categories.map((category) => {
             const active = activeId === category.id
@@ -38,7 +38,7 @@ export function CategoryTabs({
                 type="button"
                 onClick={() => onSelect(category.id)}
                 aria-current={active ? 'true' : undefined}
-                className="flex h-11 shrink-0 snap-start items-center touch-manipulation"
+                className="flex h-11 shrink-0 snap-start items-center rounded-full touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               >
                 <span
                   className={[

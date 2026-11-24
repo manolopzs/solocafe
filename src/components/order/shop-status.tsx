@@ -1,7 +1,7 @@
 'use client'
 
 import { Badge } from '@/components/ui/badge'
-import { Icon } from '@/components/ui/icon'
+import { PhosphorIcon } from '@/components/icons/phosphor'
 import { hoursConfigured, todayHoursLabel } from '@/lib/ordering'
 import type { OperatingHours, ShopOrdering } from '@/types'
 
@@ -66,10 +66,10 @@ export function ShopStatusBanner({
     // something when ordering is actually blocked right now.
     if (quiet) return null
     return (
-      <section className="mx-auto max-w-3xl px-5">
+      <section className="phone-col px-5">
         <div className="rounded-3xl bg-warning/10 px-4 py-4">
           <p className="flex min-h-11 items-center gap-2 text-sm text-foreground">
-            <Icon name="clock" className="h-4 w-4 shrink-0 text-muted-foreground" />
+            <PhosphorIcon name="clock" className="h-4 w-4 shrink-0 text-muted-foreground" />
             {paused ? "We're not taking pickup orders right now" : "We're not preparing on-demand orders right now"}
           </p>
           {closed && ordering?.accepting_pickup && (
@@ -81,12 +81,12 @@ export function ShopStatusBanner({
   }
 
   return (
-    <section className="mx-auto max-w-3xl px-5">
+    <section className="phone-col px-5">
       <div className={quiet ? '' : 'rounded-3xl bg-warning/10 px-4 py-4'}>
         <details className="group">
           <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3">
             <span className="flex min-w-0 items-center gap-2 text-sm text-foreground">
-              <Icon name="clock" className="h-4 w-4 shrink-0 text-muted-foreground" />
+              <PhosphorIcon name="clock" className="h-4 w-4 shrink-0 text-muted-foreground" />
               <span className="truncate">
                 {paused ? "We're not taking pickup orders right now" : closed ? 'Closed now' : today}
               </span>
