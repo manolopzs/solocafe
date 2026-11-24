@@ -20,7 +20,7 @@ export function ProductCards() {
               href="/inicio"
               className="w-full"
             >
-              <Card className="landing-card-lift flex h-full flex-col items-center gap-2 overflow-hidden bg-surface-elevated px-2 py-3 text-center sm:flex-row sm:gap-4 sm:p-4 sm:text-left">
+              <Card className="landing-card-lift flex h-full min-h-[7.5rem] flex-col items-center gap-2 overflow-hidden bg-surface-elevated px-2 py-3 text-center sm:flex-row sm:gap-4 sm:p-4 sm:text-left">
                 <div className="relative h-14 w-14 shrink-0 sm:h-20 sm:w-20">
                   <Image
                     src={product.image}
@@ -31,7 +31,7 @@ export function ProductCards() {
                   />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-sm font-semibold leading-tight text-foreground sm:text-base">{product.name}</p>
+                  <p className="line-clamp-2 text-sm font-semibold leading-tight text-foreground sm:text-base">{product.name}</p>
                   <p className="mt-0.5 text-sm text-muted-foreground">{formatMoney(product.cents)}</p>
                 </div>
               </Card>
