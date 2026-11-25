@@ -38,7 +38,7 @@ function WeekHours({ hours }: { hours: OperatingHours }) {
         const day = hours[key]
         return (
           <div key={key} className="rounded-2xl bg-background px-3 py-2">
-            <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
+            <p className="text-[11px] font-medium tracking-wide text-muted-foreground">{label}</p>
             <p className="mt-0.5 text-sm text-foreground">
               {day?.is_open && day.open && day.close ? `${day.open} to ${day.close}` : 'Closed'}
             </p>

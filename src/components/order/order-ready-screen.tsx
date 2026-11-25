@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { formatMoney } from '@/lib/ordering'
 import { PickupCode } from '@/components/order/pickup-code'
 import { BarHandoff } from '@/components/order/bar-handoff'
+import { PhosphorIcon } from '@/components/icons/phosphor'
 import type { Order, OrderItem, OrderItemModifier, OrderStatus } from '@/types'
 
 type ReadyOrder = Order & { items: (OrderItem & { modifiers: OrderItemModifier[] })[] }
@@ -38,6 +39,7 @@ export function OrderReadyScreen({ order, menuHref }: { order: ReadyOrder; menuH
   const required = loyalty ? Math.max(loyalty.stamps_required, 1) : 0
   const filled = loyalty ? Math.min(Math.max(loyalty.stamps, 0), required) : 0
   const shopName = order.shop?.name ?? loyalty?.shop_name
+  const itemCount = order.items.reduce((sum, item) => sum + item.quantity, 0)
 
   return (
     <main
@@ -45,7 +47,7 @@ export function OrderReadyScreen({ order, menuHref }: { order: ReadyOrder; menuH
       data-testid="order-ready-screen"
       aria-live="polite"
     >
-      <div className="phone-col flex min-h-full flex-col px-5 pb-[calc(env(safe-area-inset-bottom)+72px)] pt-[env(safe-area-inset-top)]">
+      <div className="phone-col flex min-h-full flex-col px-5 pb-[calc(env(safe-area-inset-bottom)+24px)] pt-[env(safe-area-inset-top)]">
         <div className="flex h-12 items-center justify-between text-body-sm font-semibold">
           <span className="truncate">{shopName}</span>
           <Link href={menuHref} className="-mr-1 inline-flex min-h-11 items-center px-1">
@@ -60,7 +62,7 @@ export function OrderReadyScreen({ order, menuHref }: { order: ReadyOrder; menuH
         </h1>
         <p className="mt-2 text-body-lg text-listo-muted">Your order is ready. Come pick it up.</p>
 
-        <div className="mt-8 motion-safe:animate-[code-in_360ms_ease-out_160ms_both]">
+        <div className="mt-8">
           <PickupCode
             orderId={order.id}
             size="lg"
@@ -119,9 +121,24 @@ export function OrderReadyScreen({ order, menuHref }: { order: ReadyOrder; menuH
           </section>
         )}
 
-        {showDetails && (
-          <div className="mt-3 rounded-code bg-listo-card px-5 py-4 text-left text-foreground" data-testid="ready-details">
-            <ul className="divide-y divide-foreground/10">
+        <section className="mt-3 overflow-hidden rounded-2xl bg-listo-card text-left text-foreground" data-testid="ready-details">
+          <button
+            type="button"
+            className="flex min-h-16 w-full items-center gap-3 px-5 py-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-foreground"
+            aria-expanded={showDetails}
+            onClick={() => setShowDetails((open) => !open)}
+          >
+            <span className="min-w-0 flex-1 font-medium">
+              {itemCount} {itemCount === 1 ? 'item' : 'items'}
+            </span>
+            <span className="shrink-0 font-semibold tabular-nums">{formatMoney(order.total_cents, order.currency, order.shop?.locale)}</span>
+            <PhosphorIcon
+              name="caret-right"
+              className={['h-5 w-5 shrink-0 text-listo-muted transition-transform motion-reduce:transition-none', showDetails ? 'rotate-90' : ''].join(' ')}
+            />
+          </button>
+          {showDetails && (
+            <ul className="divide-y divide-foreground/10 border-t border-foreground/10 px-5 py-2">
               {order.items.map((item) => (
                 <li key={item.id} className="py-2.5">
                   <p className="font-medium">
@@ -135,25 +152,10 @@ export function OrderReadyScreen({ order, menuHref }: { order: ReadyOrder; menuH
                 </li>
               ))}
             </ul>
-            <div className="mt-2 flex items-baseline justify-between border-t border-foreground/10 pt-3">
-              <span className="text-listo-muted">Total</span>
-              <span className="font-semibold tabular-nums">{formatMoney(order.total_cents, order.currency, order.shop?.locale)}</span>
-            </div>
-          </div>
-        )}
+          )}
+        </section>
       </div>
 
-      {/* N3: a secondary exit, fixed at safe area + 8 so it sits in the same place with or without an account. */}
-      <div className="fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+8px)] z-10 flex justify-center">
-        <button
-          type="button"
-          className="inline-flex min-h-12 items-center px-3 text-body-sm font-semibold underline underline-offset-4"
-          aria-expanded={showDetails}
-          onClick={() => setShowDetails((open) => !open)}
-        >
-          {showDetails ? 'Hide order details' : 'View order details'}
-        </button>
-      </div>
       {showAtBar && (
         <BarHandoff
           orderId={order.id}

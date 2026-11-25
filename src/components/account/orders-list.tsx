@@ -8,7 +8,9 @@ import { PhosphorIcon } from '@/components/icons/phosphor'
 import { CUSTOMER_HOME_PATH } from '@/lib/site'
 import { CUSTOMER_TIME_ZONE, formatMoney } from '@/lib/ordering'
 import { customerReorderHref } from '@/lib/guest-orders'
+import { pickupCode } from '@/lib/pickup-code'
 import { groupOrdersByDate, isActiveOrder, partitionOrders } from '@/lib/order-groups'
+import { SoloCafeWordmark } from '@/components/brand/solo-cafe-logo'
 import type { Order } from '@/types'
 
 const statusLabels: Record<string, string> = {
@@ -44,14 +46,12 @@ export function OrdersList({ orders }: { orders: Order[] }) {
 
   return (
     <main className="min-h-screen bg-background">
-      <div className="phone-col px-5 pb-24 pt-5">
-        <Link href="/account" className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground">
-          <PhosphorIcon name="arrow-left" className="h-4 w-4" />
-          Your account
-        </Link>
-
-        <h1 className="mt-8 text-[2rem] font-medium leading-tight tracking-tight text-heading">Your orders</h1>
-        <p className="mt-2 text-base text-muted-foreground">Order history at coffee shops that use Solo Café.</p>
+      <div className="phone-col px-5 pb-24">
+        <div className="flex h-14 items-center">
+          <SoloCafeWordmark height={20} />
+        </div>
+        <h1 className="mt-2 text-h1 text-heading">Orders</h1>
+        <p className="mt-2 text-body text-muted-foreground">Order history at coffee shops that use Solo Café.</p>
 
         <div className="mt-6 inline-flex rounded-full bg-pill p-1">
           {[
@@ -88,11 +88,11 @@ export function OrdersList({ orders }: { orders: Order[] }) {
           ) : (
             grouped.map(({ label, items }) => (
               <section key={`${tab}-${label}`}>
-                <h2 className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">{label}</h2>
+                <h2 className="text-xs font-semibold tracking-[0.12em] text-muted-foreground">{label}</h2>
                 <ul className="mt-3 space-y-3">
                   {items.map((order) => (
                     <li key={order.id}>
-                      <OrderRow order={order} />
+                      <OrderRow order={order} showDate={label !== 'Today' && label !== 'Yesterday'} />
                     </li>
                   ))}
                 </ul>
@@ -105,7 +105,7 @@ export function OrdersList({ orders }: { orders: Order[] }) {
   )
 }
 
-function OrderRow({ order }: { order: Order }) {
+function OrderRow({ order, showDate }: { order: Order; showDate: boolean }) {
   const active = isActiveOrder(order)
   const reorderHref = customerReorderHref(order)
   const href = orderHref(order)
@@ -113,14 +113,16 @@ function OrderRow({ order }: { order: Order }) {
   return (
     <div className="flex items-center gap-3 rounded-2xl border border-border bg-surface-elevated p-3 shadow-card">
       <Link href={href} className="shrink-0">
-        <span className="flex h-10 w-10 items-center justify-center rounded-full bg-pill text-on-pill">
+        <span className={['flex h-10 w-10 items-center justify-center rounded-full bg-pill', active ? 'text-on-pill' : 'text-muted-foreground'].join(' ')}>
           <PhosphorIcon name="storefront" className="h-5 w-5" />
         </span>
       </Link>
       <Link href={href} className="min-w-0 flex-1 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-surface-elevated">
-        <p className="truncate text-base font-semibold leading-[22px] text-foreground">{order.shop?.name ?? 'Your order'}</p>
+        <p className={['truncate text-base font-semibold leading-[22px]', active ? 'text-foreground' : 'text-muted-foreground'].join(' ')}>{order.shop?.name ?? 'Your order'}</p>
         <p className={['text-body-sm text-muted-foreground', active ? 'truncate' : ''].join(' ')}>
-          {orderDateLabel(order.created_at)} · {statusLabels[order.status] ?? order.status}
+          {showDate && <>{orderDateLabel(order.created_at)} · </>}
+          {statusLabels[order.status] ?? order.status}
+          {active && <> · Code {pickupCode(order.id)}</>}
         </p>
       </Link>
       <div className="flex shrink-0 flex-col items-end gap-1">

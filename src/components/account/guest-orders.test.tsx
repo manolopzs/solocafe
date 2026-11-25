@@ -49,6 +49,8 @@ describe('GuestOrders', () => {
     refreshGuestOrderStatuses.mockResolvedValue([])
   })
 
+  afterEach(() => jest.useRealTimers())
+
   it('shows an empty state that leads to Home, not a login wall', () => {
     renderGuestOrders()
     expect(screen.getByText('No orders yet')).toBeInTheDocument()
@@ -58,6 +60,7 @@ describe('GuestOrders', () => {
   })
 
   it('shows active and past tabs with grouped rows', async () => {
+    jest.useFakeTimers().setSystemTime(new Date('2026-11-16T12:00:00Z'))
     rememberGuestOrder(
       saved('22222222-2222-4222-8222-2222222222aa', '2026-11-15T09:00:00Z', 'picked_up', 'Another coffee shop', {
         shopSlug: 'otra',
@@ -68,15 +71,24 @@ describe('GuestOrders', () => {
     renderGuestOrders()
     await act(async () => {})
 
-    expect(screen.getByRole('heading', { level: 1, name: 'Orders' })).toBeInTheDocument()
+    expect(screen.getByRole('img', { name: 'Solo Café' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 1, name: 'Orders' })).toHaveClass('text-h1', 'text-heading')
     expect(screen.getByRole('button', { name: 'Active' })).toHaveAttribute('aria-pressed', 'true')
-    expect(screen.getByText('Preparing')).toBeInTheDocument()
-    expect(screen.getByText('11BC')).toBeInTheDocument()
+    expect(screen.getByText('Today')).not.toHaveClass('uppercase')
+    const activeMeta = screen.getByText('Preparing').parentElement
+    expect(activeMeta).toHaveTextContent('Preparing · Code 11BC')
+    expect(activeMeta).not.toHaveTextContent('16 Nov')
 
     // Past tab
     screen.getByRole('button', { name: 'Past' }).click()
     await act(async () => {})
     expect(screen.getByText('2 × Cortado')).toBeInTheDocument()
+    expect(screen.getByText('Yesterday')).not.toHaveClass('uppercase')
+    const pastTitle = screen.getByText('Another coffee shop')
+    expect(pastTitle).toHaveClass('text-muted-foreground')
+    expect(pastTitle.closest('div')?.querySelector('a span')).toHaveClass('text-muted-foreground')
+    const pastMeta = screen.getByText('Picked up').parentElement
+    expect(pastMeta).not.toHaveTextContent('15 Nov')
     expect(screen.getByRole('link', { name: /^Order again/ })).toHaveAttribute(
       'href',
       '/otra?reorder=22222222-2222-4222-8222-2222222222aa&token=tok-22222222-2222-4222-8222-2222222222aa',

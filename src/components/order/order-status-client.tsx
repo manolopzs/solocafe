@@ -210,7 +210,7 @@ export function OrderStatusClient({
             <PickupCode orderId={order.id} size="md" className="mt-5" />
 
             <section className="mt-5 rounded-card border border-border bg-surface-elevated p-5 shadow-card" data-testid="order-status-card">
-              <p className="text-eyebrow uppercase text-on-pill">Pick up at</p>
+              <p className="text-eyebrow text-on-pill">Pickup at</p>
               {shopName && <p className="mt-2 text-h3 text-foreground">{shopName}</p>}
               {order.shop?.address && <p className="mt-0.5 text-body-sm text-muted-foreground">{order.shop.address}</p>}
               {windowLabel && <p className="mt-2 text-body-sm font-semibold text-foreground">{windowLabel}</p>}
@@ -255,7 +255,7 @@ export function OrderStatusClient({
         )}
 
         <section className="mt-8">
-          <h2 className="text-eyebrow uppercase text-on-pill">Your order</h2>
+          <h2 className="text-eyebrow text-on-pill">Your order</h2>
           <ul className="mt-3 divide-y divide-border border-y border-border">
             {order.items.map((item) => (
               <li key={item.id} className="py-3.5">
@@ -299,9 +299,9 @@ function headline(status: OrderStatus) {
     case 'cancelled':
       return 'Order cancelled'
     case 'received':
-      return 'We have received your order'
+      return 'We\'ve received your order'
     default:
-      return 'We are preparing your order'
+      return 'We\'re preparing your order'
   }
 }
 
@@ -316,7 +316,7 @@ function subhead(status: OrderStatus) {
     case 'cancelled':
       return 'This order was cancelled.'
     default:
-      return 'We will update this page when it is ready.'
+      return 'We\'ll update this page when it\'s ready.'
   }
 }
 

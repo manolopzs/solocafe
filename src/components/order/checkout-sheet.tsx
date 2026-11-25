@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Notice } from '@/components/ui/notice'
 import { Sheet } from '@/components/ui/sheet'
 import { checkoutBlockedCopy } from '@/lib/ordering'
-import { phonePlaceholder } from '@/lib/phone'
+import { dialPrefixForLocale } from '@/lib/phone'
 import { QuantityStepper } from '@/components/order/quantity-stepper'
 import { MenuTileImage } from '@/components/order/menu-tile-image'
 import { updateCustomerProfile } from '@/server/actions/customers'
@@ -20,6 +20,44 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 function isTestStripeKey() {
   const key = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? ''
   return key.startsWith('pk_test')
+}
+
+function PhoneField({
+  value,
+  onChange,
+  locale,
+  required = false,
+}: {
+  value: string
+  onChange: (value: string) => void
+  locale?: string | null
+  required?: boolean
+}) {
+  return (
+    <div>
+      <label htmlFor="customerPhone" className="block text-body-sm font-semibold text-foreground">
+        Phone {required && <span className="text-muted-foreground">*</span>}
+      </label>
+      <p id="customerPhone-help" className="mt-1 text-body-sm text-muted-foreground">
+        So we can tell you when it&apos;s ready
+      </p>
+      <div className="relative mt-1.5">
+        <span className="pointer-events-none absolute inset-y-0 left-4 flex items-center text-base text-muted-foreground" aria-hidden="true">
+          {dialPrefixForLocale(locale)}
+        </span>
+        <Input
+          id="customerPhone"
+          type="tel"
+          autoComplete="tel"
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          placeholder="612 345 678"
+          aria-describedby="customerPhone-help"
+          className="pl-16"
+        />
+      </div>
+    </div>
+  )
 }
 
 export function CheckoutSheet({
@@ -108,13 +146,13 @@ export function CheckoutSheet({
       }
     } else if (needsPhone) {
       if (!phone) {
-        setLocalError('Add your phone so we can tell you when it is ready')
+        setLocalError('Add your phone so we can tell you when it\'s ready')
         return
       }
     }
 
     if (!validateEmail(email)) {
-      setLocalError('The email is not valid')
+      setLocalError('The email isn\'t valid')
       return
     }
 
@@ -278,19 +316,7 @@ export function CheckoutSheet({
                 </button>
               </p>
               {needsPhone && (
-                <div>
-                  <label htmlFor="customerPhone" className="block text-body-sm font-semibold text-foreground">
-                    Phone <span className="text-muted-foreground">*</span>
-                  </label>
-                  <Input
-                    id="customerPhone"
-                    type="tel"
-                    value={customerPhone}
-                    onChange={(event) => setCustomerPhone(event.target.value)}
-                    placeholder={phonePlaceholder(shop.locale)}
-                    className="mt-1.5"
-                  />
-                </div>
+                <PhoneField value={customerPhone} onChange={setCustomerPhone} locale={shop.locale} required />
               )}
             </>
           ) : (
@@ -308,19 +334,7 @@ export function CheckoutSheet({
                   className="mt-1.5"
                 />
               </div>
-              <div>
-                <label htmlFor="customerPhone" className="block text-body-sm font-semibold text-foreground">
-                  Phone
-                </label>
-                <Input
-                  id="customerPhone"
-                  type="tel"
-                  value={customerPhone}
-                  onChange={(event) => setCustomerPhone(event.target.value)}
-                  placeholder={phonePlaceholder(shop.locale)}
-                  className="mt-1.5"
-                />
-              </div>
+              <PhoneField value={customerPhone} onChange={setCustomerPhone} locale={shop.locale} />
             </>
           )}
 

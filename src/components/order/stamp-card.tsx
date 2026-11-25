@@ -70,11 +70,11 @@ export function EmptyStampCard() {
         <SoloCafeWordmark height={20} />
         <h2 id="stamp-card-title" className="text-h3 text-foreground">Stamp card</h2>
       </div>
-      <div className="mt-5">
+      <div className="absolute inset-x-5 top-1/2 -translate-y-1/2">
         <StampMarks filled={0} />
       </div>
       <p className="absolute bottom-5 left-5 right-5 max-w-[34ch] text-body-sm text-foreground/80">
-        Every paid order earns a stamp at that coffee shop.
+        Sign up and every order earns a stamp.
       </p>
     </div>
   )

@@ -43,8 +43,8 @@ export function BarHandoff({
   const summary = items.map((item) => `${item.quantity} × ${item.name}`).join(', ')
   const hint =
     wakeLock === 'active'
-      ? 'The screen stays on while this is open. It is readable from a meter away.'
-      : 'It is readable from a meter away. If the screen goes off, tap it to wake.'
+      ? 'The screen stays on while this is open. It\'s readable from a meter away.'
+      : 'It\'s readable from a meter away. If the screen goes off, tap it to wake.'
 
   return (
     <div
@@ -63,7 +63,7 @@ export function BarHandoff({
         {/* Between the header and Back, at the optical centre: one third of the free space above, two below. */}
         <div className="flex flex-1 flex-col" data-testid="bar-handoff-group">
           <span className="min-h-6 flex-1" aria-hidden="true" />
-          <p className="text-center text-eyebrow uppercase text-listo-muted">Show this at the counter</p>
+          <p className="text-center text-eyebrow text-listo-muted">Show this at the counter</p>
           <div className="mt-3 rounded-code bg-sky-tint/70 px-6 pb-9 pt-8 text-center">
             <p
               className="text-[108px] font-semibold leading-none tracking-[-0.02em] tabular-nums text-foreground"

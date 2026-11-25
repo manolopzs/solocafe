@@ -31,7 +31,7 @@ export function UsualOrderButton({
           )}
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-semibold uppercase tracking-wider text-primary-foreground/70">Your usual</p>
+          <p className="text-xs font-semibold tracking-wider text-primary-foreground/70">Your usual</p>
           <p className="mt-0.5 line-clamp-2 text-base font-semibold leading-snug">{usual.label}</p>
           <p className="mt-1 text-sm text-primary-foreground/80">
             {usual.can_reorder ? 'Order it again' : 'No longer available'}

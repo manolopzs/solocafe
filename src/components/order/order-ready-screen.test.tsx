@@ -94,12 +94,16 @@ describe('Ready screen on the order status page', () => {
     expect(screen.getByRole('link', { name: 'Sign up' })).toHaveAttribute('href', '/account/signup')
   })
 
-  it('shows the order detail on demand', () => {
-    render(<OrderStatusClient initialOrder={readyOrder()} />)
+  it('shows the order details in a cell directly below the upsell', () => {
+    const { container } = render(<OrderStatusClient initialOrder={readyOrder()} />)
+    const details = screen.getByTestId('ready-details')
+    expect(details).toHaveClass('mt-3', 'rounded-2xl')
     expect(screen.queryByText('1 × Cortado')).not.toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: 'View order details' }))
+    expect(screen.queryByRole('button', { name: 'View order details' })).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: /1 item/ }))
     expect(screen.getByText('1 × Cortado')).toBeInTheDocument()
     expect(screen.getByText('Leche de avena')).toBeInTheDocument()
+    expect(container.querySelector('[class*="code-in"]')).not.toBeInTheDocument()
   })
 
   it('opens the full-screen code for the bar when the code is tapped, and Back closes it', () => {

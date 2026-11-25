@@ -7,6 +7,7 @@ import { EmptyState } from '@/components/ui/empty-state'
 import { PhosphorIcon } from '@/components/icons/phosphor'
 import { CUSTOMER_HOME_PATH } from '@/lib/site'
 import { Skeleton } from '@/components/ui/skeleton'
+import { SoloCafeWordmark } from '@/components/brand/solo-cafe-logo'
 import {
   EMPTY_GUEST_ORDERS,
   getGuestOrdersSnapshot,
@@ -71,10 +72,13 @@ export function GuestOrders() {
 
   return (
     <main className="min-h-screen bg-background">
-      <div className="phone-col pb-28 pt-8">
+      <div className="phone-col pb-28">
+        <div className="flex h-14 items-center px-5">
+          <SoloCafeWordmark height={20} />
+        </div>
         <div className="px-5">
-          <h1 className="text-[2rem] font-medium leading-tight tracking-tight text-foreground">Orders</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Orders placed from this phone.</p>
+          <h1 className="mt-2 text-h1 text-heading">Orders</h1>
+          <p className="mt-2 text-body text-muted-foreground">Orders placed from this phone.</p>
         </div>
 
         {!hydrated ? (
@@ -132,11 +136,11 @@ export function GuestOrders() {
               ) : (
                 grouped.map(({ label, items }) => (
                   <section key={`${tab}-${label}`}>
-                    <h2 className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">{label}</h2>
+                    <h2 className="text-xs font-semibold tracking-[0.12em] text-muted-foreground">{label}</h2>
                     <ul className="mt-3 space-y-3">
                       {items.map((order) => (
                         <li key={order.id}>
-                          <GuestOrderRow order={order} />
+                          <GuestOrderRow order={order} showDate={label !== 'Today' && label !== 'Yesterday'} />
                         </li>
                       ))}
                     </ul>
@@ -159,29 +163,26 @@ export function GuestOrders() {
   )
 }
 
-function GuestOrderRow({ order }: { order: GuestOrder }) {
+function GuestOrderRow({ order, showDate }: { order: GuestOrder; showDate: boolean }) {
   const active = isActiveOrder(order)
   const reorderHref = guestReorderHref(order)
 
   return (
     <div className="flex items-center gap-3 rounded-2xl border border-border bg-surface-elevated p-3 shadow-card">
       <Link href={guestOrderHref(order)} className="shrink-0">
-        <span className="flex h-10 w-10 items-center justify-center rounded-full bg-pill text-on-pill">
+        <span className={['flex h-10 w-10 items-center justify-center rounded-full bg-pill', active ? 'text-on-pill' : 'text-muted-foreground'].join(' ')}>
           <PhosphorIcon name="storefront" className="h-5 w-5" />
         </span>
       </Link>
       <Link href={guestOrderHref(order)} className="min-w-0 flex-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-surface-elevated rounded-lg">
-        <p className="truncate text-base font-semibold leading-[22px] text-foreground">{order.shopName ?? 'Your order'}</p>
+        <p className={['truncate text-base font-semibold leading-[22px]', active ? 'text-foreground' : 'text-muted-foreground'].join(' ')}>{order.shopName ?? 'Your order'}</p>
         {order.itemsSummary && (
-          <p className="truncate text-body-sm text-foreground">{order.itemsSummary}</p>
+          <p className={['truncate text-body-sm', active ? 'text-foreground' : 'text-muted-foreground'].join(' ')}>{order.itemsSummary}</p>
         )}
         <p className={['text-body-sm text-muted-foreground', active ? 'truncate' : ''].join(' ')}>
-          {orderDateLabel(order.createdAt)} · <span>{statusLabels[order.status] ?? order.status}</span>
-          {active && (
-            <>
-              {' '}· <span>{pickupCode(order.id)}</span>
-            </>
-          )}
+          {showDate && <>{orderDateLabel(order.createdAt)} · </>}
+          <span>{statusLabels[order.status] ?? order.status}</span>
+          {active && <> · Code {pickupCode(order.id)}</>}
         </p>
       </Link>
       <div className="flex shrink-0 flex-col items-end gap-1">

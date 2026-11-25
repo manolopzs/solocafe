@@ -38,7 +38,7 @@ export function AccountHome({
         <p className="mt-2 text-base text-muted-foreground">{customer.email || 'Manage your profile and review your orders.'}</p>
 
         <section className="mt-8">
-          <h2 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">Your stamps</h2>
+          <h2 className="text-sm font-medium tracking-wide text-muted-foreground">Your stamps</h2>
           {!hasCards ? (
             <p className="mt-3 text-sm leading-6 text-muted-foreground">
               Every paid order earns a stamp at that coffee shop. When you fill the card, you can redeem a free item.
@@ -59,7 +59,7 @@ export function AccountHome({
         </section>
 
         <section className="mt-10">
-          <h2 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">Profile</h2>
+          <h2 className="text-sm font-medium tracking-wide text-muted-foreground">Profile</h2>
           <form action={updateCustomerProfile} className="mt-4 space-y-4">
             <div>
               <Label htmlFor="name">Name</Label>
@@ -83,7 +83,7 @@ export function AccountHome({
         </section>
 
         <section className="mt-10">
-          <h2 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">Saved cards</h2>
+          <h2 className="text-sm font-medium tracking-wide text-muted-foreground">Saved cards</h2>
           {savedCards.length === 0 ? (
             <p className="mt-3 text-sm leading-6 text-muted-foreground">
               You have no saved cards. You can save one when you pay your next order.

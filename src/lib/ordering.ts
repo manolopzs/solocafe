@@ -59,7 +59,7 @@ export function formatPickupWindow(start: string, end: string, timeZone: string)
     hour12: false,
     timeZone,
   })
-  return `Pick up between ${fmt.format(new Date(start))} and ${fmt.format(new Date(end))}`
+  return `Pickup between ${fmt.format(new Date(start))} and ${fmt.format(new Date(end))}`
 }
 
 const DEFAULT_NUMBER_LOCALE = 'es-ES'

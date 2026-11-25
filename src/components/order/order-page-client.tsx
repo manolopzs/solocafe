@@ -8,7 +8,7 @@ import { addFavorite, removeFavorite } from '@/server/queries/favorites'
 import { api } from '@/lib/api/client'
 import type { FullMenu } from '@/server/queries/menu'
 import { formatMoney, orderErrorCopy } from '@/lib/ordering'
-import { storefrontCategoryName } from '@/lib/storefront-menu'
+import { hasMultipleCategories, storefrontCategoryName } from '@/lib/storefront-menu'
 import { EmptyState } from '@/components/ui/empty-state'
 import { PhosphorIcon } from '@/components/icons/phosphor'
 import { vibrate } from '@/lib/vibrate'
@@ -219,6 +219,7 @@ export function OrderPageClient({
     [visibleCategories, uncategorizedItems.length, shop.id]
   )
   const categoryIds = useMemo(() => navItems.map((category) => category.id), [navItems])
+  const showCategoryHeadings = hasMultipleCategories(navItems.length)
   const { activeId, scrollTo, setRef } = useCategorySpy(categoryIds)
 
   const favoriteItems = useMemo(
@@ -508,8 +509,10 @@ export function OrderPageClient({
           if (categoryItems.length === 0) return null
           return (
             <section key={category.id} ref={setRef(category.id)} className="scroll-mt-16 pb-8">
-              <h2 className="shop-display-font text-h2 text-heading">{storefrontCategoryName(category.name)}</h2>
-              <div className="mt-3 grid grid-cols-2 gap-x-3 gap-y-5">
+              {showCategoryHeadings && (
+                <h2 className="shop-display-font text-h2 text-heading">{storefrontCategoryName(category.name)}</h2>
+              )}
+              <div className={[showCategoryHeadings ? 'mt-3' : '', 'grid grid-cols-2 gap-x-3 gap-y-5'].join(' ')}>
                 {categoryItems.map((item) => (
                   <ProductCard
                     key={item.id}
@@ -533,8 +536,8 @@ export function OrderPageClient({
 
         {uncategorizedItems.length > 0 && (
           <section ref={setRef('uncategorized')} className="scroll-mt-16 pb-8">
-            <h2 className="shop-display-font text-h2 text-heading">Others</h2>
-            <div className="mt-3 grid grid-cols-2 gap-x-3 gap-y-5">
+            {showCategoryHeadings && <h2 className="shop-display-font text-h2 text-heading">Others</h2>}
+            <div className={[showCategoryHeadings ? 'mt-3' : '', 'grid grid-cols-2 gap-x-3 gap-y-5'].join(' ')}>
               {uncategorizedItems.map((item) => (
                 <ProductCard
                   key={item.id}
