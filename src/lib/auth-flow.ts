@@ -10,3 +10,21 @@ export function loginPathFor(flow: LoginFlow) {
 }
 
 export const RESET_SUCCESS_MESSAGE = 'Password changed. Log in with the new one.'
+
+export type EmailCodeRequestState = {
+  step: 'email' | 'code'
+  email: string
+  message?: string
+  error?: string
+  requestedAt?: number
+}
+
+export type EmailCodeVerifyState = {
+  step: 'code'
+  email: string
+  error?: string
+}
+
+export function isValidEmail(email: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+}
