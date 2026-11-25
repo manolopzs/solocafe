@@ -41,7 +41,7 @@ export function PickupCode({
       vibrate(10)
       setCopied(true)
       if (copyTimer.current) clearTimeout(copyTimer.current)
-      copyTimer.current = setTimeout(() => setCopied(false), 200)
+      copyTimer.current = setTimeout(() => setCopied(false), 1200)
     } catch {
       // Ignore unsupported environments.
     }

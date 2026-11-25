@@ -124,7 +124,7 @@ export function OrderReadyScreen({ order, menuHref }: { order: ReadyOrder; menuH
         <section className="mt-3 overflow-hidden rounded-2xl bg-listo-card text-left text-foreground" data-testid="ready-details">
           <button
             type="button"
-            className="flex min-h-16 w-full items-center gap-3 px-5 py-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-foreground"
+            className="flex min-h-16 w-full items-center gap-3 px-5 py-4 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-foreground"
             aria-expanded={showDetails}
             onClick={() => setShowDetails((open) => !open)}
           >

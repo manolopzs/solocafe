@@ -61,6 +61,7 @@ describe('GuestOrders', () => {
 
   it('shows active and past tabs with grouped rows', async () => {
     jest.useFakeTimers().setSystemTime(new Date('2026-11-16T12:00:00Z'))
+    rememberGuestOrder(saved('33333333-3333-4333-8333-3333333333cc', '2026-11-11T09:00:00Z', 'picked_up', 'Older coffee shop'))
     rememberGuestOrder(
       saved('22222222-2222-4222-8222-2222222222aa', '2026-11-15T09:00:00Z', 'picked_up', 'Another coffee shop', {
         shopSlug: 'otra',
@@ -87,10 +88,14 @@ describe('GuestOrders', () => {
     const pastTitle = screen.getByText('Another coffee shop')
     expect(pastTitle).toHaveClass('text-muted-foreground')
     expect(pastTitle.closest('div')?.querySelector('a span')).toHaveClass('text-muted-foreground')
-    const pastMeta = screen.getByText('Picked up').parentElement
+    const pastMeta = pastTitle.parentElement?.lastElementChild
     expect(pastMeta).not.toHaveTextContent('15 Nov')
-    expect(screen.getByRole('link', { name: /^Order again/ })).toHaveAttribute(
-      'href',
+
+    expect(screen.getByRole('heading', { name: '11 Nov' })).toBeInTheDocument()
+    const olderTitle = screen.getByText('Older coffee shop')
+    expect(olderTitle).toHaveClass('text-muted-foreground')
+    expect(olderTitle.nextElementSibling?.textContent).toBe('Picked up')
+    expect(screen.getAllByRole('link', { name: 'Order again' }).map((link) => link.getAttribute('href'))).toContain(
       '/otra?reorder=22222222-2222-4222-8222-2222222222aa&token=tok-22222222-2222-4222-8222-2222222222aa',
     )
     expect(refreshGuestOrderStatuses).toHaveBeenCalledWith([
@@ -106,7 +111,7 @@ describe('GuestOrders', () => {
     expect(screen.queryByText('Preparing')).not.toBeInTheDocument()
     screen.getByRole('button', { name: 'Past' }).click()
     await act(async () => {})
-    expect(screen.getAllByText(/Picked up/)).toHaveLength(2)
+    expect(screen.getAllByText(/Picked up/)).toHaveLength(3)
     expect(window.localStorage.getItem('solo-cafe.guest-orders')).not.toContain('"preparing"')
   })
 })

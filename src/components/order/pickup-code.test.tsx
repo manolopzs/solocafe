@@ -58,7 +58,7 @@ test('Copy code copies and vibrates without opening the handoff', async () => {
   expect(toast).not.toHaveClass('absolute')
   expect(screen.getByTestId('ready-pickup-code').compareDocumentPosition(toast) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
 
-  act(() => jest.advanceTimersByTime(199))
+  act(() => jest.advanceTimersByTime(1199))
   expect(screen.getByRole('status')).toBeInTheDocument()
   act(() => jest.advanceTimersByTime(1))
   expect(screen.queryByRole('status')).not.toBeInTheDocument()

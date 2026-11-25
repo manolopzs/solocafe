@@ -28,6 +28,13 @@ const past = {
   created_at: '2026-11-15T09:00:00Z',
 } as unknown as Order
 
+const older = {
+  ...past,
+  id: '33333333-3333-4333-8333-3333333333cc',
+  shop: { ...active.shop, name: 'Older cafe' },
+  created_at: '2026-11-11T09:00:00Z',
+} as unknown as Order
+
 beforeEach(() => {
   jest.useFakeTimers().setSystemTime(new Date('2026-11-16T12:00:00Z'))
 })
@@ -35,7 +42,7 @@ beforeEach(() => {
 afterEach(() => jest.useRealTimers())
 
 test('uses the account-style header and concise active and past row metadata', () => {
-  render(<OrdersList orders={[past, active]} />)
+  render(<OrdersList orders={[older, past, active]} />)
   expect(screen.getByRole('img', { name: 'Solo Café' })).toBeInTheDocument()
   expect(screen.getByRole('heading', { level: 1, name: 'Orders' })).toHaveClass('text-h1', 'text-heading')
   expect(screen.getByText('Today')).not.toHaveClass('uppercase')
@@ -47,5 +54,10 @@ test('uses the account-style header and concise active and past row metadata', (
   const pastTitle = screen.getByText('Solo cafe')
   expect(pastTitle).toHaveClass('text-muted-foreground')
   expect(pastTitle.closest('div')?.querySelector('a span')).toHaveClass('text-muted-foreground')
-  expect(screen.getByText('Picked up').parentElement).not.toHaveTextContent('15 Nov')
+  expect(pastTitle.nextElementSibling).not.toHaveTextContent('15 Nov')
+
+  expect(screen.getByRole('heading', { name: '11 Nov' })).toBeInTheDocument()
+  const olderTitle = screen.getByText('Older cafe')
+  expect(olderTitle).toHaveClass('text-muted-foreground')
+  expect(olderTitle.nextElementSibling?.textContent).toBe('Picked up')
 })

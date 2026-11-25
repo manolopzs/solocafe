@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { EmptyState } from '@/components/ui/empty-state'
 import { PhosphorIcon } from '@/components/icons/phosphor'
 import { CUSTOMER_HOME_PATH } from '@/lib/site'
-import { CUSTOMER_TIME_ZONE, formatMoney } from '@/lib/ordering'
+import { formatMoney } from '@/lib/ordering'
 import { customerReorderHref } from '@/lib/guest-orders'
 import { pickupCode } from '@/lib/pickup-code'
 import { groupOrdersByDate, isActiveOrder, partitionOrders } from '@/lib/order-groups'
@@ -26,14 +26,6 @@ function orderHref(order: Order): string {
   const token = order.access_token
   const base = `/order/${order.id}`
   return token ? `${base}?token=${encodeURIComponent(token)}` : base
-}
-
-function orderDateLabel(date: string) {
-  return new Date(date).toLocaleDateString('en-GB', {
-    day: 'numeric',
-    month: 'short',
-    timeZone: CUSTOMER_TIME_ZONE,
-  })
 }
 
 export function OrdersList({ orders }: { orders: Order[] }) {
@@ -92,7 +84,7 @@ export function OrdersList({ orders }: { orders: Order[] }) {
                 <ul className="mt-3 space-y-3">
                   {items.map((order) => (
                     <li key={order.id}>
-                      <OrderRow order={order} showDate={label !== 'Today' && label !== 'Yesterday'} />
+                      <OrderRow order={order} />
                     </li>
                   ))}
                 </ul>
@@ -105,7 +97,7 @@ export function OrdersList({ orders }: { orders: Order[] }) {
   )
 }
 
-function OrderRow({ order, showDate }: { order: Order; showDate: boolean }) {
+function OrderRow({ order }: { order: Order }) {
   const active = isActiveOrder(order)
   const reorderHref = customerReorderHref(order)
   const href = orderHref(order)
@@ -120,7 +112,6 @@ function OrderRow({ order, showDate }: { order: Order; showDate: boolean }) {
       <Link href={href} className="min-w-0 flex-1 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-surface-elevated">
         <p className={['truncate text-base font-semibold leading-[22px]', active ? 'text-foreground' : 'text-muted-foreground'].join(' ')}>{order.shop?.name ?? 'Your order'}</p>
         <p className={['text-body-sm text-muted-foreground', active ? 'truncate' : ''].join(' ')}>
-          {showDate && <>{orderDateLabel(order.created_at)} · </>}
           {statusLabels[order.status] ?? order.status}
           {active && <> · Code {pickupCode(order.id)}</>}
         </p>

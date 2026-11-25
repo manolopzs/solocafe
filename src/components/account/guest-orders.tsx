@@ -17,7 +17,7 @@ import {
   updateGuestOrderStatuses,
   type GuestOrder,
 } from '@/lib/guest-orders'
-import { CUSTOMER_TIME_ZONE, formatMoney } from '@/lib/ordering'
+import { formatMoney } from '@/lib/ordering'
 import { pickupCode } from '@/lib/pickup-code'
 import { groupOrdersByDate, isActiveOrder, partitionOrders } from '@/lib/order-groups'
 import { refreshGuestOrderStatuses } from '@/server/actions/guest-orders'
@@ -32,14 +32,6 @@ const statusLabels: Record<string, string> = {
 }
 
 const noopSubscribe = () => () => {}
-
-function orderDateLabel(date: string) {
-  return new Date(date).toLocaleDateString('en-GB', {
-    day: 'numeric',
-    month: 'short',
-    timeZone: CUSTOMER_TIME_ZONE,
-  })
-}
 
 export function GuestOrders() {
   const hydrated = useSyncExternalStore(noopSubscribe, () => true, () => false)
@@ -140,7 +132,7 @@ export function GuestOrders() {
                     <ul className="mt-3 space-y-3">
                       {items.map((order) => (
                         <li key={order.id}>
-                          <GuestOrderRow order={order} showDate={label !== 'Today' && label !== 'Yesterday'} />
+                          <GuestOrderRow order={order} />
                         </li>
                       ))}
                     </ul>
@@ -163,7 +155,7 @@ export function GuestOrders() {
   )
 }
 
-function GuestOrderRow({ order, showDate }: { order: GuestOrder; showDate: boolean }) {
+function GuestOrderRow({ order }: { order: GuestOrder }) {
   const active = isActiveOrder(order)
   const reorderHref = guestReorderHref(order)
 
@@ -180,7 +172,6 @@ function GuestOrderRow({ order, showDate }: { order: GuestOrder; showDate: boole
           <p className={['truncate text-body-sm', active ? 'text-foreground' : 'text-muted-foreground'].join(' ')}>{order.itemsSummary}</p>
         )}
         <p className={['text-body-sm text-muted-foreground', active ? 'truncate' : ''].join(' ')}>
-          {showDate && <>{orderDateLabel(order.createdAt)} · </>}
           <span>{statusLabels[order.status] ?? order.status}</span>
           {active && <> · Code {pickupCode(order.id)}</>}
         </p>
