@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { DM_Sans, Fraunces, Inter, Libre_Baskerville, Literata, Newsreader } from "next/font/google";
 import { BottomNav } from "@/components/order/bottom-nav";
+import { TabTransition } from "@/components/order/tab-transition";
 import { BASE_OPEN_GRAPH, OG_IMAGE, SITE_BACKGROUND_COLOR, SITE_DESCRIPTION, SITE_NAME, siteUrl } from "@/lib/site";
 import "./globals.css";
 
@@ -77,7 +78,7 @@ export default function RootLayout({
       className={`${dmSans.variable} ${inter.variable} ${fraunces.variable} ${literata.variable} ${newsreader.variable} ${libreBaskerville.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-background text-foreground font-sans">
-        {children}
+        <TabTransition>{children}</TabTransition>
         <BottomNav />
       </body>
     </html>

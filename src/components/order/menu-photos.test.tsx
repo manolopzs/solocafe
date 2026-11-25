@@ -58,9 +58,16 @@ test('card and sheet keep an existing photo instead of the generic fallback', ()
 
 test('category tabs display Café without mutating the stored category', () => {
   const category = { id: 'coffee', shop_id: 'shop', name: 'Cafe', sort_order: 0, is_active: true, created_at: '' }
-  render(<CategoryTabs categories={[category]} activeId="" onSelect={() => {}} />)
+  const other = { id: 'tea', shop_id: 'shop', name: 'Te', sort_order: 1, is_active: true, created_at: '' }
+  render(<CategoryTabs categories={[category, other]} activeId="" onSelect={() => {}} />)
   expect(screen.getByRole('button', { name: 'Café' })).toBeInTheDocument()
   expect(category.name).toBe('Cafe')
+})
+
+test('category tabs render nothing when there is only one category', () => {
+  const category = { id: 'coffee', shop_id: 'shop', name: 'Cafe', sort_order: 0, is_active: true, created_at: '' }
+  const { container } = render(<CategoryTabs categories={[category]} activeId="" onSelect={() => {}} />)
+  expect(container.firstChild).toBeNull()
 })
 
 test('puts name and price under the tile and the + disc 8px from its corner', () => {

@@ -60,3 +60,7 @@ export function storefrontItemName(name: string): string {
 export function storefrontCategoryName(name: string): string {
   return name === 'Cafe' ? 'Café' : name
 }
+
+export function hasMultipleCategories(categoryCount: number): boolean {
+  return categoryCount > 1
+}

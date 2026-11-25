@@ -3,12 +3,12 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { Icon } from '@/components/ui/icon'
+import { PhosphorIcon } from '@/components/icons/phosphor'
 import { Input } from '@/components/ui/input'
 import { Notice } from '@/components/ui/notice'
 import { Sheet } from '@/components/ui/sheet'
 import { checkoutBlockedCopy } from '@/lib/ordering'
-import { phonePlaceholder } from '@/lib/phone'
+import { dialPrefixForLocale } from '@/lib/phone'
 import { QuantityStepper } from '@/components/order/quantity-stepper'
 import { MenuTileImage } from '@/components/order/menu-tile-image'
 import { updateCustomerProfile } from '@/server/actions/customers'
@@ -20,6 +20,44 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 function isTestStripeKey() {
   const key = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? ''
   return key.startsWith('pk_test')
+}
+
+function PhoneField({
+  value,
+  onChange,
+  locale,
+  required = false,
+}: {
+  value: string
+  onChange: (value: string) => void
+  locale?: string | null
+  required?: boolean
+}) {
+  return (
+    <div>
+      <label htmlFor="customerPhone" className="block text-body-sm font-semibold text-foreground">
+        Phone {required && <span className="text-muted-foreground">*</span>}
+      </label>
+      <p id="customerPhone-help" className="mt-1 text-body-sm text-muted-foreground">
+        So we can tell you when it&apos;s ready
+      </p>
+      <div className="relative mt-1.5">
+        <span className="pointer-events-none absolute inset-y-0 left-4 flex items-center text-base text-muted-foreground" aria-hidden="true">
+          {dialPrefixForLocale(locale)}
+        </span>
+        <Input
+          id="customerPhone"
+          type="tel"
+          autoComplete="tel"
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          placeholder="612 345 678"
+          aria-describedby="customerPhone-help"
+          className="pl-16"
+        />
+      </div>
+    </div>
+  )
 }
 
 export function CheckoutSheet({
@@ -108,13 +146,13 @@ export function CheckoutSheet({
       }
     } else if (needsPhone) {
       if (!phone) {
-        setLocalError('Add your phone so we can tell you when it is ready')
+        setLocalError('Add your phone so we can tell you when it\'s ready')
         return
       }
     }
 
     if (!validateEmail(email)) {
-      setLocalError('The email is not valid')
+      setLocalError('The email isn\'t valid')
       return
     }
 
@@ -159,7 +197,7 @@ export function CheckoutSheet({
       onClose={onClose}
       title="Your order"
       position="bottom"
-      className="!bg-background sm:left-1/2 sm:right-auto sm:top-auto sm:w-full sm:max-w-[480px] sm:-translate-x-1/2"
+      className="!bg-background sm:left-1/2 sm:right-auto sm:top-auto sm:w-full sm:max-w-[var(--phone-col)] sm:-translate-x-1/2 sm:rounded-t-[24px]"
       footer={
         <div className="space-y-3">
           {testMode && (
@@ -186,7 +224,7 @@ export function CheckoutSheet({
           {lines.length > 0 && (
             <p className="flex items-baseline justify-between pb-1">
               <span className="text-body text-muted-foreground">Total</span>
-              <span className="text-[20px] font-semibold leading-7 tabular-nums text-foreground">{total}</span>
+              <span className="text-[40px] font-semibold leading-[48px] tracking-[-0.02em] tabular-nums text-foreground">{total}</span>
             </p>
           )}
           <Button
@@ -203,25 +241,20 @@ export function CheckoutSheet({
       }
     >
       <div className="space-y-3">
-        {!isSignedIn && (
-          <div className="rounded-[16px] bg-sky-tint px-4 py-3 text-body-sm text-foreground">
-            Want to order faster next time?{' '}
-            <Link href="/account/signup" className="font-semibold text-foreground underline underline-offset-2">
-              Sign up
-            </Link>
-          </div>
-        )}
-
         {lines.length === 0 ? (
-          <p className="py-8 text-center text-sm text-muted-foreground">
-            Your order is empty. Add something from the menu.
-          </p>
+          <div className="py-8 text-center">
+            <p className="text-body text-foreground">Your bag is empty</p>
+            <p className="mt-1 text-body-sm text-muted-foreground">Add something from the menu.</p>
+            <Button asChild variant="espresso" size="lg" className="mt-6 w-full">
+              <Link href={`/${shop.slug}`}>Browse the menu</Link>
+            </Button>
+          </div>
         ) : (
           <ul className="space-y-3">
             {lines.map((line, index) => (
-              <li key={line.key} className="flex items-center gap-3 rounded-card border border-border bg-surface-elevated py-3 pl-3 pr-4 shadow-card">
-                <span className="relative h-16 w-16 shrink-0 overflow-hidden rounded-thumb bg-surface">
-                  {line.thumb && <MenuTileImage item={line.thumb} sizes="64px" iconClassName="h-5 w-5" />}
+              <li key={line.key} className="flex items-center gap-3 rounded-2xl border border-border bg-surface-elevated py-3 pl-3 pr-4 shadow-card">
+                <span className="relative h-10 w-10 shrink-0 overflow-hidden rounded-thumb bg-surface">
+                  {line.thumb && <MenuTileImage item={line.thumb} sizes="40px" iconClassName="h-5 w-5" />}
                 </span>
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-base font-semibold leading-[22px] text-foreground">{line.name}</p>
@@ -231,7 +264,7 @@ export function CheckoutSheet({
                       No longer available
                     </span>
                   )}
-                  <p className="mt-0.5 text-price tabular-nums text-muted-foreground">{line.lineTotal}</p>
+                  <p className="mt-0.5 text-sm font-medium tabular-nums text-foreground">{line.lineTotal}</p>
                 </div>
                 <QuantityStepper
                   value={line.quantity}
@@ -244,18 +277,29 @@ export function CheckoutSheet({
           </ul>
         )}
 
-        <div className="flex items-center gap-3 rounded-card border border-border bg-surface-elevated p-4 shadow-card">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-pill text-on-pill">
-            <Icon name="clock" className="h-[18px] w-[18px]" />
-          </span>
-          <div>
-            <p className="text-caption text-muted-foreground">Pickup</p>
-            <p className="text-body-sm font-semibold text-foreground">
-              As soon as possible
-              {etaMinutes !== undefined && etaMinutes > 0 && ` · ~${etaMinutes} min`}
-            </p>
+        {!isSignedIn && lines.length > 0 && (
+          <div className="rounded-2xl bg-sky-tint px-4 py-3 text-body-sm text-foreground">
+            Want to order faster next time?{' '}
+            <Link href="/account/signup" className="font-semibold text-foreground underline underline-offset-2">
+              Sign up
+            </Link>
           </div>
-        </div>
+        )}
+
+        {lines.length > 0 && (
+          <div className="flex items-center gap-3 rounded-2xl border border-border bg-surface-elevated p-4 shadow-card">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-pill text-on-pill">
+              <PhosphorIcon name="clock" className="h-[18px] w-[18px]" />
+            </span>
+            <div>
+              <p className="text-caption text-muted-foreground">Pickup</p>
+              <p className="text-body-sm font-semibold text-foreground">
+                As soon as possible
+                {etaMinutes !== undefined && etaMinutes > 0 && ` · ~${etaMinutes} min`}
+              </p>
+            </div>
+          </div>
+        )}
 
         <div className="space-y-4 pt-3">
           {isSignedIn && !editingIdentity ? (
@@ -272,19 +316,7 @@ export function CheckoutSheet({
                 </button>
               </p>
               {needsPhone && (
-                <div>
-                  <label htmlFor="customerPhone" className="block text-body-sm font-semibold text-foreground">
-                    Phone <span className="text-muted-foreground">*</span>
-                  </label>
-                  <Input
-                    id="customerPhone"
-                    type="tel"
-                    value={customerPhone}
-                    onChange={(event) => setCustomerPhone(event.target.value)}
-                    placeholder={phonePlaceholder(shop.locale)}
-                    className="mt-1.5"
-                  />
-                </div>
+                <PhoneField value={customerPhone} onChange={setCustomerPhone} locale={shop.locale} required />
               )}
             </>
           ) : (
@@ -302,19 +334,7 @@ export function CheckoutSheet({
                   className="mt-1.5"
                 />
               </div>
-              <div>
-                <label htmlFor="customerPhone" className="block text-body-sm font-semibold text-foreground">
-                  Phone
-                </label>
-                <Input
-                  id="customerPhone"
-                  type="tel"
-                  value={customerPhone}
-                  onChange={(event) => setCustomerPhone(event.target.value)}
-                  placeholder={phonePlaceholder(shop.locale)}
-                  className="mt-1.5"
-                />
-              </div>
+              <PhoneField value={customerPhone} onChange={setCustomerPhone} locale={shop.locale} />
             </>
           )}
 

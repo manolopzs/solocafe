@@ -1,25 +1,25 @@
 'use client'
 
+import { useEffect, useMemo, useState, useSyncExternalStore } from 'react'
 import Link from 'next/link'
-import { useEffect, useSyncExternalStore } from 'react'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { EmptyState } from '@/components/ui/empty-state'
-import { Icon } from '@/components/ui/icon'
+import { PhosphorIcon } from '@/components/icons/phosphor'
 import { CUSTOMER_HOME_PATH } from '@/lib/site'
 import { Skeleton } from '@/components/ui/skeleton'
+import { SoloCafeWordmark } from '@/components/brand/solo-cafe-logo'
 import {
   EMPTY_GUEST_ORDERS,
   getGuestOrdersSnapshot,
   guestOrderHref,
   guestReorderHref,
-  isActiveGuestOrder,
   subscribeGuestOrders,
   updateGuestOrderStatuses,
   type GuestOrder,
 } from '@/lib/guest-orders'
-import { CUSTOMER_TIME_ZONE, formatMoney } from '@/lib/ordering'
+import { formatMoney } from '@/lib/ordering'
 import { pickupCode } from '@/lib/pickup-code'
+import { groupOrdersByDate, isActiveOrder, partitionOrders } from '@/lib/order-groups'
 import { refreshGuestOrderStatuses } from '@/server/actions/guest-orders'
 
 const statusLabels: Record<string, string> = {
@@ -31,41 +31,23 @@ const statusLabels: Record<string, string> = {
   cancelled: 'Cancelled',
 }
 
-const statusVariant: Record<string, 'secondary' | 'success' | 'danger' | 'warning' | 'default'> = {
-  pending_payment: 'secondary',
-  received: 'secondary',
-  preparing: 'warning',
-  ready: 'success',
-  picked_up: 'default',
-  cancelled: 'danger',
-}
-
 const noopSubscribe = () => () => {}
-
-function orderDate(date: string) {
-  return new Date(date).toLocaleDateString('en-GB', {
-    day: 'numeric',
-    month: 'short',
-    timeZone: CUSTOMER_TIME_ZONE,
-  })
-}
-
-function itemsLabel(count: number) {
-  return count === 1 ? '1 item' : `${count} items`
-}
 
 export function GuestOrders() {
   const hydrated = useSyncExternalStore(noopSubscribe, () => true, () => false)
   const orders = useSyncExternalStore(subscribeGuestOrders, getGuestOrdersSnapshot, () => EMPTY_GUEST_ORDERS)
-  const active = orders.filter(isActiveGuestOrder)
-  const activeKey = active.map((order) => order.id).join(',')
+  const [tab, setTab] = useState<'active' | 'past'>('active')
+  const { active, past } = useMemo(() => partitionOrders(orders), [orders])
+  const displayed = tab === 'active' ? active : past
+  const grouped = useMemo(() => groupOrdersByDate(displayed), [displayed])
+  const activeIds = active.map((order) => order.id).join(',')
 
   // Saved statuses go stale once the page is closed, so re-read the active ones.
   useEffect(() => {
-    if (!activeKey) return
+    if (!activeIds) return
     let cancelled = false
     const refs = getGuestOrdersSnapshot()
-      .filter(isActiveGuestOrder)
+      .filter(isActiveOrder)
       .map((order) => ({ id: order.id, token: order.token }))
     refreshGuestOrderStatuses(refs)
       .then((updates) => {
@@ -75,17 +57,20 @@ export function GuestOrders() {
     return () => {
       cancelled = true
     }
-  }, [activeKey])
+  }, [activeIds])
 
-  const current = active[0] ?? null
-  const rest = orders.filter((order) => order.id !== current?.id)
+  const lastShopSlug = orders[0]?.shopSlug
+  const emptyHref = lastShopSlug ? `/${lastShopSlug}` : CUSTOMER_HOME_PATH
 
   return (
     <main className="min-h-screen bg-background">
-      <div className="mx-auto max-w-xl pb-28 pt-8">
+      <div className="phone-col pb-28">
+        <div className="flex h-14 items-center px-5">
+          <SoloCafeWordmark height={20} />
+        </div>
         <div className="px-5">
-          <h1 className="text-[2rem] font-medium leading-tight tracking-tight text-foreground">Orders</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Orders placed from this phone.</p>
+          <h1 className="mt-2 text-h1 text-heading">Orders</h1>
+          <p className="mt-2 text-body text-muted-foreground">Orders placed from this phone.</p>
         </div>
 
         {!hydrated ? (
@@ -93,40 +78,68 @@ export function GuestOrders() {
             <Skeleton className="h-44 w-full rounded-3xl" />
             <Skeleton className="h-16 w-full rounded-2xl" />
           </div>
-        ) : orders.length === 0 ? (
-          <div className="mt-8 px-5">
-            <EmptyState
-              icon={<Icon name="receipt" className="h-6 w-6" />}
-              title="You don't have any orders yet"
-              description="When you place your first order from this phone, it will appear here."
-              action={
-                <Button asChild>
-                  <Link href={CUSTOMER_HOME_PATH}>Place an order</Link>
-                </Button>
-              }
-            />
-          </div>
         ) : (
           <>
-            {current && <CurrentOrderCard order={current} />}
+            <div className="mt-6 px-5">
+              <div className="inline-flex rounded-full bg-pill p-1">
+                {[
+                  { key: 'active', label: 'Active' },
+                  { key: 'past', label: 'Past' },
+                ].map((item) => (
+                  <button
+                    key={item.key}
+                    type="button"
+                    onClick={() => setTab(item.key as 'active' | 'past')}
+                    className={[
+                      'flex min-h-11 items-center rounded-full px-5 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-pill',
+                      tab === item.key ? 'bg-foreground text-background' : 'text-on-pill',
+                    ].join(' ')}
+                    aria-pressed={tab === item.key}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            </div>
 
-            {rest.length > 0 && (
-              <section className="mt-8" aria-labelledby="guest-past-orders">
-                <h2
-                  id="guest-past-orders"
-                  className="px-5 pb-1.5 text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground"
-                >
-                  Past
-                </h2>
-                <ul>
-                  {rest.map((order) => (
-                    <li key={order.id} className="border-t border-border">
-                      <PastOrderRow order={order} />
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            )}
+            <div className="mt-6 space-y-6 px-5">
+              {orders.length === 0 ? (
+                <EmptyState
+                  icon={<PhosphorIcon name="receipt" className="h-6 w-6" />}
+                  title="No orders yet"
+                  description="When you place your first order from this phone, it will appear here."
+                  action={
+                    <Button asChild>
+                      <Link href={emptyHref}>Order a coffee</Link>
+                    </Button>
+                  }
+                />
+              ) : displayed.length === 0 ? (
+                <EmptyState
+                  icon={<PhosphorIcon name="receipt" className="h-6 w-6" />}
+                  title={tab === 'active' ? 'No active orders' : 'No past orders'}
+                  description={tab === 'active' ? 'You have no orders in progress.' : 'Your past orders will appear here.'}
+                  action={
+                    <Button asChild>
+                      <Link href={emptyHref}>Order a coffee</Link>
+                    </Button>
+                  }
+                />
+              ) : (
+                grouped.map(({ label, items }) => (
+                  <section key={`${tab}-${label}`}>
+                    <h2 className="text-xs font-semibold tracking-[0.12em] text-muted-foreground">{label}</h2>
+                    <ul className="mt-3 space-y-3">
+                      {items.map((order) => (
+                        <li key={order.id}>
+                          <GuestOrderRow order={order} />
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                ))
+              )}
+            </div>
           </>
         )}
 
@@ -142,65 +155,37 @@ export function GuestOrders() {
   )
 }
 
-function orderSummary(order: GuestOrder) {
-  return order.itemsSummary || itemsLabel(order.itemCount)
-}
-
-function CurrentOrderCard({ order }: { order: GuestOrder }) {
-  return (
-    <section className="mx-5 mt-6 rounded-3xl bg-surface p-5" aria-labelledby="guest-current-order">
-      <p id="guest-current-order" className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-        Your order in progress
-      </p>
-      <div className="mt-1.5 flex items-center justify-between gap-3">
-        <p className="min-w-0 truncate text-xl font-semibold text-foreground">{order.shopName ?? 'Your order'}</p>
-        <Badge variant={statusVariant[order.status] ?? 'secondary'} className="shrink-0">
-          {statusLabels[order.status] ?? order.status}
-        </Badge>
-      </div>
-      <div className="mt-3 flex items-end justify-between gap-4">
-        <p className="min-w-0 text-[0.95rem] leading-6 text-muted-foreground">
-          {orderSummary(order)} ·{' '}
-          <span className="tabular-nums">{formatMoney(order.totalCents, order.currency, order.locale)}</span>
-        </p>
-        <p className="shrink-0 text-right">
-          <span className="sr-only">Pickup code </span>
-          <span className="text-4xl font-semibold tabular-nums tracking-[0.08em] text-foreground">
-            {pickupCode(order.id)}
-          </span>
-        </p>
-      </div>
-      <Button asChild className="mt-4 h-14 w-full rounded-full text-base">
-        <Link href={guestOrderHref(order)}>View tracking</Link>
-      </Button>
-    </section>
-  )
-}
-
-function PastOrderRow({ order }: { order: GuestOrder }) {
+function GuestOrderRow({ order }: { order: GuestOrder }) {
+  const active = isActiveOrder(order)
   const reorderHref = guestReorderHref(order)
+
   return (
-    <div className="flex min-h-16 items-center justify-between gap-3 px-5 py-3">
-      <Link href={guestOrderHref(order)} className="min-w-0 flex-1">
-        <p className="truncate font-semibold text-foreground">
-          {orderSummary(order)} ·{' '}
-          <span className="tabular-nums">{formatMoney(order.totalCents, order.currency, order.locale)}</span>
-        </p>
-        <p className="mt-0.5 truncate text-sm text-muted-foreground">
-          {[order.shopName, orderDate(order.createdAt), statusLabels[order.status] ?? order.status]
-            .filter(Boolean)
-            .join(' · ')}
+    <div className="flex items-center gap-3 rounded-2xl border border-border bg-surface-elevated p-3 shadow-card">
+      <Link href={guestOrderHref(order)} className="shrink-0">
+        <span className={['flex h-10 w-10 items-center justify-center rounded-full bg-pill', active ? 'text-on-pill' : 'text-muted-foreground'].join(' ')}>
+          <PhosphorIcon name="storefront" className="h-5 w-5" />
+        </span>
+      </Link>
+      <Link href={guestOrderHref(order)} className="min-w-0 flex-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-surface-elevated rounded-lg">
+        <p className={['truncate text-base font-semibold leading-[22px]', active ? 'text-foreground' : 'text-muted-foreground'].join(' ')}>{order.shopName ?? 'Your order'}</p>
+        {order.itemsSummary && (
+          <p className={['truncate text-body-sm', active ? 'text-foreground' : 'text-muted-foreground'].join(' ')}>{order.itemsSummary}</p>
+        )}
+        <p className={['text-body-sm text-muted-foreground', active ? 'truncate' : ''].join(' ')}>
+          <span>{statusLabels[order.status] ?? order.status}</span>
+          {active && <> · Code {pickupCode(order.id)}</>}
         </p>
       </Link>
-      {reorderHref && (
-        <Link
-          href={reorderHref}
-          className="inline-flex min-h-11 shrink-0 items-center px-1 text-base font-semibold text-accent underline underline-offset-4"
-          aria-label={`Reorder from ${order.shopName ?? 'this coffee shop'}`}
-        >
-          Reorder
-        </Link>
-      )}
+      <div className="flex shrink-0 flex-col items-end gap-1">
+        <span className={['text-sm font-semibold tabular-nums', active ? 'text-foreground' : 'text-muted-foreground'].join(' ')}>
+          {formatMoney(order.totalCents, order.currency, order.locale)}
+        </span>
+        {!active && reorderHref && (
+          <Button asChild variant="outline" size="sm" className="min-h-11 focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-surface-elevated">
+            <Link href={reorderHref}>Order again</Link>
+          </Button>
+        )}
+      </div>
     </div>
   )
 }

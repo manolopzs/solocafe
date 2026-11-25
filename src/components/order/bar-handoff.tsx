@@ -43,8 +43,8 @@ export function BarHandoff({
   const summary = items.map((item) => `${item.quantity} × ${item.name}`).join(', ')
   const hint =
     wakeLock === 'active'
-      ? 'The screen stays on while this is open. It is readable from a meter away.'
-      : 'It is readable from a meter away. If the screen goes off, tap it to wake.'
+      ? 'The screen stays on while this is open. It\'s readable from a meter away.'
+      : 'It\'s readable from a meter away. If the screen goes off, tap it to wake.'
 
   return (
     <div
@@ -55,7 +55,7 @@ export function BarHandoff({
       data-testid="bar-handoff"
       data-wake-lock={wakeLock}
     >
-      <div className="mx-auto flex min-h-full max-w-xl flex-col px-5 pb-[calc(env(safe-area-inset-bottom)+84px)] pt-[env(safe-area-inset-top)]">
+      <div className="phone-col flex min-h-full flex-col px-5 pb-[calc(env(safe-area-inset-bottom)+84px)] pt-[env(safe-area-inset-top)]">
         <div className="flex h-12 items-center text-body-sm font-semibold">
           <span className="truncate">{shopName}</span>
         </div>
@@ -63,7 +63,7 @@ export function BarHandoff({
         {/* Between the header and Back, at the optical centre: one third of the free space above, two below. */}
         <div className="flex flex-1 flex-col" data-testid="bar-handoff-group">
           <span className="min-h-6 flex-1" aria-hidden="true" />
-          <p className="text-center text-eyebrow uppercase text-listo-muted">Show this at the counter</p>
+          <p className="text-center text-eyebrow text-listo-muted">Show this at the counter</p>
           <div className="mt-3 rounded-code bg-sky-tint/70 px-6 pb-9 pt-8 text-center">
             <p
               className="text-[108px] font-semibold leading-none tracking-[-0.02em] tabular-nums text-foreground"
@@ -84,7 +84,7 @@ export function BarHandoff({
           ref={backRef}
           type="button"
           onClick={onClose}
-          className="mx-auto flex h-12 w-full max-w-xl items-center justify-center rounded-full border-[1.5px] border-foreground/28 bg-sky-tint/55 text-button text-foreground active:scale-[0.98]"
+          className="phone-col flex h-12 w-full items-center justify-center rounded-full border-[1.5px] border-foreground/28 bg-sky-tint/55 text-button text-foreground active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-sky"
         >
           Back
         </button>

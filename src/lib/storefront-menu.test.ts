@@ -1,4 +1,4 @@
-import { getMenuItemImage, storefrontItemName, storefrontCategoryName } from './storefront-menu'
+import { getMenuItemImage, hasMultipleCategories, storefrontItemName, storefrontCategoryName } from './storefront-menu'
 
 describe('customer menu presentation', () => {
   test.each([
@@ -26,5 +26,11 @@ describe('customer menu presentation', () => {
     expect(storefrontItemName('Cafe especial')).toBe('Cafe especial')
     expect(storefrontCategoryName('Cafe')).toBe('Café')
     expect(storefrontCategoryName('Cafe especial')).toBe('Cafe especial')
+  })
+
+  test('hides category headings unless the menu has multiple visible sections', () => {
+    expect(hasMultipleCategories(0)).toBe(false)
+    expect(hasMultipleCategories(1)).toBe(false)
+    expect(hasMultipleCategories(2)).toBe(true)
   })
 })

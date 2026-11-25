@@ -11,7 +11,9 @@ describe('GuestAccount', () => {
     expect(screen.getByText('Your name and phone, saved')).toBeInTheDocument()
     expect(screen.getByText('Reorder in one tap')).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Stamp card' })).toBeInTheDocument()
-    expect(screen.getByText('Every paid order earns a stamp at that coffee shop.')).toBeInTheDocument()
+    expect(screen.getByText('Sign up and every order earns a stamp.')).toBeInTheDocument()
+    const stampRow = screen.getByRole('heading', { name: 'Stamp card' }).parentElement?.nextElementSibling
+    expect(stampRow).toHaveClass('top-1/2', '-translate-y-1/2')
     // No invented count: each shop sets its own number of stamps.
     expect(screen.queryByText(/de 8/)).not.toBeInTheDocument()
   })

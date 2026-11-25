@@ -13,7 +13,7 @@ export default function NotFound() {
         <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-terracotta-700 text-white">
           <Icon name="coffee" className="h-7 w-7" />
         </div>
-        <p className="mt-6 text-sm font-semibold uppercase tracking-wider text-terracotta-700">404</p>
+        <p className="mt-6 text-sm font-semibold tracking-wider text-terracotta-700">404</p>
         <h1 className="mt-2 font-sans text-3xl font-semibold tracking-tight text-heading">This page doesn&apos;t exist</h1>
         <p className="mt-3 text-base leading-7 text-muted-foreground">
           That link doesn&apos;t match any part of Solo Café. Go back home or enter as a coffee shop.
