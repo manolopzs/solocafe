@@ -1,4 +1,6 @@
 class AuthenticationController < ApplicationController
+  include AuthenticationPayload
+
   rate_limit to: 10, within: 3.minutes,
     by: -> { params[:email].to_s.strip.downcase },
     with: :render_rate_limited,
@@ -60,15 +62,5 @@ class AuthenticationController < ApplicationController
     payload = { errors: user.errors.full_messages, error_codes: error_codes }
     payload[:code] = "email_taken" if user.errors.of_kind?(:email, :taken)
     payload
-  end
-
-  def user_payload(user)
-    customer = user.customers.first
-    {
-      id: user.id,
-      email: user.email,
-      role: user.role,
-      customer: customer ? { id: customer.id, name: customer.name, phone: customer.phone } : nil
-    }
   end
 end

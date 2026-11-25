@@ -1,20 +1,16 @@
 'use client'
 
-import { Suspense, useActionState } from 'react'
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import Link from 'next/link'
-import { loginAction } from '@/server/actions/auth'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { loginAction, requestLoginCodeAction, verifyLoginCodeAction } from '@/server/actions/auth'
+import { EmailCodeLoginForm } from '@/components/auth/email-code-login-form'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Icon } from '@/components/ui/icon'
 import { SoloCafeWordmark } from '@/components/brand/solo-cafe-logo'
 import { ResetSuccessNotice } from '@/components/auth/reset-success-notice'
 
 export default function LoginPage() {
-  const [state, formAction, pending] = useActionState(loginAction, null)
-  const [showPassword, setShowPassword] = useState(false)
+  const [mode, setMode] = useState<'code' | 'password'>('code')
 
   return (
     <main className="flex flex-1 flex-col lg:grid lg:grid-cols-2">
@@ -53,70 +49,28 @@ export default function LoginPage() {
           <Card variant="outline" className="max-sm:rounded-none max-sm:border-0 max-sm:bg-transparent">
             <CardHeader className="max-sm:px-0 max-sm:pt-0 sm:text-center">
               <CardTitle className="!text-h2 text-heading">Log in to your account</CardTitle>
-              <CardDescription className="mt-2 text-body-sm">Enter your email and password to continue.</CardDescription>
+              <CardDescription className="mt-2 text-body-sm">
+                {mode === 'code'
+                  ? "We'll email you a 6-digit code to continue."
+                  : 'Enter your email and password to continue.'}
+              </CardDescription>
             </CardHeader>
             <CardContent className="max-sm:px-0 max-sm:pb-0">
-              <form action={formAction} className="space-y-4">
+              <div className="mb-4">
                 <Suspense fallback={null}>
                   <ResetSuccessNotice />
                 </Suspense>
+              </div>
 
-                <div>
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    required
-                    placeholder="you@cafeteria.com"
-                    className="mt-1.5"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="password">Password</Label>
-                  <div className="relative mt-1.5">
-                    <Input
-                      id="password"
-                      name="password"
-                      type={showPassword ? 'text' : 'password'}
-                      required
-                      minLength={8}
-                      placeholder="********"
-                      className="pr-10"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword((prev) => !prev)}
-                      className="absolute right-2 top-1/2 inline-flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:text-foreground"
-                      aria-label={showPassword ? 'Hide password' : 'Show password'}
-                    >
-                      <Icon name={showPassword ? 'eye-off' : 'eye'} className="h-4 w-4" />
-                    </button>
-                  </div>
-                </div>
-
-                {state?.error && (
-                  <div
-                    role="alert"
-                    aria-live="polite"
-                    className="flex items-start gap-2 rounded-lg border border-danger/20 bg-danger/10 p-3 text-sm text-danger"
-                  >
-                    <Icon name="x" className="mt-0.5 h-4 w-4 shrink-0" />
-                    <span>{state.error}</span>
-                  </div>
-                )}
-
-                <Button type="submit" disabled={pending} className="w-full">
-                  {pending ? 'Logging in...' : 'Log in'}
-                </Button>
-
-                <p className="text-center text-sm">
-                  <Link href="/auth/forgot-password" className="font-medium text-accent underline underline-offset-2 hover:text-accent/80">
-                    Forgot your password?
-                  </Link>
-                </p>
-              </form>
+              <EmailCodeLoginForm
+                variant="owner"
+                emailPlaceholder="you@cafeteria.com"
+                forgotPasswordHref="/auth/forgot-password"
+                requestCodeAction={requestLoginCodeAction}
+                verifyCodeAction={verifyLoginCodeAction}
+                passwordLoginAction={loginAction}
+                onModeChange={setMode}
+              />
 
               <p className="mt-5 text-center text-sm text-muted-foreground">
                 Don&apos;t have an account?{' '}

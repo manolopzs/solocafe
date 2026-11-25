@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_24_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_25_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -78,6 +78,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_24_120000) do
     t.string "stripe_customer_id"
     t.index ["stripe_customer_id"], name: "index_customers_on_stripe_customer_id", unique: true
     t.index ["user_id"], name: "index_customers_on_user_id"
+  end
+
+  create_table "email_login_codes", force: :cascade do |t|
+    t.uuid "user_id", null: false
+    t.string "code_digest", null: false
+    t.datetime "expires_at", null: false
+    t.integer "attempts", default: 0, null: false
+    t.datetime "consumed_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["expires_at"], name: "index_email_login_codes_on_expires_at"
+    t.index ["user_id", "created_at"], name: "index_email_login_codes_on_user_id_and_created_at"
   end
 
   create_table "events", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -538,6 +550,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_24_120000) do
   add_foreign_key "customer_favorites", "shops"
   add_foreign_key "customer_payment_methods", "customers"
   add_foreign_key "customers", "users"
+  add_foreign_key "email_login_codes", "users", on_delete: :cascade
   add_foreign_key "events", "orders"
   add_foreign_key "events", "shops"
   add_foreign_key "item_modifier_links", "menu_items", column: "item_id"

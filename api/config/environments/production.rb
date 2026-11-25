@@ -67,11 +67,8 @@ Rails.application.configure do
     end
   end
 
-  config.action_mailer.delivery_method = if ENV["SMTP_ADDRESS"].present?
-    :smtp
-  else
-    :logger
-  end
+  require_relative "../mailer_config"
+  MailerConfig.configure(config)
 
   config.action_mailer.smtp_settings = {
     address: ENV["SMTP_ADDRESS"].to_s,
@@ -81,12 +78,6 @@ Rails.application.configure do
     authentication: ENV.fetch("SMTP_AUTHENTICATION", "plain").to_sym,
     enable_starttls_auto: ENV.fetch("SMTP_ENABLE_STARTTLS", "true") == "true"
   }
-
-  config.action_mailer.default_url_options = begin
-    app_url = ENV.fetch("APP_URL", ENV.fetch("CORS_ALLOWED_ORIGINS", "https://solo-cafe-nine.vercel.app").split(",").first.to_s)
-    uri = URI.parse(app_url)
-    { host: uri.host, port: uri.port, protocol: uri.scheme }
-  end
 
   # Enable DNS rebinding protection and other `Host` header attacks.
   config.hosts = ENV.fetch("ALLOWED_HOSTS", "solocafe-api.onrender.com").split(",").map(&:strip).reject(&:blank?)

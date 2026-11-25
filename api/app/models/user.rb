@@ -9,6 +9,7 @@ class User < ApplicationRecord
   has_many :shops, through: :shop_memberships
   has_many :owned_shops, class_name: "Shop", foreign_key: :owner_id, dependent: :nullify
   has_many :customers, dependent: :nullify
+  has_many :email_login_codes, dependent: :destroy
 
   normalizes :email, with: ->(email) { email.strip.downcase }
 
