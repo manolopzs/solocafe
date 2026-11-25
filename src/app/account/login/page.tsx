@@ -19,11 +19,9 @@ export default function AccountLoginPage() {
         <h1 className="mt-10 text-[2rem] font-medium leading-tight tracking-tight text-heading">Log in</h1>
         <p className="mt-2 text-base leading-6 text-muted-foreground">Access your account to see your orders and reorder them.</p>
 
-        <div className="mt-8">
-          <Suspense fallback={null}>
-            <ResetSuccessNotice />
-          </Suspense>
-        </div>
+        <Suspense fallback={null}>
+          <ResetSuccessNotice />
+        </Suspense>
 
         <EmailCodeLoginForm
           variant="account"

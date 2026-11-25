@@ -132,6 +132,8 @@ describe('owner login page', () => {
 
     expect(screen.getByLabelText('Email')).toHaveValue('owner@example.com')
     expect(screen.getByLabelText('Password')).toBeInTheDocument()
+    expect(screen.queryByText("We'll email you a 6-digit code to continue.")).not.toBeInTheDocument()
+    expect(screen.getByText('Enter your email and password to continue.')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Forgot your password?' })).toHaveAttribute('href', '/auth/forgot-password')
     expect(screen.getByRole('button', { name: 'Log in with email code' })).toBeInTheDocument()
   })

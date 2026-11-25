@@ -10,6 +10,7 @@ import { Notice } from '@/components/ui/notice'
 import type { EmailCodeRequestState, EmailCodeVerifyState } from '@/lib/auth-flow'
 
 type PasswordLoginState = { error?: string; email?: string } | null
+type LoginMode = 'code' | 'password'
 
 type EmailCodeLoginFormProps = {
   variant: 'account' | 'owner'
@@ -27,6 +28,7 @@ type EmailCodeLoginFormProps = {
     prevState: PasswordLoginState,
     formData: FormData,
   ) => Promise<PasswordLoginState>
+  onModeChange?: (mode: LoginMode) => void
 }
 
 export function EmailCodeLoginForm({
@@ -36,8 +38,9 @@ export function EmailCodeLoginForm({
   requestCodeAction,
   verifyCodeAction,
   passwordLoginAction,
+  onModeChange,
 }: EmailCodeLoginFormProps) {
-  const [mode, setMode] = useState<'code' | 'password'>('code')
+  const [mode, setMode] = useState<LoginMode>('code')
   const [email, setEmail] = useState('')
   const [changingEmail, setChangingEmail] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
@@ -70,11 +73,17 @@ export function EmailCodeLoginForm({
     setNow(Date.now())
   }
 
+  const toggleMode = () => {
+    const nextMode = mode === 'code' ? 'password' : 'code'
+    setMode(nextMode)
+    onModeChange?.(nextMode)
+  }
+
   const modeToggle = (
     <p className="text-center text-sm">
       <button
         type="button"
-        onClick={() => setMode(mode === 'code' ? 'password' : 'code')}
+        onClick={toggleMode}
         className="inline-flex min-h-11 items-center justify-center font-medium text-accent underline underline-offset-2 hover:text-accent/80"
       >
         {mode === 'code' ? 'Log in with password instead' : 'Log in with email code'}
@@ -146,12 +155,9 @@ export function EmailCodeLoginForm({
   if (isCodeStep) {
     return (
       <div className={formClassName}>
-        <div className="space-y-3">
-          <p className="text-sm leading-6 text-muted-foreground">
-            Code sent to <span className="font-medium text-foreground">{requestState.email}</span>
-          </p>
-          {requestState.message && <Notice tone="info">{requestState.message}</Notice>}
-        </div>
+        <p className="text-sm leading-6 text-muted-foreground">
+          Code sent to <span className="font-medium text-foreground">{requestState.email}</span>
+        </p>
 
         <form action={verifyFormAction} className="space-y-4">
           <input type="hidden" name="email" value={requestState.email} />

@@ -6,7 +6,7 @@ class AuthCodeMailer < ApplicationMailer
 
     mail(
       to: @user.email,
-      subject: "Your Solo Cafe code: #{@code}"
+      subject: "Your Solo Cafe login code"
     )
   end
 end

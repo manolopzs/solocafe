@@ -30,7 +30,7 @@ class AuthCodesController < ApplicationController
     if user
       _record, code = EmailLoginCode.issue_for!(user)
       login_url = frontend_login_url(user)
-      AuthCodeMailer.with(user: user, code: code, login_url: login_url).login_code_email.deliver_later
+      AuthCodeMailer.with(user: user, code: code, login_url: login_url).login_code_email.deliver_now
     end
 
     render json: { message: "If that email exists, we sent a 6-digit login code." }, status: :ok

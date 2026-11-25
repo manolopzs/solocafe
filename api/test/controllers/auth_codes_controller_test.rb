@@ -14,12 +14,12 @@ class AuthCodesControllerTest < ActionDispatch::IntegrationTest
     assert_equal neutral_message, response.parsed_body["message"]
   end
 
-  test "request enqueues a code email for a known customer with the account login link" do
+  test "request sends a code email for a known customer with the account login link without enqueueing jobs" do
     user = User.create!(email: "customer@example.com", password: "password123")
 
     with_env("APP_URL" => "https://app.example.com") do
       assert_emails 1 do
-        perform_enqueued_jobs do
+        assert_no_enqueued_jobs do
           post "/auth/code/request", params: { email: user.email, from: "account" }, as: :json
         end
       end
@@ -28,22 +28,22 @@ class AuthCodesControllerTest < ActionDispatch::IntegrationTest
     assert_response :ok
     assert_equal neutral_message, response.parsed_body["message"]
     mail = ActionMailer::Base.deliveries.last
-    assert_match(/\AYour Solo Cafe code: \d{6}\z/, mail.subject)
-    code = mail.subject.delete_prefix("Your Solo Cafe code: ")
-    assert_includes mail.body.decoded, code
-    assert_includes mail.body.decoded, "expires in 10 minutes"
-    assert_includes mail.body.decoded, "https://app.example.com/account/login"
-    assert_includes mail.body.decoded, "The Solo Cafe team"
+    assert_equal "Your Solo Cafe login code", mail.subject
+    body = mail.body.decoded
+    code = body[/\b(\d{6})\b/, 1]
+    assert_not_nil code
+    assert_includes body, code
+    assert_includes body, "expires in 10 minutes"
+    assert_includes body, "https://app.example.com/account/login"
+    assert_includes body, "The Solo Cafe team"
   end
 
-  test "request enqueues a code email for a known owner with the owner login link" do
+  test "request sends a code email for a known owner with the owner login link" do
     user = User.create!(email: "owner@example.com", password: "password123", role: "admin")
 
     with_env("APP_URL" => "https://app.example.com") do
       assert_emails 1 do
-        perform_enqueued_jobs do
-          post "/auth/code/request", params: { email: user.email }, as: :json
-        end
+        post "/auth/code/request", params: { email: user.email }, as: :json
       end
     end
 
@@ -54,11 +54,19 @@ class AuthCodesControllerTest < ActionDispatch::IntegrationTest
   test "request matches emails case insensitively" do
     User.create!(email: "owner@example.com", password: "password123")
 
-    assert_enqueued_emails 1 do
+    assert_emails 1 do
       post "/auth/code/request", params: { email: " Owner@Example.com " }, as: :json
     end
 
     assert_response :ok
+  end
+
+  test "verify filters the code from request logs" do
+    post "/auth/code/verify", params: { email: "missing@example.com", code: "123456" }, as: :json
+
+    assert_response :unauthorized
+    assert_equal "[FILTERED]", request.filtered_parameters["code"]
+    assert_not_equal "123456", request.filtered_parameters["code"]
   end
 
   test "request rejects blank and malformed email addresses" do

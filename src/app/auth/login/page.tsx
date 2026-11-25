@@ -1,6 +1,6 @@
 'use client'
 
-import { Suspense } from 'react'
+import { Suspense, useState } from 'react'
 import Link from 'next/link'
 import { loginAction, requestLoginCodeAction, verifyLoginCodeAction } from '@/server/actions/auth'
 import { EmailCodeLoginForm } from '@/components/auth/email-code-login-form'
@@ -10,6 +10,8 @@ import { SoloCafeWordmark } from '@/components/brand/solo-cafe-logo'
 import { ResetSuccessNotice } from '@/components/auth/reset-success-notice'
 
 export default function LoginPage() {
+  const [mode, setMode] = useState<'code' | 'password'>('code')
+
   return (
     <main className="flex flex-1 flex-col lg:grid lg:grid-cols-2">
       <section className="flex flex-col justify-center bg-surface px-5 pb-8 pt-4 lg:px-16 lg:py-12 xl:px-24">
@@ -47,7 +49,11 @@ export default function LoginPage() {
           <Card variant="outline" className="max-sm:rounded-none max-sm:border-0 max-sm:bg-transparent">
             <CardHeader className="max-sm:px-0 max-sm:pt-0 sm:text-center">
               <CardTitle className="!text-h2 text-heading">Log in to your account</CardTitle>
-              <CardDescription className="mt-2 text-body-sm">We&apos;ll email you a 6-digit code to continue.</CardDescription>
+              <CardDescription className="mt-2 text-body-sm">
+                {mode === 'code'
+                  ? "We'll email you a 6-digit code to continue."
+                  : 'Enter your email and password to continue.'}
+              </CardDescription>
             </CardHeader>
             <CardContent className="max-sm:px-0 max-sm:pb-0">
               <div className="mb-4">
@@ -63,6 +69,7 @@ export default function LoginPage() {
                 requestCodeAction={requestLoginCodeAction}
                 verifyCodeAction={verifyLoginCodeAction}
                 passwordLoginAction={loginAction}
+                onModeChange={setMode}
               />
 
               <p className="mt-5 text-center text-sm text-muted-foreground">
